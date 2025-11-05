@@ -1,0 +1,20 @@
+.footnote {
+    font-size: small !important;
+    cursor: pointer;
+    text-indent: 0 !important;
+}
+
+.footnote::before {
+    content: '\21A9';
+    color: #474646;
+    font-size: 1em;
+    font-family: 'Roboto Mono', monospace;
+}
+
+.text {
+    font-family: "Lora", serif;
+}
+
+.footnoteBorder {
+    border-top: 2px solid darkgray;
+}

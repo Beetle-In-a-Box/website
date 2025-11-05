@@ -1,0 +1,30 @@
+.floatingBar {
+    position: fixed;
+    bottom: 6vh;
+    right: 10px;
+    min-width: 17vw;
+    background-color: white;
+    color: #1a1a1a;
+    display: flex;
+    justify-content: space-evenly;
+    flex-direction: row;
+    padding: 7px 10px;
+    border: 2px solid black;
+    border-radius: 16px;
+    gap: 10px;
+}
+
+.floatingBar p {
+    margin: 0;
+}
+
+.floatingBar a {
+    color: #1a1a1a;
+    text-decoration: none;
+}
+
+.floatingBar a:hover {
+    text-decoration: underline;
+    font-size: medium;
+    cursor: pointer;
+}

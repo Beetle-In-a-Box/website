@@ -1,0 +1,51 @@
+.contentsContainer {
+    display: flex;
+    flex-direction: column;
+    width: 85vw;
+    height: 100%;
+    margin-top: 20vh;
+    align-self: center;
+    gap: 15px;
+}
+
+.contentsContainer .title {
+    display: flex;
+    justify-content: center;
+    font-size: 5vh;
+}
+
+.contentsContainer .contents {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
+    width: 70vw;
+    row-gap: 20px;
+    column-gap: 20px;
+    align-self: center;
+    border-top: solid 1px rgba(240, 240, 240, 1);
+    margin-top: 5vh;
+}
+
+.contentsContainer .middle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 5vw;
+}
+
+.contentsContainer .middle img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    max-width: 100%;
+}
+
+.contentsContainer .middle div {
+    justify-self: center;
+}
+
+.contentsContainer .middle div ol li::marker {
+    font-family: 'Playfair Display', serif;
+    font-weight: 500;
+    font-size: clamp(1rem, 2.5vw, 2rem);
+    color: #000000;
+}

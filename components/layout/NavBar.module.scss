@@ -1,0 +1,44 @@
+.navBar {
+    display: grid;
+    height: 20vh;
+    grid-auto-flow: column;
+    color: black;
+    background-color: white;
+    position: fixed;
+    width: 100vw;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.navBar h1 {
+    font-size: 5vh;
+    font-weight: 200;
+    letter-spacing: 5px;
+    margin: 0;
+}
+
+.navBar h3 {
+    font-size: clamp(0.9rem, 1.5vw, 2vh);
+    font-weight: 200;
+}
+
+.navBar p {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(0.8rem, 1.5vw, 1.7vh);
+    text-align: center;
+}
+
+.navBar .item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.navBar .rightSide h3 {
+    text-align: right;
+}
+
+.navBar .center {
+    grid-column: auto / span 5;
+    flex-direction: column;
+}
