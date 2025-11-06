@@ -1,6 +1,6 @@
-# Beetle in a Box - Next.js Application
+# Beetle in a Box
 
-A modern web application for UC Berkeley's undergraduate philosophy review publication.
+Website for UC Berkeley's undergraduate philosophy review publication.
 
 ## Tech Stack
 
