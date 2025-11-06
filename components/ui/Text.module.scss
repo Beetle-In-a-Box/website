@@ -1,0 +1,11 @@
+.text {
+    font-family: "Lora", serif;
+    text-align: justify;
+    font-size: clamp(0.75rem, 1.5vw, 1.5rem);
+    hyphens: auto;
+    hyphenate-limit-chars: 7 2 3;
+}
+
+.withIndent {
+    text-indent: 1em;
+}

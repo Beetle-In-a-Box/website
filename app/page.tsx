@@ -43,8 +43,7 @@ export default function Home() {
     return (
         <MainContainer>
             <NavBar clickable={false} date="August 2025" />
-            <ContentsContainer>
-                <div className="title">Issue 1</div>
+            <ContentsContainer title="Issue 1">
                 <IssueCover
                     imageSrc="/Issue-1/Images/issue-1_cover.png"
                     articles={articles}

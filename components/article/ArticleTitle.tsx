@@ -1,9 +1,9 @@
-import styles from './ArticleTitle.module.scss';
+import Title from '@/components/ui/Title'
 
 interface ArticleTitleProps {
-  title: string;
+    title: string
 }
 
 export default function ArticleTitle({ title }: ArticleTitleProps) {
-  return <div className={styles.title}>{title}</div>;
+    return <Title>{title}</Title>
 }

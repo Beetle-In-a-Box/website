@@ -1,0 +1,27 @@
+.link {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    color: #1a1a1a;
+}
+
+.link:hover {
+    opacity: 0.8;
+}
+
+.bold {
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.bold:hover {
+    text-decoration: underline;
+}
+
+.textLink {
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+    color: #1a1a1a;
+    text-underline-offset: 2px;
+}

@@ -18,7 +18,7 @@
     background-position: center;
 }
 
-.articlePreview .previewTitle a {
+.articlePreview .previewTitle .previewTitleA {
     display: flex;
     align-self: center;
     justify-self: center;
@@ -32,17 +32,16 @@
     text-decoration: none;
 }
 
-.articlePreview .previewAuthor {
+.articlePreview .previewTitle .previewAuthor {
     color: #1a1a1a;
     display: flex;
-    text-decoration: none;
     justify-self: center;
     font-size: clamp(0.50rem, 1.2vw, 1.2rem) !important;
     margin-top: 0 !important;
     font-weight: 500 !important;
 }
 
-.articlePreview .previewAuthor:hover {
+.articlePreview .previewTitle .previewAuthor:hover {
     cursor: pointer;
     text-decoration: underline;
 }
@@ -51,12 +50,4 @@
     color: #1a1a1a;
     margin: 0;
     font-size: clamp(0.5rem, 1.2vw, 1.25rem);
-}
-
-.textLink {
-    font-weight: 600;
-    text-decoration: underline;
-    cursor: pointer;
-    color: #1a1a1a;
-    text-underline-offset: 2px;
 }

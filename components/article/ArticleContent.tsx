@@ -1,11 +1,16 @@
-'use client';
+'use client'
 
-import styles from './ArticleContent.module.scss';
+import Text from '@/components/ui/Text'
+import styles from './ArticleContent.module.scss'
 
 interface ArticleContentProps {
-  children: React.ReactNode;
+    children: React.ReactNode
 }
 
 export default function ArticleContent({ children }: ArticleContentProps) {
-  return <div className={`${styles.text} ${styles.contents}`}>{children}</div>;
+    return (
+        <Text indent className={styles.contents}>
+            {children}
+        </Text>
+    )
 }

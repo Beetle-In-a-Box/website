@@ -1,4 +1,5 @@
-import Link from 'next/link'
+import Link from '@/components/ui/Link'
+import Text from '@/components/ui/Text'
 import styles from './ArticleAuthor.module.scss'
 
 interface ArticleAuthorProps {
@@ -11,12 +12,12 @@ export default function ArticleAuthor({
     role = 'Staff Writer',
 }: ArticleAuthorProps) {
     return (
-        <div className={`${styles.authorAttr} ${styles.text}`}>
+        <Text className={styles.authorAttr}>
             By{' '}
-            <Link className={styles.bold} href="/about" target="_blank">
+            <Link href="/about" target="_blank" variant="bold">
                 {author}
             </Link>{' '}
             | {role}
-        </div>
+        </Text>
     )
 }
