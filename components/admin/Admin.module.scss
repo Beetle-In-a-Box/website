@@ -1,0 +1,528 @@
+// Admin Panel Styles
+
+// Navigation
+.nav {
+    width: 250px;
+    height: 100vh;
+    background: #1a1a1a;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 2rem 0;
+}
+
+.navHeader {
+    padding: 0 1.5rem 2rem;
+    border-bottom: 1px solid #333;
+
+    h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        color: white;
+    }
+}
+
+.navList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex: 1;
+
+    li {
+        margin: 0;
+
+        a {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: #ccc;
+            text-decoration: none;
+            transition: all 0.2s;
+
+            &:hover {
+                background: #2a2a2a;
+                color: white;
+            }
+
+            &.active {
+                background: #2a2a2a;
+                color: white;
+                border-left: 3px solid #4a9eff;
+            }
+        }
+    }
+}
+
+.navFooter {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #333;
+
+    a {
+        color: #4a9eff;
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
+// Main content area
+.adminContainer {
+    margin-left: 250px;
+    padding: 2rem 3rem;
+    min-height: 100vh;
+    background: #f5f5f5;
+}
+
+// Page header
+.pageHeader {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h1 {
+        margin: 0;
+        font-size: 2rem;
+    }
+}
+
+.headerActions {
+    display: flex;
+    gap: 1rem;
+}
+
+// Buttons
+.btn, .btnPrimary, .btnEdit, .btnDelete, .btnToggle {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.2s;
+}
+
+.btn {
+    background: #fff;
+    color: #333;
+    border: 1px solid #ddd;
+
+    &:hover {
+        background: #f5f5f5;
+    }
+}
+
+.btnPrimary {
+    background: #4a9eff;
+    color: white;
+    font-weight: 500;
+
+    &:hover {
+        background: #3a8eef;
+    }
+}
+
+.btnEdit {
+    background: #4a9eff;
+    color: white;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+
+    &:hover {
+        background: #3a8eef;
+    }
+}
+
+.btnDelete {
+    background: #dc3545;
+    color: white;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+
+    &:hover {
+        background: #c82333;
+    }
+}
+
+.btnToggle {
+    background: #28a745;
+    color: white;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+
+    &:hover {
+        background: #218838;
+    }
+}
+
+// Cards
+.cardGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.cardContent {
+    padding: 1.5rem;
+    display: flex;
+    gap: 1rem;
+}
+
+.cardImage {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+    border-radius: 4px;
+    overflow: hidden;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.cardInfo {
+    flex: 1;
+
+    h3 {
+        margin: 0 0 0.5rem;
+        font-size: 1.125rem;
+    }
+}
+
+.cardDate, .cardAuthor, .cardIssue {
+    margin: 0.25rem 0;
+    color: #666;
+    font-size: 0.875rem;
+}
+
+.cardMeta {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.published, .unpublished, .articleCount, .articleNumber {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.published {
+    background: #d4edda;
+    color: #155724;
+}
+
+.unpublished {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.articleCount, .articleNumber {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.cardActions {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    background: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+}
+
+// Forms
+.form {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+}
+
+.formGroup {
+    margin-bottom: 1.5rem;
+
+    label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: #333;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+        font-family: inherit;
+
+        &:focus {
+            outline: none;
+            border-color: #4a9eff;
+        }
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+}
+
+.formGroup input[type="checkbox"] {
+    width: auto;
+    margin-right: 0.5rem;
+}
+
+.required {
+    color: #dc3545;
+    margin-left: 0.25rem;
+}
+
+.helperText {
+    margin: 0.25rem 0 0.5rem;
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.fileInput {
+    cursor: pointer;
+}
+
+.selectedFile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+.clearButton {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+
+    &:hover {
+        background: #5a6268;
+    }
+}
+
+.formActions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+// Form messages
+.formMessage {
+    padding: 1rem 1.5rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    &.success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    &.error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 1rem;
+    opacity: 0.5;
+
+    &:hover {
+        opacity: 1;
+    }
+}
+
+// Dashboard stats
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.statCard {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    h3 {
+        margin: 0 0 0.5rem;
+        font-size: 0.875rem;
+        color: #666;
+        text-transform: uppercase;
+    }
+
+    .statValue {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #333;
+    }
+}
+
+.quickActions {
+    margin-bottom: 2rem;
+
+    h2 {
+        margin-bottom: 1rem;
+    }
+
+    .actionList {
+        display: flex;
+        gap: 1rem;
+    }
+}
+
+.recentItems {
+    h2 {
+        margin-bottom: 1rem;
+    }
+
+    .itemList {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .item {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #dee2e6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+
+    .itemInfo {
+        h4 {
+            margin: 0 0 0.25rem;
+        }
+
+        p {
+            margin: 0;
+            font-size: 0.875rem;
+            color: #666;
+        }
+    }
+}
+
+// Filter controls
+.filterControls {
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+
+    label {
+        font-weight: 500;
+    }
+
+    select {
+        padding: 0.5rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+        cursor: pointer;
+
+        &:focus {
+            outline: none;
+            border-color: #4a9eff;
+        }
+    }
+}
+
+// Loading state
+.loading {
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+}
+
+// Empty state
+.emptyState {
+    text-align: center;
+    padding: 3rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    h3 {
+        margin: 0 0 1rem;
+        color: #666;
+    }
+}
+
+// Responsive
+@media (max-width: 768px) {
+    .nav {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+
+    .adminContainer {
+        margin-left: 0;
+        padding: 1.5rem;
+    }
+
+    .cardGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .pageHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .cardActions {
+        flex-wrap: wrap;
+    }
+}
