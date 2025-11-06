@@ -1,0 +1,256 @@
+import {
+    convertArticleDocx,
+    convertCitationsDocx,
+    convertPreviewDocx,
+    generateFileName,
+} from '@/utils/docx-utils'
+import mammoth from 'mammoth'
+
+// Mock mammoth library
+jest.mock('mammoth', () => ({
+    convertToHtml: jest.fn(),
+    extractRawText: jest.fn(),
+}))
+
+describe('DOCX Utilities', () => {
+    beforeEach(() => {
+        jest.clearAllMocks()
+    })
+
+    describe('convertArticleDocx', () => {
+        it('should convert docx to HTML with footnote links', async () => {
+            const mockHtml =
+                '<p>This is a test<sup>1</sup> with footnotes<sup>2</sup></p>'
+            ;(mammoth.convertToHtml as jest.Mock).mockResolvedValue({
+                value: mockHtml,
+                messages: [],
+            })
+
+            const buffer = Buffer.from('fake docx content')
+            const result = await convertArticleDocx(buffer)
+
+            expect(result).toContain('footnoteLink')
+            expect(result).toContain("id='fl1'")
+            expect(result).toContain("id='fl2'")
+            expect(result).toContain(
+                'onclick="goToElementWithHighlightModern(\'f1\')"',
+            )
+            expect(result).toContain(
+                'onclick="goToElementWithHighlightModern(\'f2\')"',
+            )
+        })
+
+        it('should handle content with no footnotes', async () => {
+            const mockHtml = '<p>This is a test with no footnotes</p>'
+            ;(mammoth.convertToHtml as jest.Mock).mockResolvedValue({
+                value: mockHtml,
+                messages: [],
+            })
+
+            const buffer = Buffer.from('fake docx content')
+            const result = await convertArticleDocx(buffer)
+
+            expect(result).toBe(mockHtml)
+            expect(result).not.toContain('footnoteLink')
+        })
+
+        it('should clean special characters', async () => {
+            const mockHtml =
+                '<p>Test with "smart quotes" and \'apostrophes\'</p>'
+            ;(mammoth.convertToHtml as jest.Mock).mockResolvedValue({
+                value: mockHtml,
+                messages: [],
+            })
+
+            const buffer = Buffer.from('fake docx content')
+            const result = await convertArticleDocx(buffer)
+
+            expect(result).toContain('"smart quotes"')
+            expect(result).toContain("'apostrophes'")
+        })
+
+        it('should handle multiple footnotes correctly', async () => {
+            const mockHtml =
+                '<p>First<sup>1</sup> second<sup>2</sup> third<sup>3</sup></p>'
+            ;(mammoth.convertToHtml as jest.Mock).mockResolvedValue({
+                value: mockHtml,
+                messages: [],
+            })
+
+            const buffer = Buffer.from('fake docx content')
+            const result = await convertArticleDocx(buffer)
+
+            expect(result).toContain("id='fl1'")
+            expect(result).toContain("id='fl2'")
+            expect(result).toContain("id='fl3'")
+        })
+    })
+
+    describe('convertCitationsDocx', () => {
+        it('should convert paragraphs to clickable footnotes', async () => {
+            const mockHtml =
+                '<p>First citation</p><p>Second citation</p><p>Third citation</p>'
+            ;(mammoth.convertToHtml as jest.Mock).mockResolvedValue({
+                value: mockHtml,
+                messages: [],
+            })
+
+            const buffer = Buffer.from('fake docx content')
+            const result = await convertCitationsDocx(buffer)
+
+            expect(result).toContain("id='f1'")
+            expect(result).toContain("id='f2'")
+            expect(result).toContain("id='f3'")
+            expect(result).toContain(
+                'onclick="goToElementWithHighlightModern(\'fl1\')"',
+            )
+            expect(result).toContain(
+                'onclick="goToElementWithHighlightModern(\'fl2\')"',
+            )
+            expect(result).toContain(
+                'onclick="goToElementWithHighlightModern(\'fl3\')"',
+            )
+            expect(result).toContain('First citation')
+            expect(result).toContain('Second citation')
+            expect(result).toContain('Third citation')
+        })
+
+        it('should handle empty paragraphs', async () => {
+            const mockHtml = '<p>First citation</p><p></p><p>Third citation</p>'
+            ;(mammoth.convertToHtml as jest.Mock).mockResolvedValue({
+                value: mockHtml,
+                messages: [],
+            })
+
+            const buffer = Buffer.from('fake docx content')
+            const result = await convertCitationsDocx(buffer)
+
+            expect(result).toContain('First citation')
+            expect(result).toContain('Third citation')
+            expect(result).toContain("id='f1'")
+            expect(result).toContain("id='f2'")
+        })
+
+        it('should clean special characters in citations', async () => {
+            const mockHtml = '<p>Citation with "quotes" and – dashes</p>'
+            ;(mammoth.convertToHtml as jest.Mock).mockResolvedValue({
+                value: mockHtml,
+                messages: [],
+            })
+
+            const buffer = Buffer.from('fake docx content')
+            const result = await convertCitationsDocx(buffer)
+
+            expect(result).toContain('"quotes"')
+            expect(result).toContain('-')
+        })
+    })
+
+    describe('convertPreviewDocx', () => {
+        it('should extract plain text from docx', async () => {
+            const mockText = 'This is the preview text from the document.'
+            ;(mammoth.extractRawText as jest.Mock).mockResolvedValue({
+                value: mockText,
+                messages: [],
+            })
+
+            const buffer = Buffer.from('fake docx content')
+            const result = await convertPreviewDocx(buffer)
+
+            expect(result).toBe(mockText)
+        })
+
+        it('should remove extra whitespace', async () => {
+            const mockText = 'This  has   extra    whitespace\n\nand newlines'
+            ;(mammoth.extractRawText as jest.Mock).mockResolvedValue({
+                value: mockText,
+                messages: [],
+            })
+
+            const buffer = Buffer.from('fake docx content')
+            const result = await convertPreviewDocx(buffer)
+
+            expect(result).toBe('This has extra whitespace and newlines')
+        })
+
+        it('should clean special characters', async () => {
+            const mockText =
+                'Text with "smart quotes" and \'apostrophes\' and – dashes'
+            ;(mammoth.extractRawText as jest.Mock).mockResolvedValue({
+                value: mockText,
+                messages: [],
+            })
+
+            const buffer = Buffer.from('fake docx content')
+            const result = await convertPreviewDocx(buffer)
+
+            expect(result).toContain('"smart quotes"')
+            expect(result).toContain("'apostrophes'")
+            expect(result).toContain('-')
+        })
+
+        it('should handle empty text', async () => {
+            ;(mammoth.extractRawText as jest.Mock).mockResolvedValue({
+                value: '',
+                messages: [],
+            })
+
+            const buffer = Buffer.from('fake docx content')
+            const result = await convertPreviewDocx(buffer)
+
+            expect(result).toBe('')
+        })
+    })
+
+    describe('generateFileName', () => {
+        it('should generate filename from title with two words', () => {
+            const result = generateFileName('The Quick Brown Fox')
+            expect(result).toBe('quick-brown.html')
+        })
+
+        it('should remove common words', () => {
+            const result = generateFileName('A Tale of Two Cities')
+            expect(result).toBe('tale-two.html')
+        })
+
+        it('should handle titles with punctuation', () => {
+            const result = generateFileName('Hello, World! How Are You?')
+            expect(result).toBe('hello-world.html')
+        })
+
+        it('should handle single word titles', () => {
+            const result = generateFileName('Philosophy')
+            expect(result).toBe('philosophy.html')
+        })
+
+        it('should convert to lowercase', () => {
+            const result = generateFileName('UPPERCASE TITLE HERE')
+            expect(result).toBe('uppercase-title.html')
+        })
+
+        it('should remove all common words from list', () => {
+            const result = generateFileName('The And Or For')
+            expect(result).toBe('.html') // All words are common
+        })
+
+        it('should handle titles with numbers', () => {
+            const result = generateFileName('Chapter 1 Introduction')
+            expect(result).toBe('chapter-1.html')
+        })
+
+        it('should handle titles with special characters', () => {
+            const result = generateFileName('Ethics & Morality: A Study')
+            expect(result).toBe('ethics-morality.html')
+        })
+
+        it('should limit to two words', () => {
+            const result = generateFileName('One Two Three Four Five')
+            expect(result).toBe('one-two.html')
+        })
+
+        it('should handle empty string', () => {
+            const result = generateFileName('')
+            expect(result).toBe('.html')
+        })
+    })
+})

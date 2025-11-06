@@ -12,6 +12,7 @@ Website for UC Berkeley's undergraduate philosophy review publication.
 - **Database**: PostgreSQL
 - **ORM**: Prisma
 - **Build Tool**: Turbopack
+- **Testing**: Jest with Bun
 
 ## Prerequisites
 
@@ -63,6 +64,14 @@ bun prisma generate      # Regenerate Prisma Client
 bun prisma migrate reset # Reset database and rerun all migrations
 ```
 
+### Testing
+
+```bash
+bun test              # Run all tests
+bun test:watch        # Run tests in watch mode
+bun test:coverage     # Run tests with coverage report
+```
+
 ## Project Structure
 
 ```
@@ -71,6 +80,13 @@ beetle-in-a-box/
 │   ├── page.tsx             # Homepage (Issue 1 listing)
 │   ├── about/               # About page
 │   ├── issue-1/             # Issue 1 article pages
+│   ├── api/                 # API routes
+│   │   ├── issues/          # Issue CRUD endpoints
+│   │   │   ├── route.ts         # POST /api/issues, GET /api/issues
+│   │   │   └── [id]/route.ts    # GET/PUT/DELETE /api/issues/:id
+│   │   └── articles/        # Article CRUD endpoints
+│   │       ├── route.ts         # POST /api/articles, GET /api/articles
+│   │       └── [id]/route.ts    # GET/PUT/DELETE /api/articles/:id
 │   ├── layout.tsx           # Root layout with metadata
 │   └── globals.css          # Global styles and fonts
 │
@@ -100,16 +116,76 @@ beetle-in-a-box/
 │       ├── FloatingBar.tsx         # Floating action bar
 │       └── MainContainer.tsx       # Page container
 │
+├── utils/                   # Utility functions
+│   ├── prisma.ts           # Prisma client singleton
+│   ├── prisma-test.ts      # Mocked Prisma for testing
+│   ├── file-upload.ts      # Image & .docx validation, file saving
+│   ├── docx-utils.ts       # .docx to HTML conversion
+│   └── text-utils.ts       # HTML entity unescaping
+│
+├── tests/                   # Test files
+│   ├── api/                # API endpoint tests
+│   │   ├── issues.test.ts      # Issues API tests (14 tests)
+│   │   └── articles.test.ts    # Articles API tests (18 tests)
+│   └── utils/              # Utility function tests
+│       ├── file-upload.test.ts  # File validation tests (13 tests)
+│       ├── docx-utils.test.ts   # Filename generation tests (11 tests)
+│       └── text-utils.test.ts   # HTML unescape tests (7 tests)
+│
 ├── prisma/
 │   ├── schema.prisma        # Database schema
 │   └── migrations/          # Migration history
 │
 ├── public/
-│   └── Issue-1/            # Static assets for Issue 1
-│       └── Images/
+│   └── Issue-{n}/          # Static assets per issue
+│       └── Images/         # Article images and covers
 │
+├── jest.config.js          # Jest configuration
+├── jest.setup.js           # Jest setup file
 └── package.json
 ```
+
+## API Routes
+
+### Issues API
+
+**POST /api/issues** - Create a new issue
+- Body: FormData with `title`, `number`, `date`, `published`, optional `image`
+- Returns: Created issue object (201) or error (400/409/500)
+
+**GET /api/issues** - Get all issues
+- Query: `?published=true|false` (optional)
+- Returns: Array of issues with articles
+
+**GET /api/issues/:id** - Get single issue
+- Returns: Issue with articles (200) or error (404)
+
+**PUT /api/issues/:id** - Update issue
+- Body: FormData with fields to update
+- Returns: Updated issue (200) or error (400/404/500)
+
+**DELETE /api/issues/:id** - Delete issue
+- Returns: Success message (200) or error (404/500)
+
+### Articles API
+
+**POST /api/articles** - Create a new article
+- Body: FormData with `issueId`, `title`, `author`, `number`, `content` (.docx), `preview` (.docx), optional `citations` (.docx), `shortTitle`, `image`, `published`
+- Returns: Created article object (201) or error (400/404/409/500)
+
+**GET /api/articles** - Get all articles
+- Query: `?issueId=<id>` and/or `?published=true|false` (optional)
+- Returns: Array of articles with issue data
+
+**GET /api/articles/:id** - Get single article
+- Returns: Article with issue (200) or error (404)
+
+**PUT /api/articles/:id** - Update article
+- Body: FormData with fields to update (files optional, keeps existing if not provided)
+- Returns: Updated article (200) or error (400/404/500)
+
+**DELETE /api/articles/:id** - Delete article
+- Returns: Success message (200) or error (404/500)
 
 ## Database Schema
 
@@ -137,6 +213,22 @@ beetle-in-a-box/
 - `published` - Publication status
 - `issueId` - Reference to Issue
 - `createdAt` / `updatedAt` - Timestamps
+
+## Utility Functions
+
+### file-upload.ts
+- `validateImageFile(file)` - Validates image files (JPEG, PNG, WebP, GIF, max 10MB)
+- `validateDocxFile(file)` - Validates .docx files (max 10MB)
+- `saveImage(file, issueNumber, prefix)` - Saves uploaded images to public directory
+
+### docx-utils.ts
+- `convertArticleDocx(buffer)` - Converts .docx to HTML with footnote links
+- `convertCitationsDocx(buffer)` - Converts citations .docx to clickable footnotes
+- `convertPreviewDocx(buffer)` - Extracts plain text preview from .docx
+- `generateFileName(title)` - Generates URL-friendly filename from title
+
+### text-utils.ts
+- `unescapeHtml(text)` - Converts HTML entities to characters
 
 ## UI Component System
 
@@ -167,6 +259,21 @@ import Link from '@/components/ui/Link';
 import Subheader from '@/components/ui/Subheader';
 <Subheader onClick={handleClick}>Section Header</Subheader>
 ```
+
+## Testing
+
+The project includes comprehensive test coverage (63 tests, 147 assertions):
+
+### API Tests
+- **Issues API** (14 tests): CRUD operations, validation, error handling
+- **Articles API** (18 tests): CRUD operations, .docx processing, validation
+
+### Utility Tests
+- **file-upload** (13 tests): Image/docx validation, file saving
+- **docx-utils** (11 tests): Filename generation
+- **text-utils** (7 tests): HTML entity unescaping
+
+All tests use mocked Prisma client and file operations - **no database or file system changes occur during testing**.
 
 ## Styling Conventions
 
