@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -15,7 +15,7 @@ import ArticleCard from '@/components/admin/ArticleCard'
 import FormMessage from '@/components/admin/FormMessage'
 import styles from '@/components/admin/Admin.module.scss'
 
-export default function ArticlesPage() {
+function ArticlesContent() {
     const searchParams = useSearchParams()
     const [articles, setArticles] = useState<Article[]>([])
     const [issues, setIssues] = useState<Issue[]>([])
@@ -42,18 +42,15 @@ export default function ArticlesPage() {
     const loadData = async () => {
         setLoading(true)
         const issuesResult = await fetchIssues()
-
         if (issuesResult.data) {
             setIssues(issuesResult.data)
         }
-
         await loadArticles()
         setLoading(false)
     }
 
     const loadArticles = async () => {
         const result = await fetchArticles(filterIssueId || undefined)
-
         if (result.error) {
             setMessage({ type: 'error', text: result.error })
         } else if (result.data) {
@@ -63,7 +60,6 @@ export default function ArticlesPage() {
 
     const handleDelete = async (id: string) => {
         const result = await deleteArticle(id)
-
         if (result.error) {
             setMessage({ type: 'error', text: result.error })
         } else {
@@ -80,7 +76,6 @@ export default function ArticlesPage() {
         formData.append('published', String(published))
 
         const result = await updateArticle(id, formData)
-
         if (result.error) {
             setMessage({ type: 'error', text: result.error })
         } else {
@@ -157,5 +152,15 @@ export default function ArticlesPage() {
                 </div>
             )}
         </div>
+    )
+}
+
+export default function ArticlesPage() {
+    return (
+        <Suspense
+            fallback={<div className={styles.loading}>Loading articles...</div>}
+        >
+            <ArticlesContent />
+        </Suspense>
     )
 }

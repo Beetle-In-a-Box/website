@@ -1,6 +1,5 @@
 'use client'
 
-import Text from '@/components/ui/Text'
 import styles from './Footnote.module.scss'
 
 interface FootnoteProps {
@@ -28,13 +27,8 @@ export default function Footnote({ id, number, children }: FootnoteProps) {
     }
 
     return (
-        <Text
-            as="p"
-            className={styles.footnote}
-            id={id}
-            onClick={goToReference}
-        >
+        <p className={styles.footnote} id={id} onClick={goToReference}>
             <sup>{number}</sup> {children}
-        </Text>
+        </p>
     )
 }

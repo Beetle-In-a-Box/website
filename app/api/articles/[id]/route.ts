@@ -18,11 +18,12 @@ import {
  */
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } },
+    { params }: { params: Promise<{ id: string }> },
 ) {
     try {
+        const { id } = await params
         const article = await prisma.article.findUnique({
-            where: { id: params.id },
+            where: { id },
             include: {
                 issue: true,
             },
@@ -51,9 +52,10 @@ export async function GET(
  */
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } },
+    { params }: { params: Promise<{ id: string }> },
 ) {
     try {
+        const { id } = await params
         const formData = await request.formData()
 
         const title = formData.get('title') as string
@@ -61,7 +63,6 @@ export async function PUT(
         const author = formData.get('author') as string
         const number = parseInt(formData.get('number') as string)
         const published = formData.get('published') === 'true'
-
         const contentFile = formData.get('content') as File | null
         const citationsFile = formData.get('citations') as File | null
         const previewFile = formData.get('preview') as File | null
@@ -77,7 +78,7 @@ export async function PUT(
 
         // Check if article exists
         const existingArticle = await prisma.article.findUnique({
-            where: { id: params.id },
+            where: { id },
             include: { issue: true },
         })
 
@@ -99,7 +100,7 @@ export async function PUT(
                 },
             })
 
-            if (conflictingArticle && conflictingArticle.id !== params.id) {
+            if (conflictingArticle && conflictingArticle.id !== id) {
                 return NextResponse.json(
                     { error: `Article ${number} already exists in this issue` },
                     { status: 409 },
@@ -159,7 +160,6 @@ export async function PUT(
                     { status: 400 },
                 )
             }
-
             imageUrl = await saveImage(
                 imageFile,
                 existingArticle.issue.number,
@@ -175,7 +175,7 @@ export async function PUT(
 
         // Update article
         const article = await prisma.article.update({
-            where: { id: params.id },
+            where: { id },
             data: {
                 title,
                 shortTitle: shortTitle || null,
@@ -209,11 +209,12 @@ export async function PUT(
  */
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } },
+    { params }: { params: Promise<{ id: string }> },
 ) {
     try {
+        const { id } = await params
         const article = await prisma.article.findUnique({
-            where: { id: params.id },
+            where: { id },
         })
 
         if (!article) {
@@ -225,7 +226,7 @@ export async function DELETE(
 
         // Delete article
         await prisma.article.delete({
-            where: { id: params.id },
+            where: { id },
         })
 
         return NextResponse.json(

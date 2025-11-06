@@ -178,7 +178,7 @@ export async function GET(request: NextRequest) {
         const issueId = searchParams.get('issueId')
         const publishedParam = searchParams.get('published')
 
-        const where: any = {}
+        const where: { issueId?: string; published?: boolean } = {}
         if (issueId) where.issueId = issueId
         if (publishedParam !== null) where.published = publishedParam === 'true'
 

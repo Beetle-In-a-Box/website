@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect, FormEvent } from 'react'
+import { useState, useEffect, FormEvent, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createArticle, fetchIssues, Issue } from '@/utils/api-client'
 import FileInput from '@/components/admin/FileInput'
 import FormMessage from '@/components/admin/FormMessage'
 import styles from '@/components/admin/Admin.module.scss'
 
-export default function NewArticlePage() {
+function NewArticleForm() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const [issues, setIssues] = useState<Issue[]>([])
@@ -44,13 +44,11 @@ export default function NewArticlePage() {
 
     const loadIssues = async () => {
         const result = await fetchIssues()
-
         if (result.error) {
             setMessage({ type: 'error', text: result.error })
         } else if (result.data) {
             setIssues(result.data)
         }
-
         setLoading(false)
     }
 
@@ -307,5 +305,13 @@ export default function NewArticlePage() {
                 </div>
             </form>
         </div>
+    )
+}
+
+export default function NewArticlePage() {
+    return (
+        <Suspense fallback={<div className={styles.loading}>Loading...</div>}>
+            <NewArticleForm />
+        </Suspense>
     )
 }
