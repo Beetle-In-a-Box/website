@@ -26,17 +26,17 @@ describe('File Upload Utilities', () => {
             expect(result.error).toBeUndefined()
         })
 
-        it('should reject files that are too large (>10MB)', () => {
+        it('should reject files that are too large (>50MB)', () => {
             const file = new File(['fake image content'], 'large.jpg', {
                 type: 'image/jpeg',
             })
-            Object.defineProperty(file, 'size', { value: 11 * 1024 * 1024 }) // 11MB
+            Object.defineProperty(file, 'size', { value: 51 * 1024 * 1024 }) // 51MB
 
             const result = validateImageFile(file)
 
             expect(result.valid).toBe(false)
             expect(result.error).toContain('too large')
-            expect(result.error).toContain('10MB')
+            expect(result.error).toContain('50MB')
         })
 
         it('should reject non-image files', () => {
@@ -110,7 +110,7 @@ describe('File Upload Utilities', () => {
 
             const result = await saveImage(file, issueNumber, 'article')
 
-            expect(result).toMatch(/^\/Issue-1\/Images\/article-\d+\.jpg$/)
+            expect(result).toMatch(/^\/images\/article-\d+\.jpg$/)
             expect(fs.mkdir).toHaveBeenCalled()
             expect(fs.writeFile).toHaveBeenCalled()
         })
@@ -125,8 +125,7 @@ describe('File Upload Utilities', () => {
 
             expect(fs.mkdir).toHaveBeenCalled()
             const mkdirCall = (fs.mkdir as jest.Mock).mock.calls[0]
-            expect(mkdirCall[0]).toContain('Issue-2')
-            expect(mkdirCall[0]).toContain('Images')
+            expect(mkdirCall[0]).toContain('images')
             expect(mkdirCall[1]).toEqual({ recursive: true })
         })
 
@@ -146,7 +145,7 @@ describe('File Upload Utilities', () => {
             const result = await saveImage(file, 1, 'test')
 
             // Files without extension get 'test' as extension (the filename itself)
-            expect(result).toMatch(/\/Issue-1\/Images\/test-\d+\.test$/)
+            expect(result).toMatch(/\/images\/test-\d+\.test$/)
         })
 
         it('should use unique timestamps for different files', async () => {

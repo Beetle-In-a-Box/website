@@ -1,4 +1,5 @@
 import Link from '@/components/ui/Link'
+import { truncateText } from '@/utils/text-utils'
 import styles from './ArticlePreview.module.scss'
 
 interface ArticlePreviewProps {
@@ -18,6 +19,8 @@ export default function ArticlePreview({
     imageUrl,
     articleUrl,
 }: ArticlePreviewProps) {
+    const truncatedPreview = truncateText(previewText, 300)
+
     return (
         <div className={styles.articlePreview} id={id}>
             <div
@@ -43,7 +46,7 @@ export default function ArticlePreview({
             </div>
             <div className={styles.previewContent}>
                 <p className={styles.previewContentP}>
-                    {previewText}{' '}
+                    {truncatedPreview}{' '}
                     <Link href={articleUrl} target="_blank" variant="text">
                         READ MORE
                     </Link>

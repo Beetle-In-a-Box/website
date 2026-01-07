@@ -7,7 +7,7 @@ import * as docxUtils from '@/utils/docx-utils'
 
 // Mock file upload and docx utilities
 jest.mock('@/utils/file-upload', () => ({
-    saveImage: jest.fn().mockResolvedValue('/Issue-1/Images/test-article.jpg'),
+    saveImage: jest.fn().mockResolvedValue('/images/test-article.jpg'),
     validateImageFile: jest.fn().mockReturnValue({ valid: true }),
     validateDocxFile: jest.fn().mockReturnValue({ valid: true }),
 }))
@@ -48,7 +48,7 @@ describe('Articles API', () => {
                 content: '<p>Article content</p>',
                 citations: '<p class="footnote">Citation 1</p>',
                 previewText: 'Article preview text',
-                imageUrl: '/Issue-1/Images/test-article.jpg',
+                imageUrl: '/images/test-article.jpg',
                 fileName: 'test-article.html',
                 published: false,
                 issueId: 'issue-1',
@@ -542,7 +542,7 @@ describe('Articles API', () => {
                 content: '<p>Content</p>',
                 citations: null,
                 previewText: 'Preview',
-                imageUrl: '/Issue-1/Images/old-image.jpg',
+                imageUrl: '/images/old-image.jpg',
                 fileName: 'test-article.html',
                 published: false,
                 issueId: 'issue-1',
@@ -553,7 +553,7 @@ describe('Articles API', () => {
 
             const updatedArticle = {
                 ...existingArticle,
-                imageUrl: '/Issue-1/Images/test-article.jpg',
+                imageUrl: '/images/test-article.jpg',
             }
 
             prismaMock.article.findUnique.mockResolvedValue(existingArticle)

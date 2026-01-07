@@ -1,7 +1,7 @@
 'use client';
 
 import { ChangeEvent } from 'react';
-import styles from './Admin.module.scss';
+import styles from './FileInput.module.scss';
 
 interface FileInputProps {
     label: string;

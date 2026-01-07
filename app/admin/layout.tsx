@@ -1,5 +1,5 @@
 import AdminNav from '@/components/admin/AdminNav';
-import styles from '@/components/admin/Admin.module.scss';
+import styles from './Admin.module.scss';
 
 export default function AdminLayout({
     children,

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { fetchIssues, fetchArticles, Issue, Article } from '@/utils/api-client';
-import styles from '@/components/admin/Admin.module.scss';
+import styles from './Admin.module.scss';
 
 export default function AdminDashboard() {
     const [issueCount, setIssueCount] = useState(0);

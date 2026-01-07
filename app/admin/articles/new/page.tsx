@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createArticle, fetchIssues, Issue } from '@/utils/api-client'
 import FileInput from '@/components/admin/FileInput'
 import FormMessage from '@/components/admin/FormMessage'
-import styles from '@/components/admin/Admin.module.scss'
+import styles from '../../Admin.module.scss'
 
 function NewArticleForm() {
     const router = useRouter()

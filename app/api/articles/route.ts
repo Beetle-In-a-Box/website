@@ -2,19 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/utils/prisma'
 import {
     saveImage,
+    saveDocx,
     validateImageFile,
     validateDocxFile,
 } from '@/utils/file-upload'
-import {
-    convertArticleDocx,
-    convertCitationsDocx,
-    convertPreviewDocx,
-    generateFileName,
-} from '@/utils/docx-utils'
+import { generateFileName, convertPreviewDocx } from '@/utils/docx-utils'
 
 /**
  * POST /api/articles
- * Create a new article with .docx files for content, citations, and preview
+ * Create a new article with .docx file for content (with endnotes)
  */
 export async function POST(request: NextRequest) {
     try {
@@ -28,52 +24,25 @@ export async function POST(request: NextRequest) {
         const published = formData.get('published') === 'true'
 
         const contentFile = formData.get('content') as File | null
-        const citationsFile = formData.get('citations') as File | null
-        const previewFile = formData.get('preview') as File | null
         const imageFile = formData.get('image') as File | null
 
         // Validation
-        if (
-            !issueId ||
-            !title ||
-            !author ||
-            !number ||
-            !contentFile ||
-            !previewFile
-        ) {
+        if (!issueId || !title || !author || !number || !contentFile) {
             return NextResponse.json(
                 {
-                    error: 'Missing required fields: issueId, title, author, number, content, preview',
+                    error: 'Missing required fields: issueId, title, author, number, content',
                 },
                 { status: 400 },
             )
         }
 
-        // Validate .docx files
+        // Validate .docx file
         const contentValidation = validateDocxFile(contentFile)
         if (!contentValidation.valid) {
             return NextResponse.json(
                 { error: `Content file: ${contentValidation.error}` },
                 { status: 400 },
             )
-        }
-
-        const previewValidation = validateDocxFile(previewFile)
-        if (!previewValidation.valid) {
-            return NextResponse.json(
-                { error: `Preview file: ${previewValidation.error}` },
-                { status: 400 },
-            )
-        }
-
-        if (citationsFile && citationsFile.size > 0) {
-            const citationsValidation = validateDocxFile(citationsFile)
-            if (!citationsValidation.valid) {
-                return NextResponse.json(
-                    { error: `Citations file: ${citationsValidation.error}` },
-                    { status: 400 },
-                )
-            }
         }
 
         // Check if issue exists
@@ -105,20 +74,12 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Process .docx files
+        // Save .docx file
+        const contentDocxPath = await saveDocx(contentFile, `article-${number}`)
+
+        // Generate preview text from .docx
         const contentBuffer = Buffer.from(await contentFile.arrayBuffer())
-        const content = await convertArticleDocx(contentBuffer)
-
-        let citations = ''
-        if (citationsFile && citationsFile.size > 0) {
-            const citationsBuffer = Buffer.from(
-                await citationsFile.arrayBuffer(),
-            )
-            citations = await convertCitationsDocx(citationsBuffer)
-        }
-
-        const previewBuffer = Buffer.from(await previewFile.arrayBuffer())
-        const previewText = await convertPreviewDocx(previewBuffer)
+        const previewText = await convertPreviewDocx(contentBuffer)
 
         // Handle image upload
         let imageUrl: string | null = null
@@ -148,8 +109,7 @@ export async function POST(request: NextRequest) {
                 shortTitle: shortTitle || null,
                 author,
                 number,
-                content,
-                citations,
+                contentDocxPath,
                 previewText,
                 imageUrl,
                 fileName,

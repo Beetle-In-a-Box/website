@@ -1,16 +1,27 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import styles from './Admin.module.scss';
+import { usePathname, useRouter } from 'next/navigation';
+import styles from './AdminNav.module.scss';
 
 export default function AdminNav() {
     const pathname = usePathname();
+    const router = useRouter();
 
     const isActive = (path: string) => {
         if (path === '/admin' && pathname === '/admin') return true;
         if (path !== '/admin' && pathname.startsWith(path)) return true;
         return false;
+    };
+
+    const handleLogout = async () => {
+        try {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            router.push('/admin/login');
+            router.refresh();
+        } catch (error) {
+            console.error('Logout failed:', error);
+        }
     };
 
     return (
@@ -46,6 +57,9 @@ export default function AdminNav() {
             </ul>
             <div className={styles.navFooter}>
                 <Link href="/">View Site</Link>
+                <button onClick={handleLogout} className={styles.logoutBtn}>
+                    Logout
+                </button>
             </div>
         </nav>
     );

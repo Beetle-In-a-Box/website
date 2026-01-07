@@ -2,15 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/utils/prisma'
 import {
     saveImage,
+    saveDocx,
     validateImageFile,
     validateDocxFile,
 } from '@/utils/file-upload'
-import {
-    convertArticleDocx,
-    convertCitationsDocx,
-    convertPreviewDocx,
-    generateFileName,
-} from '@/utils/docx-utils'
+import { generateFileName, convertPreviewDocx } from '@/utils/docx-utils'
 
 /**
  * GET /api/articles/[id]
@@ -48,7 +44,7 @@ export async function GET(
 
 /**
  * PUT /api/articles/[id]
- * Update an entire article (replace all fields)
+ * Update an article
  */
 export async function PUT(
     request: NextRequest,
@@ -64,8 +60,6 @@ export async function PUT(
         const number = parseInt(formData.get('number') as string)
         const published = formData.get('published') === 'true'
         const contentFile = formData.get('content') as File | null
-        const citationsFile = formData.get('citations') as File | null
-        const previewFile = formData.get('preview') as File | null
         const imageFile = formData.get('image') as File | null
 
         // Validation
@@ -108,8 +102,9 @@ export async function PUT(
             }
         }
 
-        // Process .docx files if provided, otherwise keep existing content
-        let content = existingArticle.content
+        // Process .docx file if provided, otherwise keep existing path
+        let contentDocxPath = existingArticle.contentDocxPath
+        let previewText = existingArticle.previewText
         if (contentFile && contentFile.size > 0) {
             const contentValidation = validateDocxFile(contentFile)
             if (!contentValidation.valid) {
@@ -118,36 +113,11 @@ export async function PUT(
                     { status: 400 },
                 )
             }
+            contentDocxPath = await saveDocx(contentFile, `article-${number}`)
+
+            // Regenerate preview text from new .docx
             const contentBuffer = Buffer.from(await contentFile.arrayBuffer())
-            content = await convertArticleDocx(contentBuffer)
-        }
-
-        let citations = existingArticle.citations
-        if (citationsFile && citationsFile.size > 0) {
-            const citationsValidation = validateDocxFile(citationsFile)
-            if (!citationsValidation.valid) {
-                return NextResponse.json(
-                    { error: `Citations file: ${citationsValidation.error}` },
-                    { status: 400 },
-                )
-            }
-            const citationsBuffer = Buffer.from(
-                await citationsFile.arrayBuffer(),
-            )
-            citations = await convertCitationsDocx(citationsBuffer)
-        }
-
-        let previewText = existingArticle.previewText
-        if (previewFile && previewFile.size > 0) {
-            const previewValidation = validateDocxFile(previewFile)
-            if (!previewValidation.valid) {
-                return NextResponse.json(
-                    { error: `Preview file: ${previewValidation.error}` },
-                    { status: 400 },
-                )
-            }
-            const previewBuffer = Buffer.from(await previewFile.arrayBuffer())
-            previewText = await convertPreviewDocx(previewBuffer)
+            previewText = await convertPreviewDocx(contentBuffer)
         }
 
         // Handle image upload
@@ -181,8 +151,7 @@ export async function PUT(
                 shortTitle: shortTitle || null,
                 author,
                 number,
-                content,
-                citations,
+                contentDocxPath,
                 previewText,
                 imageUrl,
                 fileName,

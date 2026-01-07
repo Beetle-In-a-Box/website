@@ -32,13 +32,11 @@ model Article {
   shortTitle      String?
   number          Int
   author          String
-  // Cover image URL or path - can store uploaded image paths
+  // Cover image URL or path
   imageUrl        String?
-  // Article content stored as HTML or Markdown
-  content         String   @db.Text
-  // Citations/footnotes stored as HTML
-  citations       String?  @db.Text
-  // Preview text for issue page
+  // Path to the .docx file containing article content and footnotes/endnotes
+  contentDocxPath String
+  // Preview text extracted from .docx for issue page (generated on upload)
   previewText     String   @db.Text
   // Generated filename for URL-friendly access
   fileName        String

@@ -13,7 +13,7 @@ import {
 } from '@/utils/api-client'
 import ArticleCard from '@/components/admin/ArticleCard'
 import FormMessage from '@/components/admin/FormMessage'
-import styles from '@/components/admin/Admin.module.scss'
+import styles from '../Admin.module.scss'
 
 function ArticlesContent() {
     const searchParams = useSearchParams()

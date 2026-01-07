@@ -1,6 +1,6 @@
 'use client';
 
-import styles from './Admin.module.scss';
+import styles from './FormMessage.module.scss';
 
 interface FormMessageProps {
     type: 'success' | 'error';

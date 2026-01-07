@@ -1,5 +1,7 @@
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
+import { readFile } from 'fs/promises'
+import { join } from 'path'
 import NavBar from '@/components/layout/NavBar'
 import FloatingBar from '@/components/layout/FloatingBar'
 import Footer from '@/components/layout/Footer'
@@ -9,6 +11,8 @@ import ArticleTitle from '@/components/article/ArticleTitle'
 import ArticleAuthor from '@/components/article/ArticleAuthor'
 import ArticleContent from '@/components/article/ArticleContent'
 import { prisma } from '@/utils/prisma'
+import { convertArticleDocx, convertCitationsDocx } from '@/utils/docx-utils'
+import mammoth from 'mammoth'
 
 interface ArticlePageProps {
     params: Promise<{
@@ -31,6 +35,37 @@ async function getArticle(issueNumber: number, articleFileName: string) {
     } catch (error) {
         console.error('Error fetching article:', error)
         return null
+    }
+}
+
+async function convertDocxToHtml(docxPath: string) {
+    try {
+        // Read the .docx file from public directory
+        const filePath = join(process.cwd(), 'public', docxPath)
+        const buffer = await readFile(filePath)
+
+        // Convert to HTML with footnote handling
+        const content = await convertArticleDocx(buffer)
+
+        // Extract endnotes/footnotes if they exist
+        // mammoth converts endnotes as part of the document
+        // We need to split content from citations
+        const result = await mammoth.convertToHtml({ buffer })
+        const fullHtml = result.value
+
+        // Check if there are footnotes (indicated by <sup> tags)
+        const hasCitations = fullHtml.includes('<sup>')
+
+        if (hasCitations) {
+            // For now, return the full content
+            // TODO: Properly split main content from endnotes
+            return { content, citations: null }
+        }
+
+        return { content, citations: null }
+    } catch (error) {
+        console.error('Error converting .docx:', error)
+        return { content: '<p>Error loading article content</p>', citations: null }
     }
 }
 
@@ -61,19 +96,28 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     const issueNumber = parseInt(resolvedParams.number, 10)
     const articleFileName = resolvedParams.articleFileName
 
+    console.log('Article page params:', { issueNumber, articleFileName })
+
     if (isNaN(issueNumber)) {
+        console.log('Invalid issue number')
         notFound()
     }
 
     const article = await getArticle(issueNumber, articleFileName)
+    console.log('Article found:', article ? article.title : 'null')
 
     if (!article || !article.issue.published) {
         notFound()
     }
 
+    // Convert the .docx file to HTML on-the-fly
+    const { content, citations } = await convertDocxToHtml(
+        article.contentDocxPath,
+    )
+
     return (
         <MainContainer>
-            <NavBar date={article.issue.date} />
+            <NavBar />
             <ArticleContainer>
                 <ArticleTitle title={article.title} />
                 <ArticleAuthor author={article.author} role="Staff Writer" />
@@ -88,16 +132,14 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 )}
                 <ArticleContent>
                     {/* Render article content as HTML */}
-                    <div
-                        dangerouslySetInnerHTML={{ __html: article.content }}
-                    />
+                    <div dangerouslySetInnerHTML={{ __html: content }} />
                     {/* Render citations if available */}
-                    {article.citations && (
+                    {citations && (
                         <>
                             <div className="footnoteBorder"></div>
                             <div
                                 dangerouslySetInnerHTML={{
-                                    __html: article.citations,
+                                    __html: citations,
                                 }}
                             />
                         </>

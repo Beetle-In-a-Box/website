@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { fetchIssue, updateIssue } from '@/utils/api-client';
 import FileInput from '@/components/admin/FileInput';
 import FormMessage from '@/components/admin/FormMessage';
-import styles from '@/components/admin/Admin.module.scss';
+import styles from '../../../Admin.module.scss';
 
 export default function EditIssuePage() {
     const router = useRouter();

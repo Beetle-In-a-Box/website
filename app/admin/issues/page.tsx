@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { fetchIssues, deleteIssue, updateIssue, Issue } from '@/utils/api-client';
 import IssueCard from '@/components/admin/IssueCard';
 import FormMessage from '@/components/admin/FormMessage';
-import styles from '@/components/admin/Admin.module.scss';
+import styles from '../Admin.module.scss';
 
 export default function IssuesPage() {
     const [issues, setIssues] = useState<Issue[]>([]);

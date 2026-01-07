@@ -1,0 +1,97 @@
+// Admin Navigation Styles
+
+.nav {
+    width: 250px;
+    height: 100vh;
+    background: #1a1a1a;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 2rem 0;
+}
+
+.navHeader {
+    padding: 0 1.5rem 2rem;
+    border-bottom: 1px solid #333;
+
+    h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        color: white;
+    }
+}
+
+.navList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex: 1;
+
+    li {
+        margin: 0;
+
+        a {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: #ccc;
+            text-decoration: none;
+            transition: all 0.2s;
+
+            &:hover {
+                background: #2a2a2a;
+                color: white;
+            }
+
+            &.active {
+                background: #2a2a2a;
+                color: white;
+                border-left: 3px solid #4a9eff;
+            }
+        }
+    }
+}
+
+.navFooter {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    a {
+        color: #4a9eff;
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
+.logoutBtn {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover {
+        background: #c82333;
+    }
+}
+
+// Responsive
+@media (max-width: 768px) {
+    .nav {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+}

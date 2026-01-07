@@ -35,7 +35,7 @@ echo 'DATABASE_URL="postgresql://yourusername@localhost:5432/beetle_in_a_box"' >
 psql -U yourusername -c "CREATE DATABASE beetle_in_a_box;"
 
 # Initialize database with Prisma
-bun prisma migrate dev
+npx prisma migrate dev
 
 # Start development server
 bun dev
@@ -57,12 +57,14 @@ bun run lint     # Run ESLint
 ### Database
 
 ```bash
-bun prisma studio        # Open Prisma Studio (database GUI)
-bun prisma migrate dev   # Create and apply new migration
-bun prisma db push       # Push schema changes without migration (prototyping)
-bun prisma generate      # Regenerate Prisma Client
-bun prisma migrate reset # Reset database and rerun all migrations
+npx prisma studio        # Open Prisma Studio (database GUI)
+npx prisma migrate dev   # Create and apply new migration
+npx prisma db push       # Push schema changes without migration (prototyping)
+npx prisma generate      # Regenerate Prisma Client
+npx prisma migrate reset # Reset database and rerun all migrations
 ```
+
+**Note**: Use `npx` for Prisma commands to ensure proper `.env` file loading.
 
 ### Testing
 
@@ -79,7 +81,7 @@ beetle-in-a-box/
 ├── app/                      # Next.js App Router
 │   ├── page.tsx             # Homepage (Issue 1 listing)
 │   ├── about/               # About page
-│   ├── issue-1/             # Issue 1 article pages
+│   ├── issue/[number]/      # Dynamic issue pages
 │   ├── api/                 # API routes
 │   │   ├── issues/          # Issue CRUD endpoints
 │   │   │   ├── route.ts         # POST /api/issues, GET /api/issues

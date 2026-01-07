@@ -1,0 +1,52 @@
+// File Input Component Styles
+
+.formGroup {
+    margin-bottom: 1.5rem;
+
+    label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: #333;
+    }
+}
+
+.required {
+    color: #dc3545;
+    margin-left: 0.25rem;
+}
+
+.helperText {
+    margin: 0.25rem 0 0.5rem;
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.fileInput {
+    cursor: pointer;
+}
+
+.selectedFile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+.clearButton {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+
+    &:hover {
+        background: #5a6268;
+    }
+}

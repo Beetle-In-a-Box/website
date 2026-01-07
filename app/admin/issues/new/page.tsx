@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createIssue } from '@/utils/api-client';
 import FileInput from '@/components/admin/FileInput';
 import FormMessage from '@/components/admin/FormMessage';
-import styles from '@/components/admin/Admin.module.scss';
+import styles from '../../Admin.module.scss';
 
 export default function NewIssuePage() {
     const router = useRouter();

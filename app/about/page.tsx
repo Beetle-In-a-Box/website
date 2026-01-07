@@ -3,13 +3,14 @@ import Footer from '@/components/layout/Footer'
 import FloatingBar from '@/components/layout/FloatingBar'
 import MainContainer from '@/components/layout/MainContainer'
 import ContentsContainer from '@/components/issue/ContentsContainer'
+import Empty from '@/components/ui/Empty'
 
 export default function About() {
     return (
         <MainContainer>
-            <NavBar date="AUGUST 2025" />
+            <NavBar />
             <ContentsContainer title="ABOUT US">
-                <h1>Content Coming Soon...</h1>
+                <Empty />
             </ContentsContainer>
             <FloatingBar showAbout={false} showLatest={true} />
             <Footer />

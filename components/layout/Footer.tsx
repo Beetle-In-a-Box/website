@@ -1,10 +1,12 @@
+import { getCurrentYear } from '@/utils/date-utils';
 import styles from './Footer.module.scss';
 
 export default function Footer() {
+  const year = getCurrentYear();
   return (
     <footer className={styles.footer}>
       <div>
-        <p>Copyright © 2025 Beetle in a Box / Leo Abubucker | All Rights Reserved</p>
+        <p>Copyright © {year} Beetle in a Box / Leo Abubucker | All Rights Reserved</p>
         <p>Website Development By Leo Abubucker</p>
         <p>
           Disclaimer:

@@ -33,7 +33,7 @@ export default function FloatingBar({
                     <Text as="p">|</Text>
                 </>
             )}
-            <Link>Archive</Link>
+            <Link href="/archive">Archive</Link>
         </div>
     )
 }

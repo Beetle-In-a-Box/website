@@ -1,6 +1,8 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { getSeasonAndYear } from '@/utils/date-utils';
 import styles from './NavBar.module.scss';
 
 interface NavBarProps {
@@ -8,8 +10,15 @@ interface NavBarProps {
   date?: string;
 }
 
-export default function NavBar({ clickable = true, date = 'AUGUST 2025' }: NavBarProps) {
+export default function NavBar({ clickable = true, date }: NavBarProps) {
   const router = useRouter();
+  const [displayDate, setDisplayDate] = useState<string>(date || '');
+
+  useEffect(() => {
+    if (!date) {
+      setDisplayDate(getSeasonAndYear());
+    }
+  }, [date]);
 
   const handleClick = () => {
     if (clickable) {
@@ -27,7 +36,7 @@ export default function NavBar({ clickable = true, date = 'AUGUST 2025' }: NavBa
         <p>UC BERKELEY UNDERGRADUATE PHILOSOPHY REVIEW</p>
       </div>
       <div className={`${styles.item} ${styles.rightSide}`} id="rNav">
-        <h3>{date}</h3>
+        <h3>{displayDate || date}</h3>
       </div>
     </nav>
   );
