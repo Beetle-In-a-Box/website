@@ -17,9 +17,6 @@ export async function POST(request: NextRequest) {
         const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH
         const sessionSecret = process.env.SESSION_SECRET
 
-        console.log('Password hash from env:', adminPasswordHash)
-        console.log('Hash length:', adminPasswordHash?.length)
-
         if (!adminPasswordHash || !sessionSecret) {
             console.error('Missing ADMIN_PASSWORD_HASH or SESSION_SECRET in .env')
             return NextResponse.json(
@@ -30,7 +27,6 @@ export async function POST(request: NextRequest) {
 
         // Verify password
         const isValid = await bcrypt.compare(password, adminPasswordHash)
-        console.log('Password comparison result:', isValid)
 
         if (!isValid) {
             return NextResponse.json(

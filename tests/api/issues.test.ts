@@ -1,18 +1,31 @@
+import { describe, it, expect, beforeEach, afterEach, spyOn } from 'bun:test'
 import { POST, GET } from '@/app/api/issues/route'
 import { GET as GET_BY_ID, PUT, DELETE } from '@/app/api/issues/[id]/route'
 import { prismaMock } from '@/utils/prisma-test'
 import { NextRequest } from 'next/server'
 import * as fileUpload from '@/utils/file-upload'
 
-// Mock file upload utility
-jest.mock('@/utils/file-upload', () => ({
-    saveImage: jest.fn().mockResolvedValue('/images/test-image.jpg'),
-    validateImageFile: jest.fn().mockReturnValue({ valid: true }),
-}))
-
 describe('Issues API', () => {
+    afterEach(() => {
+        // Restore all mocks after each test
+        if ((fileUpload.validateImageFile as any).mockRestore) {
+            (fileUpload.validateImageFile as any).mockRestore()
+        }
+        if ((fileUpload.saveImage as any).mockRestore) {
+            (fileUpload.saveImage as any).mockRestore()
+        }
+    })
     beforeEach(() => {
-        jest.clearAllMocks()
+        // Clear all mocks before each test
+        prismaMock.issue.findUnique.mockReset()
+        prismaMock.issue.findMany.mockReset()
+        prismaMock.issue.create.mockReset()
+        prismaMock.issue.update.mockReset()
+        prismaMock.issue.delete.mockReset()
+
+        // Mock file upload utilities
+        spyOn(fileUpload, 'validateImageFile').mockReturnValue({ valid: true })
+        spyOn(fileUpload, 'saveImage').mockResolvedValue('/images/test-image.jpg')
     })
 
     describe('POST /api/issues', () => {
@@ -97,7 +110,7 @@ describe('Issues API', () => {
         })
 
         it('should return 400 if image validation fails', async () => {
-            ;(fileUpload.validateImageFile as jest.Mock).mockReturnValueOnce({
+            spyOn(fileUpload, 'validateImageFile').mockReturnValueOnce({
                 valid: false,
                 error: 'File is too large. Maximum size is 10MB.',
             })

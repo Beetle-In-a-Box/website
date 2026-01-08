@@ -10,8 +10,10 @@ import ArticleContainer from '@/components/article/ArticleContainer'
 import ArticleTitle from '@/components/article/ArticleTitle'
 import ArticleAuthor from '@/components/article/ArticleAuthor'
 import ArticleContent from '@/components/article/ArticleContent'
+import ArticleHtmlContent from '@/components/article/ArticleHtmlContent'
+import FootnoteHandler from '@/components/article/FootnoteHandler'
 import { prisma } from '@/utils/prisma'
-import { convertArticleDocx, convertCitationsDocx } from '@/utils/docx-utils'
+import { convertArticleDocx } from '@/utils/docx-utils'
 import mammoth from 'mammoth'
 
 interface ArticlePageProps {
@@ -65,7 +67,10 @@ async function convertDocxToHtml(docxPath: string) {
         return { content, citations: null }
     } catch (error) {
         console.error('Error converting .docx:', error)
-        return { content: '<p>Error loading article content</p>', citations: null }
+        return {
+            content: '<p>Error loading article content</p>',
+            citations: null,
+        }
     }
 }
 
@@ -112,11 +117,12 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
     // Convert the .docx file to HTML on-the-fly
     const { content, citations } = await convertDocxToHtml(
-        article.contentDocxPath,
+        article.contentDocxPath
     )
 
     return (
         <MainContainer>
+            <FootnoteHandler />
             <NavBar />
             <ArticleContainer>
                 <ArticleTitle title={article.title} />
@@ -131,17 +137,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     />
                 )}
                 <ArticleContent>
-                    {/* Render article content as HTML */}
-                    <div dangerouslySetInnerHTML={{ __html: content }} />
+                    {/* Render article content as React components */}
+                    <ArticleHtmlContent html={content} />
                     {/* Render citations if available */}
                     {citations && (
                         <>
                             <div className="footnoteBorder"></div>
-                            <div
-                                dangerouslySetInnerHTML={{
-                                    __html: citations,
-                                }}
-                            />
+                            <ArticleHtmlContent html={citations} />
                         </>
                     )}
                 </ArticleContent>

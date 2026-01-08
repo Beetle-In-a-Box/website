@@ -2,6 +2,19 @@ import mammoth from 'mammoth'
 import { unescapeHtml } from './text-utils'
 
 /**
+ * Convert plain text URLs to clickable links
+ */
+function autolinkUrls(html: string): string {
+    // Match URLs starting with http:// or https://
+    // Excludes trailing punctuation (periods, commas, etc.) that aren't part of the URL
+    const urlRegex = /https?:\/\/[^\s<>"]+[^\s<>".,;:!?)]/g
+
+    return html.replace(urlRegex, (url) => {
+        return `<a href="${url}">${url}</a>`
+    })
+}
+
+/**
  * Convert .docx buffer to HTML content for article body
  * Processes paragraphs and adds footnote links
  */
@@ -12,6 +25,9 @@ export async function convertArticleDocx(buffer: Buffer): Promise<string> {
 
         // Clean the text
         html = cleanText(html)
+
+        // Convert plain text URLs to clickable links
+        html = autolinkUrls(html)
 
         // Process footnotes - add IDs and onclick handlers
         const footnoteCount = (html.match(/<sup>/g) || []).length
@@ -41,6 +57,9 @@ export async function convertCitationsDocx(buffer: Buffer): Promise<string> {
 
         // Clean the text
         html = cleanText(html)
+
+        // Convert plain text URLs to clickable links
+        html = autolinkUrls(html)
 
         // Extract paragraphs and wrap them as footnotes
         const paragraphs = html

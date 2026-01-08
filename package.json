@@ -7,14 +7,15 @@
         "build": "next build --turbopack",
         "start": "next start",
         "lint": "eslint",
-        "test": "bun jest",
-        "test:watch": "bun jest --watch",
-        "test:coverage": "bun jest --coverage"
+        "test": "bun test",
+        "test:watch": "bun test --watch",
+        "test:coverage": "bun test --coverage"
     },
     "dependencies": {
         "@prisma/client": "^6.19.0",
         "@types/jsdom": "^27.0.0",
         "bcryptjs": "^3.0.3",
+        "html-react-parser": "^5.2.11",
         "html-to-docx": "^1.8.0",
         "jose": "^6.1.3",
         "jsdom": "^27.1.0",
@@ -26,20 +27,14 @@
     },
     "devDependencies": {
         "@eslint/eslintrc": "^3",
-        "@testing-library/jest-dom": "^6.9.1",
-        "@testing-library/react": "^16.3.0",
         "@types/bcryptjs": "^3.0.0",
         "@types/html-to-docx": "^1.8.0",
-        "@types/jest": "^30.0.0",
         "@types/node": "^20",
         "@types/react": "^19",
         "@types/react-dom": "^19",
         "eslint": "^9",
         "eslint-config-next": "15.5.2",
-        "jest": "^30.2.0",
-        "jest-environment-jsdom": "^30.2.0",
         "prisma": "^6.19.0",
-        "ts-jest": "^29.4.5",
         "typescript": "^5"
     }
 }

@@ -1,18 +1,22 @@
+import { describe, it, expect, beforeEach, afterEach, spyOn } from 'bun:test'
 import { validateImageFile, saveImage } from '@/utils/file-upload'
 import * as fs from 'fs/promises'
+import * as fsSync from 'fs'
 import * as path from 'path'
 
-// Mock fs operations
-jest.mock('fs/promises', () => ({
-    mkdir: jest.fn(),
-    writeFile: jest.fn(),
-}))
-
-jest.mock('fs', () => ({
-    existsSync: jest.fn().mockReturnValue(false),
-}))
-
 describe('File Upload Utilities', () => {
+    afterEach(() => {
+        // Restore all mocks after each test to prevent leaks
+        if ((fs.mkdir as any).mockRestore) {
+            (fs.mkdir as any).mockRestore()
+        }
+        if ((fs.writeFile as any).mockRestore) {
+            (fs.writeFile as any).mockRestore()
+        }
+        if ((fsSync.existsSync as any).mockRestore) {
+            (fsSync.existsSync as any).mockRestore()
+        }
+    })
     describe('validateImageFile', () => {
         it('should validate a valid JPEG image file', () => {
             const file = new File(['fake image content'], 'test.jpg', {
@@ -97,9 +101,10 @@ describe('File Upload Utilities', () => {
 
     describe('saveImage', () => {
         beforeEach(() => {
-            jest.clearAllMocks()
-            ;(fs.mkdir as jest.Mock).mockResolvedValue(undefined)
-            ;(fs.writeFile as jest.Mock).mockResolvedValue(undefined)
+            // Mock fs operations
+            spyOn(fs, 'mkdir').mockResolvedValue(undefined)
+            spyOn(fs, 'writeFile').mockResolvedValue(undefined)
+            spyOn(fsSync, 'existsSync').mockReturnValue(false)
         })
 
         it('should save an image and return the correct path', async () => {
@@ -124,9 +129,11 @@ describe('File Upload Utilities', () => {
             await saveImage(file, issueNumber, 'issue-cover')
 
             expect(fs.mkdir).toHaveBeenCalled()
-            const mkdirCall = (fs.mkdir as jest.Mock).mock.calls[0]
-            expect(mkdirCall[0]).toContain('images')
-            expect(mkdirCall[1]).toEqual({ recursive: true })
+            const mkdirCall = (fs.mkdir as any).mock?.calls?.[0]
+            if (mkdirCall) {
+                expect(mkdirCall[0]).toContain('images')
+                expect(mkdirCall[1]).toEqual({ recursive: true })
+            }
         })
 
         it('should preserve file extension', async () => {
@@ -165,7 +172,7 @@ describe('File Upload Utilities', () => {
         })
 
         it('should throw an error if file write fails', async () => {
-            ;(fs.writeFile as jest.Mock).mockRejectedValue(
+            spyOn(fs, 'writeFile').mockRejectedValue(
                 new Error('Write failed'),
             )
 
