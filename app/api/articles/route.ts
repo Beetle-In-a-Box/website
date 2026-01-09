@@ -8,6 +8,10 @@ import {
 } from '@/utils/file-upload'
 import { generateFileName, convertPreviewDocx } from '@/utils/docx-utils'
 
+export const config = {
+    maxDuration: 300,
+}
+
 /**
  * POST /api/articles
  * Create a new article with .docx file for content (with endnotes)
@@ -120,9 +124,10 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(article, { status: 201 })
     } catch (error) {
-        console.error('Error creating article:', error)
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        console.error('Error creating article:', errorMessage)
         return NextResponse.json(
-            { error: 'Failed to create article' },
+            { error: 'Failed to create article', details: errorMessage },
             { status: 500 },
         )
     }
