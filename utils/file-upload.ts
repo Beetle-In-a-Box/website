@@ -1,5 +1,5 @@
 import { existsSync } from 'fs'
-import { writeFile, mkdir } from 'fs/promises'
+import { writeFile, mkdir, unlink } from 'fs/promises'
 import { join } from 'path'
 
 /**
@@ -135,4 +135,21 @@ export function validateDocxFile(file: File): {
     }
 
     return { valid: true }
+}
+
+/**
+ * Delete a file from the filesystem
+ * @param publicPath - The public path (e.g., '/images/file.jpg', '/articles/file.docx')
+ */
+export async function deleteFile(publicPath: string | null): Promise<void> {
+    if (!publicPath) return
+
+    try {
+        const filepath = join(process.cwd(), 'public', publicPath)
+        if (existsSync(filepath)) {
+            await unlink(filepath)
+        }
+    } catch (error) {
+        console.error(`Failed to delete file ${publicPath}:`, error)
+    }
 }

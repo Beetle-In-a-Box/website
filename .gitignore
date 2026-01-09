@@ -42,3 +42,10 @@ yarn-error.log*
 next-env.d.ts
 
 /lib/generated/prisma
+
+# uploaded files (stored in Railway volumes)
+/public/images/*
+/public/articles/*
+# but keep the directories themselves
+!/public/images/.gitkeep
+!/public/articles/.gitkeep

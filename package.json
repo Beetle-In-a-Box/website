@@ -9,7 +9,10 @@
         "lint": "eslint",
         "test": "bun test",
         "test:watch": "bun test --watch",
-        "test:coverage": "bun test --coverage"
+        "test:coverage": "bun test --coverage",
+        "db:clear": "bun scripts/clear-database.ts",
+        "db:seed": "bun scripts/seed-issue-1.ts",
+        "db:reset": "bun run db:clear && bun run db:seed"
     },
     "dependencies": {
         "@prisma/client": "^6.19.0",

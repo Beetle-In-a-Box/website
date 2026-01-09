@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/utils/prisma'
-import { saveImage, validateImageFile } from '@/utils/file-upload'
+import { saveImage, validateImageFile, deleteFile } from '@/utils/file-upload'
 
 /**
  * GET /api/issues/[id]
@@ -152,7 +152,16 @@ export async function DELETE(
             )
         }
 
-        // Delete issue (articles will be cascade deleted)
+        // Delete all article files
+        for (const article of issue.articles) {
+            await deleteFile(article.imageUrl)
+            await deleteFile(article.contentDocxPath)
+        }
+
+        // Delete issue image
+        await deleteFile(issue.imageUrl)
+
+        // Delete issue (articles will be cascade deleted from database)
         await prisma.issue.delete({
             where: { id },
         })

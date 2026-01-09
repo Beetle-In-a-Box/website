@@ -5,6 +5,7 @@ import {
     saveDocx,
     validateImageFile,
     validateDocxFile,
+    deleteFile,
 } from '@/utils/file-upload'
 import { generateFileName, convertPreviewDocx } from '@/utils/docx-utils'
 
@@ -193,7 +194,11 @@ export async function DELETE(
             )
         }
 
-        // Delete article
+        // Delete associated files
+        await deleteFile(article.imageUrl)
+        await deleteFile(article.contentDocxPath)
+
+        // Delete article from database
         await prisma.article.delete({
             where: { id },
         })
