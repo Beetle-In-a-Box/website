@@ -104,8 +104,10 @@ beetle-in-a-box/
 │   │   ├── ArticleTitle.tsx        # Article title
 │   │   ├── ArticleAuthor.tsx       # Author attribution
 │   │   ├── ArticleContent.tsx      # Article body
+│   │   ├── ArticleHtmlContent.tsx  # Converts HTML to React with safe Images
 │   │   ├── Footnote.tsx            # Citation/footnote
-│   │   └── FootnoteLink.tsx        # In-text footnote links
+│   │   ├── FootnoteLink.tsx        # In-text footnote links
+│   │   └── FootnoteHandler.tsx     # Client-side footnote click handling
 │   │
 │   ├── issue/               # Issue listing components
 │   │   ├── ContentsContainer.tsx   # Issue page wrapper
@@ -224,13 +226,39 @@ beetle-in-a-box/
 - `saveImage(file, issueNumber, prefix)` - Saves uploaded images to public directory
 
 ### docx-utils.ts
-- `convertArticleDocx(buffer)` - Converts .docx to HTML with footnote links
-- `convertCitationsDocx(buffer)` - Converts citations .docx to clickable footnotes
+- `convertArticleDocx(buffer)` - Converts .docx to HTML with footnote links and auto-linked URLs
+  - Adds footnote IDs (fl1, fl2, etc.) and onclick handlers
+  - Automatically converts plain text URLs to clickable links
+- `convertCitationsDocx(buffer)` - Converts citations .docx to HTML with clickable footnotes
+  - Wraps paragraphs as footnotes with IDs (f1, f2, etc.) and onclick handlers
+  - Auto-links URLs in citations
 - `convertPreviewDocx(buffer)` - Extracts plain text preview from .docx
 - `generateFileName(title)` - Generates URL-friendly filename from title
+- `autolinkUrls(html)` - Converts plain text URLs to clickable links
 
 ### text-utils.ts
 - `unescapeHtml(text)` - Converts HTML entities to characters
+
+## Article Rendering System
+
+The application converts .docx files to interactive HTML articles with clickable footnotes:
+
+### HTML Conversion Pipeline
+1. `.docx` files are uploaded and converted to HTML using `convertArticleDocx()`
+2. HTML includes footnote IDs and onclick handlers
+3. Plain text URLs are automatically converted to clickable links
+4. HTML is stored in database (or served server-side)
+
+### Client-Side Article Rendering
+- `ArticleHtmlContent` component safely parses HTML and converts to React
+  - Converts `<img>` tags to Next.js Image components
+  - Makes external links open in new tabs
+  - Preserves footnote functionality via data attributes
+- `FootnoteHandler` client component manages interactive footnote navigation
+  - Attaches click listeners to footnote links
+  - Smoothly scrolls to target footnote with proper viewport offset
+  - Highlights footnotes (yellow background + larger font) for 3 seconds
+  - Cleans up event listeners on unmount
 
 ## UI Component System
 
@@ -264,18 +292,29 @@ import Subheader from '@/components/ui/Subheader';
 
 ## Testing
 
-The project includes comprehensive test coverage (63 tests, 147 assertions):
+The project uses Bun's built-in test runner with comprehensive test coverage (63+ tests):
 
-### API Tests
+### Running Tests
+```bash
+bun test              # Run all tests
+bun test:watch        # Run tests in watch mode
+bun test:coverage     # Run tests with coverage report
+```
+
+### Test Coverage
 - **Issues API** (14 tests): CRUD operations, validation, error handling
 - **Articles API** (18 tests): CRUD operations, .docx processing, validation
-
-### Utility Tests
 - **file-upload** (13 tests): Image/docx validation, file saving
 - **docx-utils** (11 tests): Filename generation
 - **text-utils** (7 tests): HTML entity unescaping
 
-All tests use mocked Prisma client and file operations - **no database or file system changes occur during testing**.
+### Test Architecture
+- Uses Bun's native test runner (fully Jest-compatible)
+- All Prisma calls are mocked (no database access)
+- File operations are mocked (no file system access)
+- Imports from `bun:test` (describe, it, expect, spyOn, etc.)
+- Uses `spyOn()` for mocking functions, `mockReset()` for cleanup
+- **No database or file system changes occur during testing**
 
 ## Styling Conventions
 
