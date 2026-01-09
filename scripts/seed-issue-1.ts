@@ -70,7 +70,7 @@ async function login(password: string) {
         throw new Error('Password is required')
     }
 
-    const response = await fetch('http://localhost:3000/api/auth/login', {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -166,7 +166,7 @@ async function createArticleViaAPI(issueId: string, articleData: ArticleData) {
 async function seed() {
     try {
         console.log('Starting database seed for Issue 1...\n')
-        console.log('NOTE: Make sure the dev server is running on http://localhost:3000\n')
+        console.log(`API Base URL: ${API_BASE_URL}\n`)
 
         // Get password from command-line arguments
         const password = process.argv[2]
