@@ -6,7 +6,7 @@ const prisma = new PrismaClient()
 
 const SEED_IMAGES_PATH = join(process.cwd(), 'scripts', 'seed-images')
 const SEED_DOCX_PATH = join(process.cwd(), 'scripts', 'seed-docx')
-const API_BASE_URL = 'http://localhost:3000/api'
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000/api'
 
 let authCookie: string | null = null
 
