@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client'
-import { readdir, unlink } from 'fs/promises'
+import { readdir, unlink, stat } from 'fs/promises'
 import { join } from 'path'
 import { existsSync } from 'fs'
 
@@ -12,24 +12,32 @@ async function clearFiles() {
 
     let deletedCount = 0
 
-    // Delete all images (except .gitkeep)
+    // Delete all images (except .gitkeep and directories)
     if (existsSync(imagesDir)) {
         const imageFiles = await readdir(imagesDir)
         for (const file of imageFiles) {
             if (file !== '.gitkeep') {
-                await unlink(join(imagesDir, file))
-                deletedCount++
+                const filePath = join(imagesDir, file)
+                const stats = await stat(filePath)
+                if (stats.isFile()) {
+                    await unlink(filePath)
+                    deletedCount++
+                }
             }
         }
     }
 
-    // Delete all .docx files (except .gitkeep)
+    // Delete all .docx files (except .gitkeep and directories)
     if (existsSync(articlesDir)) {
         const articleFiles = await readdir(articlesDir)
         for (const file of articleFiles) {
             if (file !== '.gitkeep') {
-                await unlink(join(articlesDir, file))
-                deletedCount++
+                const filePath = join(articlesDir, file)
+                const stats = await stat(filePath)
+                if (stats.isFile()) {
+                    await unlink(filePath)
+                    deletedCount++
+                }
             }
         }
     }
