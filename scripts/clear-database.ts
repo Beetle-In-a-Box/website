@@ -12,21 +12,25 @@ async function clearFiles() {
 
     let deletedCount = 0
 
-    // Delete all images
+    // Delete all images (except .gitkeep)
     if (existsSync(imagesDir)) {
         const imageFiles = await readdir(imagesDir)
         for (const file of imageFiles) {
-            await unlink(join(imagesDir, file))
-            deletedCount++
+            if (file !== '.gitkeep') {
+                await unlink(join(imagesDir, file))
+                deletedCount++
+            }
         }
     }
 
-    // Delete all .docx files
+    // Delete all .docx files (except .gitkeep)
     if (existsSync(articlesDir)) {
         const articleFiles = await readdir(articlesDir)
         for (const file of articleFiles) {
-            await unlink(join(articlesDir, file))
-            deletedCount++
+            if (file !== '.gitkeep') {
+                await unlink(join(articlesDir, file))
+                deletedCount++
+            }
         }
     }
 
