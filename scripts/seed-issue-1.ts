@@ -63,12 +63,11 @@ const articles: ArticleData[] = [
     },
 ]
 
-async function login() {
+async function login(password: string) {
     console.log('Logging in...')
 
-    const password = process.env.ADMIN_PASSWORD
     if (!password) {
-        throw new Error('ADMIN_PASSWORD environment variable not set')
+        throw new Error('Password is required')
     }
 
     const response = await fetch('http://localhost:3000/api/auth/login', {
@@ -169,8 +168,16 @@ async function seed() {
         console.log('Starting database seed for Issue 1...\n')
         console.log('NOTE: Make sure the dev server is running on http://localhost:3000\n')
 
+        // Get password from command-line arguments
+        const password = process.argv[2]
+        if (!password) {
+            console.error('❌ Error: Admin password is required')
+            console.log('Usage: bun scripts/seed-issue-1.ts <admin-password>')
+            process.exit(1)
+        }
+
         // Step 0: Login first
-        await login()
+        await login(password)
 
         // Step 1: Create the issue via API
         const issue = await createIssueViaAPI()
