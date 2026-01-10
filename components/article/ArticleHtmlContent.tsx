@@ -22,7 +22,9 @@ function convertAttributesToReactProps(attribs: { [key: string]: string }) {
     for (const [key, value] of Object.entries(attribs)) {
         if (key === 'onclick') {
             // Extract element ID from onclick="goToElementWithHighlightModern('f1')"
-            const match = value.match(/goToElementWithHighlightModern\('([^']+)'\)/)
+            const match = value.match(
+                /goToElementWithHighlightModern\('([^']+)'\)/
+            )
             if (match && match[1]) {
                 // Store as data attribute for client-side script to handle
                 reactProps['data-footnote-target'] = match[1]
@@ -69,14 +71,21 @@ export default function ArticleHtmlContent({ html }: ArticleHtmlContentProps) {
                 // Handle links: add target="_blank"
                 if (name === 'a') {
                     return (
-                        <a {...reactProps} target="_blank" rel="noopener noreferrer">
+                        <a
+                            {...reactProps}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
                             {domToReact(children as DOMNode[], options)}
                         </a>
                     )
                 }
 
                 // Handle elements with data-footnote-target or className
-                if (reactProps['data-footnote-target'] || reactProps.className) {
+                if (
+                    reactProps['data-footnote-target'] ||
+                    reactProps.className
+                ) {
                     // Use React.createElement to avoid JSX namespace issues
                     return React.createElement(
                         name,

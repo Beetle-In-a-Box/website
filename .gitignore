@@ -44,8 +44,10 @@ next-env.d.ts
 /lib/generated/prisma
 
 # uploaded files (stored in Railway volumes)
-/public/images/*
-/public/articles/*
-# but keep the directories themselves
-!/public/images/.gitkeep
-!/public/articles/.gitkeep
+/uploads/*
+# but keep the directory structure
+!/uploads/.gitkeep
+!/uploads/images/
+!/uploads/images/.gitkeep
+!/uploads/articles/
+!/uploads/articles/.gitkeep

@@ -42,8 +42,10 @@ async function getArticle(issueNumber: number, articleFileName: string) {
 
 async function convertDocxToHtml(docxPath: string) {
     try {
-        // Read the .docx file from public directory
-        const filePath = join(process.cwd(), 'public', docxPath)
+        // Read the .docx file from uploads directory
+        // docxPath is like '/articles/file.docx', remove leading slash
+        const relativePath = docxPath.startsWith('/') ? docxPath.slice(1) : docxPath
+        const filePath = join(process.cwd(), 'uploads', relativePath)
         const buffer = await readFile(filePath)
 
         // Convert to HTML with footnote handling

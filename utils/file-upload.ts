@@ -17,8 +17,8 @@ export async function saveImage(
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    // Create directory structure: /public/images/
-    const imagesDir = join(process.cwd(), 'public', 'images')
+    // Create directory structure: /uploads/images/
+    const imagesDir = join(process.cwd(), 'uploads', 'images')
     if (!existsSync(imagesDir)) {
         await mkdir(imagesDir, { recursive: true })
     }
@@ -49,8 +49,8 @@ export async function saveDocx(
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    // Create directory structure: /public/articles/
-    const articlesDir = join(process.cwd(), 'public', 'articles')
+    // Create directory structure: /uploads/articles/
+    const articlesDir = join(process.cwd(), 'uploads', 'articles')
     if (!existsSync(articlesDir)) {
         await mkdir(articlesDir, { recursive: true })
     }
@@ -145,7 +145,10 @@ export async function deleteFile(publicPath: string | null): Promise<void> {
     if (!publicPath) return
 
     try {
-        const filepath = join(process.cwd(), 'public', publicPath)
+        // publicPath is like '/images/file.jpg' or '/articles/file.docx'
+        // Remove leading slash and prepend 'uploads/'
+        const relativePath = publicPath.startsWith('/') ? publicPath.slice(1) : publicPath
+        const filepath = join(process.cwd(), 'uploads', relativePath)
         if (existsSync(filepath)) {
             await unlink(filepath)
         }

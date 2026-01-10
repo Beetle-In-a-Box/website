@@ -6,9 +6,9 @@ import { existsSync } from 'fs'
 const prisma = new PrismaClient()
 
 async function clearFiles() {
-    const publicDir = join(process.cwd(), 'public')
-    const imagesDir = join(publicDir, 'images')
-    const articlesDir = join(publicDir, 'articles')
+    const uploadsDir = join(process.cwd(), 'uploads')
+    const imagesDir = join(uploadsDir, 'images')
+    const articlesDir = join(uploadsDir, 'articles')
 
     let deletedCount = 0
 
