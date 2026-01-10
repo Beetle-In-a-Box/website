@@ -43,6 +43,12 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) to see the application.
 
+## Production
+
+The application is deployed on Railway and can be accessed at:
+- **Website**: [beetle-in-a-box-production.up.railway.app](https://beetle-in-a-box-production.up.railway.app)
+- **Admin Panel**: [beetle-in-a-box-production.up.railway.app/admin](https://beetle-in-a-box-production.up.railway.app/admin)
+
 ## Development Commands
 
 ### Application
