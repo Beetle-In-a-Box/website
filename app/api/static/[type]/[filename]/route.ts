@@ -12,10 +12,10 @@ import { existsSync } from 'fs'
  */
 export async function GET(
     request: NextRequest,
-    { params }: { params: { type: string; filename: string } }
+    { params }: { params: Promise<{ type: string; filename: string }> }
 ) {
     try {
-        const { type, filename } = params
+        const { type, filename } = await params
 
         // Validate type (images or articles)
         if (type !== 'images' && type !== 'articles') {
