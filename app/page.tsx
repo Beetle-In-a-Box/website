@@ -8,6 +8,9 @@ import ArticlePreview from '@/components/issue/ArticlePreview'
 import Empty from '@/components/ui/Empty'
 import { prisma } from '@/utils/prisma'
 
+// Always fetch fresh data - don't cache this page
+export const dynamic = 'force-dynamic'
+
 async function getPublishedIssues() {
     try {
         const issues = await prisma.issue.findMany({
