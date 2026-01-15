@@ -45,13 +45,14 @@ export default function IssueCover({ imageSrc, articles }: IssueCoverProps) {
                                 {article.title}
                             </Subheader>
                             <br />
-                            <Link
-                                href="/about"
-                                target="_blank"
-                                variant="default"
+                            <span
+                                onClick={() =>
+                                    goToElementWithBorder(article.id)
+                                }
+                                className={styles.clickableAuthor}
                             >
                                 {article.author}
-                            </Link>
+                            </span>
                             {index < articles.length - 1 && (
                                 <>
                                     <br />

@@ -34,3 +34,14 @@
         transform: translateY(0);
     }
 }
+
+.clickableAuthor {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    color: #1a1a1a;
+}
+
+.clickableAuthor:hover {
+    opacity: 0.8;
+}
