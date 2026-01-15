@@ -1,11 +1,11 @@
 import React from 'react'
+import Image from 'next/image'
 import parse, {
     domToReact,
     HTMLReactParserOptions,
     Element,
     DOMNode,
 } from 'html-react-parser'
-import Image from 'next/image'
 
 interface ArticleHtmlContentProps {
     html: string
