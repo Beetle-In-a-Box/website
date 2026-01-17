@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs'
 import { join } from 'path'
 import { JSDOM } from 'jsdom'
 import HTMLtoDOCX from 'html-to-docx'
+import { fixHTMLForDocx } from './fix-html-for-docx'
 
 const BASE_PATH =
     '/Users/michaelslain/Documents/dev/beetle-in-a-box/BeetleInABox_Website'
@@ -102,8 +103,11 @@ async function generateDocxFiles() {
         const htmlPath = join(BASE_PATH, `Issue-1/${article.fileName}.html`)
         const htmlContent = extractContentFromHTML(htmlPath)
 
+        // Fix HTML structure to prevent formatting issues
+        const fixedHTML = fixHTMLForDocx(htmlContent)
+
         // Convert to .docx
-        const docxBuffer = await HTMLtoDOCX(htmlContent, null, {
+        const docxBuffer = await HTMLtoDOCX(fixedHTML, null, {
             table: { row: { cantSplit: true } },
             footer: true,
             pageNumber: true,

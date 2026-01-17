@@ -6,6 +6,7 @@
 import { writeFileSync, mkdirSync, existsSync } from 'fs'
 import { join } from 'path'
 import HTMLtoDOCX from 'html-to-docx'
+import { fixHTMLForDocx } from './fix-html-for-docx'
 
 const SEED_DOCX_PATH = join(process.cwd(), 'scripts', 'seed-docx')
 
@@ -150,8 +151,11 @@ async function generateDocxFile(article: ArticleContent) {
     // Generate HTML content
     const htmlContent = generateHTMLContent(article)
 
+    // Fix HTML structure to prevent formatting issues
+    const fixedHTML = fixHTMLForDocx(htmlContent)
+
     // Convert to .docx
-    const docxBuffer = (await HTMLtoDOCX(htmlContent, null, {
+    const docxBuffer = (await HTMLtoDOCX(fixedHTML, null, {
         table: { row: { cantSplit: true } },
         footer: true,
         pageNumber: true,
