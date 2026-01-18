@@ -17,8 +17,12 @@ function autolinkUrls(html: string): string {
 /**
  * Convert .docx buffer to HTML content for article body
  * Processes paragraphs and adds footnote links
+ * Returns an object with separate content and citations
  */
-export async function convertArticleDocx(buffer: Buffer): Promise<string> {
+export async function convertArticleDocx(buffer: Buffer): Promise<{
+    content: string
+    citations: string | null
+}> {
     try {
         const result = await mammoth.convertToHtml({ buffer })
         let html = result.value
@@ -29,16 +33,52 @@ export async function convertArticleDocx(buffer: Buffer): Promise<string> {
         // Convert plain text URLs to clickable links
         html = autolinkUrls(html)
 
-        // Process footnotes - add IDs and onclick handlers
-        const footnoteCount = (html.match(/<sup>/g) || []).length
-        for (let i = 1; i <= footnoteCount; i++) {
-            html = html.replace(
-                '<sup>',
-                `<sup class='footnoteLink' id='fl${i}' onclick="goToElementWithHighlightModern('f${i}')">`,
-            )
+        // Split content from footnotes
+        // Footnotes are paragraphs that start with <p><sup>NUMBER</sup>
+        const paragraphs = html.split('</p>')
+        const contentParagraphs: string[] = []
+        const footnoteParagraphs: string[] = []
+        let inFootnotesSection = false
+
+        for (const para of paragraphs) {
+            if (!para.trim()) continue
+
+            // Check if this paragraph starts with a footnote (e.g., <p><sup>1</sup>)
+            const footnoteMatch = para.match(/^<p><sup>(\d+)<\/sup>/)
+
+            if (footnoteMatch) {
+                inFootnotesSection = true
+                // Extract footnote number and content
+                const footnoteNum = footnoteMatch[1]
+                const content = para.replace(/^<p><sup>\d+<\/sup>\s*/, '<p>')
+                footnoteParagraphs.push({ num: footnoteNum, content } as any)
+            } else if (!inFootnotesSection) {
+                contentParagraphs.push(para + '</p>')
+            }
         }
 
-        return html
+        // Process main content - add IDs and onclick to footnote reference links
+        let mainContent = contentParagraphs.join('')
+        let footnoteRefCount = 0
+        mainContent = mainContent.replace(/<sup>/g, () => {
+            footnoteRefCount++
+            return `<sup class='footnoteLink' id='fl${footnoteRefCount}' onclick="goToElementWithHighlightModern('f${footnoteRefCount}')">`
+        })
+
+        // Process footnotes - format with proper structure
+        let citationsHtml: string | null = null
+        if (footnoteParagraphs.length > 0) {
+            citationsHtml = footnoteParagraphs
+                .map((footnote: any) => {
+                    const { num, content } = footnote
+                    // Format: <p class='footnote' id='f1' onclick='...'><sup>1</sup> Content</p>
+                    const innerContent = content.replace('<p>', '').replace('</p>', '')
+                    return `<p class='footnote' id='f${num}' onclick="goToElementWithHighlightModern('fl${num}')"><sup>${num}</sup> ${innerContent}</p>`
+                })
+                .join('\n')
+        }
+
+        return { content: mainContent, citations: citationsHtml }
     } catch (error) {
         throw new Error(
             `Failed to convert article .docx: ${error instanceof Error ? error.message : String(error)}`,
@@ -134,7 +174,7 @@ function cleanText(text: string): string {
  */
 export function generateFileName(title: string): string {
     if (!title.includes(' ')) {
-        return title.toLowerCase() + '.html'
+        return title.toLowerCase()
     }
 
     // Remove punctuation and convert to lowercase
@@ -164,5 +204,5 @@ export function generateFileName(title: string): string {
     // Take first two words
     const fileName = words.slice(0, 2).join('-')
 
-    return fileName + '.html'
+    return fileName
 }

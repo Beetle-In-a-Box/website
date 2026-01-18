@@ -3,73 +3,73 @@ import { generateFileName } from '@/utils/docx-utils'
 
 describe('generateFileName', () => {
     it('should generate filename from two-word title', () => {
-        expect(generateFileName('Hello World')).toBe('hello-world.html')
-        expect(generateFileName('Test Article')).toBe('test-article.html')
+        expect(generateFileName('Hello World')).toBe('hello-world')
+        expect(generateFileName('Test Article')).toBe('test-article')
     })
 
     it('should generate filename from multi-word title using first two words', () => {
-        expect(generateFileName('This Is A Long Title')).toBe('this-is.html')
+        expect(generateFileName('This Is A Long Title')).toBe('this-is')
         expect(generateFileName('Understanding Quantum Physics Today')).toBe(
-            'understanding-quantum.html',
+            'understanding-quantum',
         )
     })
 
     it('should remove common words before selecting two words', () => {
-        expect(generateFileName('The Quick Brown Fox')).toBe('quick-brown.html')
+        expect(generateFileName('The Quick Brown Fox')).toBe('quick-brown')
         expect(generateFileName('A Study of Philosophy')).toBe(
-            'study-philosophy.html',
+            'study-philosophy',
         )
         expect(generateFileName('On the Nature of Reality')).toBe(
-            'nature-reality.html',
+            'nature-reality',
         )
     })
 
     it('should handle single word titles', () => {
-        expect(generateFileName('Philosophy')).toBe('philosophy.html')
-        expect(generateFileName('Title')).toBe('title.html')
+        expect(generateFileName('Philosophy')).toBe('philosophy')
+        expect(generateFileName('Title')).toBe('title')
     })
 
     it('should remove punctuation from titles', () => {
         expect(generateFileName("What's Philosophy?")).toBe(
-            'whats-philosophy.html',
+            'whats-philosophy',
         )
-        expect(generateFileName('Mind, Body, and Soul')).toBe('mind-body.html')
-        expect(generateFileName('The "Real" World')).toBe('real-world.html')
+        expect(generateFileName('Mind, Body, and Soul')).toBe('mind-body')
+        expect(generateFileName('The "Real" World')).toBe('real-world')
     })
 
     it('should handle titles with all common words', () => {
         // If all words are common, it should still try to use what's available
-        expect(generateFileName('The And Or')).toBe('.html')
-        expect(generateFileName('A The Of')).toBe('.html')
+        expect(generateFileName('The And Or')).toBe('')
+        expect(generateFileName('A The Of')).toBe('')
     })
 
     it('should handle titles with mixed case', () => {
-        expect(generateFileName('The QUICK Brown FOX')).toBe('quick-brown.html')
-        expect(generateFileName('CamelCase Title')).toBe('camelcase-title.html')
+        expect(generateFileName('The QUICK Brown FOX')).toBe('quick-brown')
+        expect(generateFileName('CamelCase Title')).toBe('camelcase-title')
     })
 
     it('should handle titles with extra whitespace', () => {
-        expect(generateFileName('  Hello   World  ')).toBe('hello-world.html')
+        expect(generateFileName('  Hello   World  ')).toBe('hello-world')
         expect(generateFileName('Test  Multiple   Spaces')).toBe(
-            'test-multiple.html',
+            'test-multiple',
         )
     })
 
     it('should handle titles with numbers', () => {
-        expect(generateFileName('Article 123 Test')).toBe('article-123.html')
+        expect(generateFileName('Article 123 Test')).toBe('article-123')
         expect(generateFileName('2024 Philosophy Review')).toBe(
-            '2024-philosophy.html',
+            '2024-philosophy',
         )
     })
 
     it('should handle titles with special characters and spaces', () => {
-        expect(generateFileName('Hello... World!!!')).toBe('hello-world.html')
-        expect(generateFileName('Test & Article')).toBe('test-article.html')
+        expect(generateFileName('Hello... World!!!')).toBe('hello-world')
+        expect(generateFileName('Test & Article')).toBe('test-article')
     })
 
     it('should handle edge case with only one non-common word', () => {
-        expect(generateFileName('The Philosophy')).toBe('philosophy.html')
-        expect(generateFileName('A Test')).toBe('test.html')
+        expect(generateFileName('The Philosophy')).toBe('philosophy')
+        expect(generateFileName('A Test')).toBe('test')
     })
 })
 

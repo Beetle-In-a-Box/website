@@ -22,7 +22,7 @@ describe('Issue 1 Formatting Regression Tests', () => {
             const buffer = await readFile(
                 path.join(SEED_DOCX_DIR, 'making-beauty.docx')
             )
-            const html = await convertArticleDocx(buffer)
+            const { content: html } = await convertArticleDocx(buffer)
 
             // Find the problematic paragraph
             const davidSection = html.substring(
@@ -73,7 +73,7 @@ describe('Issue 1 Formatting Regression Tests', () => {
             const buffer = await readFile(
                 path.join(SEED_DOCX_DIR, 'making-beauty.docx')
             )
-            const html = await convertArticleDocx(buffer)
+            const { content: html } = await convertArticleDocx(buffer)
 
             // Standalone "or" in a paragraph is a sign of broken formatting
             expect(html).not.toMatch(/<p>\s*or\s*<\/p>/i)
@@ -96,7 +96,7 @@ describe('Issue 1 Formatting Regression Tests', () => {
                 const buffer = await readFile(
                     path.join(SEED_DOCX_DIR, article)
                 )
-                const html = await convertArticleDocx(buffer)
+                const { content: html } = await convertArticleDocx(buffer)
 
                 // Find suspiciously short paragraphs (likely formatting errors)
                 // Pattern: <p>word</p> or <p> word </p>
@@ -134,7 +134,7 @@ describe('Issue 1 Formatting Regression Tests', () => {
                 const buffer = await readFile(
                     path.join(SEED_DOCX_DIR, article)
                 )
-                const html = await convertArticleDocx(buffer)
+                const { content: html } = await convertArticleDocx(buffer)
 
                 // Pattern that indicates italics broken across paragraphs:
                 // </p><p><em>...</em></p><p>
@@ -160,7 +160,7 @@ describe('Issue 1 Formatting Regression Tests', () => {
             const buffer = await readFile(
                 path.join(SEED_DOCX_DIR, 'making-beauty.docx')
             )
-            const html = await convertArticleDocx(buffer)
+            const { content: html } = await convertArticleDocx(buffer)
 
             // Expected structure from static HTML:
             // "you've faced <i>David</i> or <i>The Starry Night</i> only to feel"

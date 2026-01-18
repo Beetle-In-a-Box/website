@@ -100,7 +100,7 @@ async function generateDocxFiles() {
         console.log(`Processing: ${article.title}...`)
 
         // Extract HTML content
-        const htmlPath = join(BASE_PATH, `Issue-1/${article.fileName}.html`)
+        const htmlPath = join(BASE_PATH, `Issue-1/${article.fileName}.html`) // Article.fileName has .html from old DB
         const htmlContent = extractContentFromHTML(htmlPath)
 
         // Fix HTML structure to prevent formatting issues

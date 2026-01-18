@@ -54,7 +54,7 @@ describe('Articles API', () => {
         spyOn(fileUpload, 'saveImage').mockResolvedValue('/images/test-article.jpg')
         spyOn(fileUpload, 'saveDocx').mockResolvedValue('/articles/article-1-1234567890.docx')
         spyOn(docxUtils, 'convertPreviewDocx').mockResolvedValue('Article preview text')
-        spyOn(docxUtils, 'generateFileName').mockReturnValue('test-article.html')
+        spyOn(docxUtils, 'generateFileName').mockReturnValue('test-article')
     })
 
     describe('POST /api/articles', () => {
@@ -68,7 +68,7 @@ describe('Articles API', () => {
                 contentDocxPath: '/articles/article-1-1234567890.docx',
                 previewText: 'Article preview text',
                 imageUrl: '/images/test-article.jpg',
-                fileName: 'test-article.html',
+                fileName: 'test-article',
                 published: false,
                 issueId: 'issue-1',
                 createdAt: new Date(),
@@ -115,7 +115,7 @@ describe('Articles API', () => {
             expect(data.contentDocxPath).toBe('/articles/article-1-1234567890.docx')
             expect(data.previewText).toBe('Article preview text')
             expect(data.imageUrl).toBe('/images/test-article.jpg')
-            expect(data.fileName).toBe('test-article.html')
+            expect(data.fileName).toBe('test-article')
         })
 
         it('should create article without optional fields (citations, image, shortTitle)', async () => {
@@ -128,7 +128,7 @@ describe('Articles API', () => {
                 contentDocxPath: '/articles/article-1-1234567890.docx',
                 previewText: 'Article preview text',
                 imageUrl: null,
-                fileName: 'test-article.html',
+                fileName: 'test-article',
                 published: false,
                 issueId: 'issue-1',
                 createdAt: new Date(),
@@ -200,7 +200,7 @@ describe('Articles API', () => {
                 contentDocxPath: '/articles/article-1-1234567890.docx',
                 previewText: 'Preview',
                 imageUrl: null,
-                fileName: 'existing-article.html',
+                fileName: 'existing-article',
                 published: true,
                 issueId: 'issue-1',
                 createdAt: new Date(),
@@ -306,7 +306,7 @@ describe('Articles API', () => {
                     citations: null,
                     previewText: 'Preview',
                     imageUrl: null,
-                    fileName: 'test-article.html',
+                    fileName: 'test-article',
                     published: true,
                     issueId: 'issue-1',
                     createdAt: new Date(),
@@ -395,7 +395,7 @@ describe('Articles API', () => {
                 contentDocxPath: '/articles/article-1-1234567890.docx',
                 previewText: 'Preview',
                 imageUrl: null,
-                fileName: 'test-article.html',
+                fileName: 'test-article',
                 published: true,
                 issueId: 'issue-1',
                 createdAt: new Date(),
@@ -447,7 +447,7 @@ describe('Articles API', () => {
                 contentDocxPath: '/articles/article-1-1234567890.docx',
                 previewText: 'Preview',
                 imageUrl: null,
-                fileName: 'test-article.html',
+                fileName: 'test-article',
                 published: false,
                 issueId: 'issue-1',
                 createdAt: new Date(),
@@ -496,7 +496,7 @@ describe('Articles API', () => {
                 contentDocxPath: '/articles/article-1-1234567890.docx',
                 previewText: 'Old preview',
                 imageUrl: null,
-                fileName: 'test-article.html',
+                fileName: 'test-article',
                 published: false,
                 issueId: 'issue-1',
                 createdAt: new Date(),
@@ -547,7 +547,7 @@ describe('Articles API', () => {
                 contentDocxPath: '/articles/article-1-1234567890.docx',
                 previewText: 'Preview',
                 imageUrl: '/images/old-image.jpg',
-                fileName: 'test-article.html',
+                fileName: 'test-article',
                 published: false,
                 issueId: 'issue-1',
                 createdAt: new Date(),
@@ -626,7 +626,7 @@ describe('Articles API', () => {
                 contentDocxPath: '/articles/article-1-1234567890.docx',
                 previewText: 'Preview',
                 imageUrl: null,
-                fileName: 'test-article.html',
+                fileName: 'test-article',
                 published: false,
                 issueId: 'issue-1',
                 createdAt: new Date(),

@@ -14,7 +14,7 @@ import ArticleHtmlContent from '@/components/article/ArticleHtmlContent'
 import FootnoteHandler from '@/components/article/FootnoteHandler'
 import { prisma } from '@/utils/prisma'
 import { convertArticleDocx } from '@/utils/docx-utils'
-import mammoth from 'mammoth'
+import styles from './page.module.scss'
 
 interface ArticlePageProps {
     params: Promise<{
@@ -44,29 +44,14 @@ async function convertDocxToHtml(docxPath: string) {
     try {
         // Read the .docx file from uploads directory
         // docxPath is like '/articles/file.docx', remove leading slash
-        const relativePath = docxPath.startsWith('/') ? docxPath.slice(1) : docxPath
+        const relativePath = docxPath.startsWith('/')
+            ? docxPath.slice(1)
+            : docxPath
         const filePath = join(process.cwd(), 'uploads', relativePath)
         const buffer = await readFile(filePath)
 
-        // Convert to HTML with footnote handling
-        const content = await convertArticleDocx(buffer)
-
-        // Extract endnotes/footnotes if they exist
-        // mammoth converts endnotes as part of the document
-        // We need to split content from citations
-        const result = await mammoth.convertToHtml({ buffer })
-        const fullHtml = result.value
-
-        // Check if there are footnotes (indicated by <sup> tags)
-        const hasCitations = fullHtml.includes('<sup>')
-
-        if (hasCitations) {
-            // For now, return the full content
-            // TODO: Properly split main content from endnotes
-            return { content, citations: null }
-        }
-
-        return { content, citations: null }
+        // Convert to HTML with footnote handling (returns { content, citations })
+        return await convertArticleDocx(buffer)
     } catch (error) {
         console.error('Error converting .docx:', error)
         return {
@@ -144,7 +129,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     {/* Render citations if available */}
                     {citations && (
                         <>
-                            <div className="footnoteBorder"></div>
+                            <div className={styles.footnoteBorder}></div>
                             <ArticleHtmlContent html={citations} />
                         </>
                     )}

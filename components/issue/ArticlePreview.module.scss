@@ -7,6 +7,10 @@
     border-bottom: solid 1px rgba(240, 240, 240, 1);
 }
 
+.articlePreview:first-child {
+    border-top: solid 1px rgba(240, 240, 240, 1);
+}
+
 .articlePreview:last-of-type {
     border-bottom: none;
 }
@@ -16,6 +20,7 @@
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
+    margin: 10px;
 }
 
 .articlePreview .previewTitle .previewTitleA {
@@ -44,6 +49,14 @@
 .articlePreview .previewTitle .previewAuthor:hover {
     cursor: pointer;
     text-decoration: underline;
+}
+
+.articlePreview .previewTitle {
+    margin: 10px;
+}
+
+.articlePreview .previewContent {
+    margin: 10px;
 }
 
 .articlePreview .previewContent p {
