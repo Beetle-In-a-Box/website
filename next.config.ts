@@ -4,6 +4,14 @@ const nextConfig: NextConfig = {
     turbopack: {
         root: __dirname,
     },
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'http',
+                hostname: 'www.ocf.berkeley.edu',
+            },
+        ],
+    },
     async rewrites() {
         return [
             {

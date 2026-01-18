@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { getCurrentYear } from '@/utils/date-utils';
 import styles from './Footer.module.scss';
 
@@ -17,7 +18,12 @@ export default function Footer() {
         </p>
       </div>
       <a href="https://www.ocf.berkeley.edu" target="_blank" rel="noopener noreferrer">
-        {/* <img src="Images/ocf.png" alt="Hosted by the OCF" style="border: 0;" /> */}
+        <Image
+          src="http://www.ocf.berkeley.edu/hosting-logos/ocf-hosted-penguin.svg"
+          alt="Hosted by the OCF"
+          width={88}
+          height={31}
+        />
       </a>
     </footer>
   );
