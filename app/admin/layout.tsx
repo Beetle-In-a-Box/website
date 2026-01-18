@@ -1,4 +1,8 @@
+'use client';
+
 import AdminNav from '@/components/admin/AdminNav';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import styles from './Admin.module.scss';
 
 export default function AdminLayout({
@@ -12,6 +16,17 @@ export default function AdminLayout({
             <main className={styles.adminContainer}>
                 {children}
             </main>
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+            />
         </div>
     );
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/utils/prisma'
+import { verifyAuth } from '@/utils/auth'
 import {
     saveImage,
     saveDocx,
@@ -52,6 +53,12 @@ export async function PUT(
     { params }: { params: Promise<{ id: string }> },
 ) {
     try {
+        const token = request.cookies.get('admin-token')?.value
+        const isAuthenticated = await verifyAuth(token)
+        if (!isAuthenticated) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
         const { id } = await params
         const formData = await request.formData()
 
@@ -182,6 +189,12 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> },
 ) {
     try {
+        const token = request.cookies.get('admin-token')?.value
+        const isAuthenticated = await verifyAuth(token)
+        if (!isAuthenticated) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
         const { id } = await params
         const article = await prisma.article.findUnique({
             where: { id },

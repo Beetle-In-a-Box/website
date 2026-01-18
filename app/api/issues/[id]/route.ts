@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/utils/prisma'
+import { verifyAuth } from '@/utils/auth'
 import { saveImage, validateImageFile, deleteFile } from '@/utils/file-upload'
 
 /**
@@ -123,6 +124,69 @@ export async function PUT(
         return NextResponse.json(issue)
     } catch (error) {
         console.error('Error updating issue:', error)
+        return NextResponse.json(
+            { error: 'Failed to update issue' },
+            { status: 500 },
+        )
+    }
+}
+
+/**
+ * PATCH /api/issues/[id]
+ * Partially update an issue (e.g., toggle published status)
+ */
+export async function PATCH(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> },
+) {
+    try {
+        const token = request.cookies.get('admin-token')?.value
+        const isAuthenticated = await verifyAuth(token)
+        if (!isAuthenticated) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        const { id } = await params
+
+        // Parse FormData
+        const formData = await request.formData()
+        const body: any = {}
+
+        formData.forEach((value, key) => {
+            // Convert 'true'/'false' strings to booleans
+            if (value === 'true') body[key] = true
+            else if (value === 'false') body[key] = false
+            else body[key] = value
+        })
+
+        console.log('Parsed body:', body)
+
+        // Check if issue exists
+        const existingIssue = await prisma.issue.findUnique({
+            where: { id },
+        })
+
+        if (!existingIssue) {
+            return NextResponse.json(
+                { error: 'Issue not found' },
+                { status: 404 },
+            )
+        }
+
+        // Update only provided fields
+        const issue = await prisma.issue.update({
+            where: { id },
+            data: body,
+            include: {
+                articles: {
+                    orderBy: { number: 'asc' },
+                },
+            },
+        })
+
+        return NextResponse.json(issue)
+    } catch (error) {
+        console.error('Error patching issue:', error)
         return NextResponse.json(
             { error: 'Failed to update issue' },
             { status: 500 },

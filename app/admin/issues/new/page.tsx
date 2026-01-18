@@ -2,9 +2,9 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
 import { createIssue } from '@/utils/api-client';
 import FileInput from '@/components/admin/FileInput';
-import FormMessage from '@/components/admin/FormMessage';
 import styles from '../../Admin.module.scss';
 
 export default function NewIssuePage() {
@@ -16,13 +16,11 @@ export default function NewIssuePage() {
         published: false,
     });
     const [imageFile, setImageFile] = useState<File | null>(null);
-    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const [submitting, setSubmitting] = useState(false);
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
-        setMessage(null);
 
         const data = new FormData();
         data.append('title', formData.title);
@@ -37,10 +35,10 @@ export default function NewIssuePage() {
         const result = await createIssue(data);
 
         if (result.error) {
-            setMessage({ type: 'error', text: result.error });
+            toast.error(result.error);
             setSubmitting(false);
         } else {
-            setMessage({ type: 'success', text: 'Issue created successfully!' });
+            toast.success('Issue created successfully!');
             setTimeout(() => {
                 router.push('/admin/issues');
             }, 1500);
@@ -52,14 +50,6 @@ export default function NewIssuePage() {
             <div className={styles.pageHeader}>
                 <h1>Create New Issue</h1>
             </div>
-
-            {message && (
-                <FormMessage
-                    type={message.type}
-                    message={message.text}
-                    onClose={() => setMessage(null)}
-                />
-            )}
 
             <form onSubmit={handleSubmit} className={styles.form}>
                 <div className={styles.formGroup}>

@@ -2,9 +2,9 @@
 
 import { useState, useEffect, FormEvent } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { toast } from 'react-toastify';
 import { fetchIssue, updateIssue } from '@/utils/api-client';
 import FileInput from '@/components/admin/FileInput';
-import FormMessage from '@/components/admin/FormMessage';
 import styles from '../../../Admin.module.scss';
 
 export default function EditIssuePage() {
@@ -20,7 +20,6 @@ export default function EditIssuePage() {
     });
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
-    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
@@ -32,7 +31,7 @@ export default function EditIssuePage() {
         const result = await fetchIssue(issueId);
 
         if (result.error) {
-            setMessage({ type: 'error', text: result.error });
+            toast.error(result.error);
             setLoading(false);
         } else if (result.data) {
             const issue = result.data;
@@ -50,7 +49,6 @@ export default function EditIssuePage() {
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
-        setMessage(null);
 
         const data = new FormData();
         data.append('title', formData.title);
@@ -65,10 +63,10 @@ export default function EditIssuePage() {
         const result = await updateIssue(issueId, data);
 
         if (result.error) {
-            setMessage({ type: 'error', text: result.error });
+            toast.error(result.error);
             setSubmitting(false);
         } else {
-            setMessage({ type: 'success', text: 'Issue updated successfully!' });
+            toast.success('Issue updated successfully!');
             setTimeout(() => {
                 router.push('/admin/issues');
             }, 1500);
@@ -84,14 +82,6 @@ export default function EditIssuePage() {
             <div className={styles.pageHeader}>
                 <h1>Edit Issue</h1>
             </div>
-
-            {message && (
-                <FormMessage
-                    type={message.type}
-                    message={message.text}
-                    onClose={() => setMessage(null)}
-                />
-            )}
 
             <form onSubmit={handleSubmit} className={styles.form}>
                 <div className={styles.formGroup}>

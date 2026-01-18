@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/utils/prisma'
+import { verifyAuth } from '@/utils/auth'
 import {
     saveImage,
     saveDocx,
@@ -10,6 +11,11 @@ import { generateFileName, convertPreviewDocx } from '@/utils/docx-utils'
 
 export const config = {
     maxDuration: 300,
+    api: {
+        bodyParser: {
+            sizeLimit: '50mb',
+        },
+    },
 }
 
 /**
@@ -18,6 +24,12 @@ export const config = {
  */
 export async function POST(request: NextRequest) {
     try {
+        const token = request.cookies.get('admin-token')?.value
+        const isAuthenticated = await verifyAuth(token)
+        if (!isAuthenticated) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
         const formData = await request.formData()
 
         const issueId = formData.get('issueId') as string
@@ -30,8 +42,24 @@ export async function POST(request: NextRequest) {
         const contentFile = formData.get('content') as File | null
         const imageFile = formData.get('image') as File | null
 
-        // Validation
-        if (!issueId || !title || !author || !number || !contentFile) {
+        // Validation with detailed logging
+        console.log('Form data received:', {
+            issueId,
+            title,
+            author,
+            number,
+            contentFile: contentFile ? `File: ${contentFile.name}` : null,
+            imageFile: imageFile ? `File: ${imageFile.name}` : null,
+        })
+
+        if (!issueId || !title || !author || isNaN(number) || !contentFile) {
+            console.error('Validation failed:', {
+                issueId: !issueId ? 'missing' : 'ok',
+                title: !title ? 'missing' : 'ok',
+                author: !author ? 'missing' : 'ok',
+                number: isNaN(number) ? 'invalid' : 'ok',
+                contentFile: !contentFile ? 'missing' : 'ok',
+            })
             return NextResponse.json(
                 {
                     error: 'Missing required fields: issueId, title, author, number, content',
@@ -42,7 +70,9 @@ export async function POST(request: NextRequest) {
 
         // Validate .docx file
         const contentValidation = validateDocxFile(contentFile)
+        console.log('Content file validation:', contentValidation)
         if (!contentValidation.valid) {
+            console.error('Content file validation failed:', contentValidation.error)
             return NextResponse.json(
                 { error: `Content file: ${contentValidation.error}` },
                 { status: 400 },
@@ -89,7 +119,9 @@ export async function POST(request: NextRequest) {
         let imageUrl: string | null = null
         if (imageFile && imageFile.size > 0) {
             const validation = validateImageFile(imageFile)
+            console.log('Image file validation:', validation)
             if (!validation.valid) {
+                console.error('Image validation failed:', validation.error)
                 return NextResponse.json(
                     { error: validation.error },
                     { status: 400 },

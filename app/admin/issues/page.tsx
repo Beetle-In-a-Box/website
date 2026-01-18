@@ -1,16 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 import Link from 'next/link';
 import { fetchIssues, deleteIssue, updateIssue, Issue } from '@/utils/api-client';
 import IssueCard from '@/components/admin/IssueCard';
-import FormMessage from '@/components/admin/FormMessage';
 import styles from '../Admin.module.scss';
 
 export default function IssuesPage() {
     const [issues, setIssues] = useState<Issue[]>([]);
     const [loading, setLoading] = useState(true);
-    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
     useEffect(() => {
         loadIssues();
@@ -21,7 +20,7 @@ export default function IssuesPage() {
         const result = await fetchIssues();
 
         if (result.error) {
-            setMessage({ type: 'error', text: result.error });
+            toast.error(result.error);
         } else if (result.data) {
             setIssues(result.data);
         }
@@ -33,9 +32,9 @@ export default function IssuesPage() {
         const result = await deleteIssue(id);
 
         if (result.error) {
-            setMessage({ type: 'error', text: result.error });
+            toast.error(result.error);
         } else {
-            setMessage({ type: 'success', text: 'Issue deleted successfully' });
+            toast.success('Issue deleted successfully');
             loadIssues();
         }
     };
@@ -47,9 +46,9 @@ export default function IssuesPage() {
         const result = await updateIssue(id, formData);
 
         if (result.error) {
-            setMessage({ type: 'error', text: result.error });
+            toast.error(result.error);
         } else {
-            setMessage({ type: 'success', text: `Issue ${published ? 'published' : 'unpublished'} successfully` });
+            toast.success(`Issue ${published ? 'published' : 'unpublished'} successfully`);
             loadIssues();
         }
     };
@@ -66,14 +65,6 @@ export default function IssuesPage() {
                     Create New Issue
                 </Link>
             </div>
-
-            {message && (
-                <FormMessage
-                    type={message.type}
-                    message={message.text}
-                    onClose={() => setMessage(null)}
-                />
-            )}
 
             {issues.length > 0 ? (
                 <div className={styles.cardGrid}>

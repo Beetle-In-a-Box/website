@@ -2,9 +2,9 @@
 
 import { useState, useEffect, FormEvent } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { toast } from 'react-toastify';
 import { fetchArticle, updateArticle, fetchIssues, Issue } from '@/utils/api-client';
 import FileInput from '@/components/admin/FileInput';
-import FormMessage from '@/components/admin/FormMessage';
 import styles from '../../../Admin.module.scss';
 
 export default function EditArticlePage() {
@@ -26,7 +26,6 @@ export default function EditArticlePage() {
     const [citationsFile, setCitationsFile] = useState<File | null>(null);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
-    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
@@ -41,7 +40,7 @@ export default function EditArticlePage() {
         ]);
 
         if (articleResult.error) {
-            setMessage({ type: 'error', text: articleResult.error });
+            toast.error(articleResult.error);
         } else if (articleResult.data) {
             const article = articleResult.data;
             setFormData({
@@ -65,7 +64,6 @@ export default function EditArticlePage() {
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
-        setMessage(null);
 
         const data = new FormData();
         data.append('issueId', formData.issueId);
@@ -94,10 +92,10 @@ export default function EditArticlePage() {
         const result = await updateArticle(articleId, data);
 
         if (result.error) {
-            setMessage({ type: 'error', text: result.error });
+            toast.error(result.error);
             setSubmitting(false);
         } else {
-            setMessage({ type: 'success', text: 'Article updated successfully!' });
+            toast.success('Article updated successfully!');
             setTimeout(() => {
                 router.push('/admin/articles');
             }, 1500);
@@ -113,14 +111,6 @@ export default function EditArticlePage() {
             <div className={styles.pageHeader}>
                 <h1>Edit Article</h1>
             </div>
-
-            {message && (
-                <FormMessage
-                    type={message.type}
-                    message={message.text}
-                    onClose={() => setMessage(null)}
-                />
-            )}
 
             <form onSubmit={handleSubmit} className={styles.form}>
                 <div className={styles.formGroup}>

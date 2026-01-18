@@ -2,9 +2,9 @@
 
 import { useState, useEffect, FormEvent, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { toast } from 'react-toastify'
 import { createArticle, fetchIssues, Issue } from '@/utils/api-client'
 import FileInput from '@/components/admin/FileInput'
-import FormMessage from '@/components/admin/FormMessage'
 import styles from '../../Admin.module.scss'
 
 function NewArticleForm() {
@@ -23,10 +23,6 @@ function NewArticleForm() {
     const [previewFile, setPreviewFile] = useState<File | null>(null)
     const [citationsFile, setCitationsFile] = useState<File | null>(null)
     const [imageFile, setImageFile] = useState<File | null>(null)
-    const [message, setMessage] = useState<{
-        type: 'success' | 'error'
-        text: string
-    } | null>(null)
     const [loading, setLoading] = useState(true)
     const [submitting, setSubmitting] = useState(false)
 
@@ -45,7 +41,7 @@ function NewArticleForm() {
     const loadIssues = async () => {
         const result = await fetchIssues()
         if (result.error) {
-            setMessage({ type: 'error', text: result.error })
+            toast.error(result.error)
         } else if (result.data) {
             setIssues(result.data)
         }
@@ -56,17 +52,16 @@ function NewArticleForm() {
         e.preventDefault()
 
         if (!contentFile) {
-            setMessage({ type: 'error', text: 'Content file is required' })
+            toast.error('Content file is required')
             return
         }
 
         if (!previewFile) {
-            setMessage({ type: 'error', text: 'Preview file is required' })
+            toast.error('Preview file is required')
             return
         }
 
         setSubmitting(true)
-        setMessage(null)
 
         const data = new FormData()
         data.append('issueId', formData.issueId)
@@ -89,13 +84,10 @@ function NewArticleForm() {
         const result = await createArticle(data)
 
         if (result.error) {
-            setMessage({ type: 'error', text: result.error })
+            toast.error(result.error)
             setSubmitting(false)
         } else {
-            setMessage({
-                type: 'success',
-                text: 'Article created successfully!',
-            })
+            toast.success('Article created successfully!')
             setTimeout(() => {
                 router.push('/admin/articles')
             }, 1500)
@@ -131,14 +123,6 @@ function NewArticleForm() {
             <div className={styles.pageHeader}>
                 <h1>Create New Article</h1>
             </div>
-
-            {message && (
-                <FormMessage
-                    type={message.type}
-                    message={message.text}
-                    onClose={() => setMessage(null)}
-                />
-            )}
 
             <form onSubmit={handleSubmit} className={styles.form}>
                 <div className={styles.formGroup}>

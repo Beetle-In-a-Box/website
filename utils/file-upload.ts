@@ -81,7 +81,7 @@ export function validateImageFile(file: File): {
         'image/webp',
         'image/gif',
     ]
-    const maxSize = 50 * 1024 * 1024 // 50MB
+    const maxSize = 200 * 1024 * 1024 // 200MB
 
     if (!allowedTypes.includes(file.type)) {
         return {
@@ -111,7 +111,7 @@ export function validateDocxFile(file: File): {
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'application/msword',
     ]
-    const maxSize = 50 * 1024 * 1024 // 50MB
+    const maxSize = 200 * 1024 * 1024 // 200MB
 
     if (!allowedTypes.includes(file.type)) {
         return {

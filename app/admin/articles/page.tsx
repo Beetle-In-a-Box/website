@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { toast } from 'react-toastify'
 import Link from 'next/link'
 import {
     fetchArticles,
@@ -12,7 +13,6 @@ import {
     Issue,
 } from '@/utils/api-client'
 import ArticleCard from '@/components/admin/ArticleCard'
-import FormMessage from '@/components/admin/FormMessage'
 import styles from '../Admin.module.scss'
 
 function ArticlesContent() {
@@ -21,10 +21,6 @@ function ArticlesContent() {
     const [issues, setIssues] = useState<Issue[]>([])
     const [filterIssueId, setFilterIssueId] = useState<string>('')
     const [loading, setLoading] = useState(true)
-    const [message, setMessage] = useState<{
-        type: 'success' | 'error'
-        text: string
-    } | null>(null)
 
     useEffect(() => {
         // Set filter from URL query parameter
@@ -52,7 +48,7 @@ function ArticlesContent() {
     const loadArticles = async () => {
         const result = await fetchArticles(filterIssueId || undefined)
         if (result.error) {
-            setMessage({ type: 'error', text: result.error })
+            toast.error(result.error)
         } else if (result.data) {
             setArticles(result.data)
         }
@@ -61,12 +57,9 @@ function ArticlesContent() {
     const handleDelete = async (id: string) => {
         const result = await deleteArticle(id)
         if (result.error) {
-            setMessage({ type: 'error', text: result.error })
+            toast.error(result.error)
         } else {
-            setMessage({
-                type: 'success',
-                text: 'Article deleted successfully',
-            })
+            toast.success('Article deleted successfully')
             loadArticles()
         }
     }
@@ -77,12 +70,9 @@ function ArticlesContent() {
 
         const result = await updateArticle(id, formData)
         if (result.error) {
-            setMessage({ type: 'error', text: result.error })
+            toast.error(result.error)
         } else {
-            setMessage({
-                type: 'success',
-                text: `Article ${published ? 'published' : 'unpublished'} successfully`,
-            })
+            toast.success(`Article ${published ? 'published' : 'unpublished'} successfully`)
             loadArticles()
         }
     }
@@ -99,14 +89,6 @@ function ArticlesContent() {
                     Create New Article
                 </Link>
             </div>
-
-            {message && (
-                <FormMessage
-                    type={message.type}
-                    message={message.text}
-                    onClose={() => setMessage(null)}
-                />
-            )}
 
             <div className={styles.filterControls}>
                 <label htmlFor="issueFilter">Filter by Issue:</label>
