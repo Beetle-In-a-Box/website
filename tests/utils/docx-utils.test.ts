@@ -73,9 +73,60 @@ describe('generateFileName', () => {
     })
 })
 
-/*
- * NOTE: Tests for convertArticleDocx(), convertCitationsDocx(), and convertPreviewDocx()
- * are skipped here due to Bun mocking issues with the mammoth library.
- * These functions are thoroughly tested via the API integration tests in
- * tests/api/articles.test.ts where they are called with actual .docx file processing.
- */
+import { convertArticleDocx, convertPreviewDocx } from '@/utils/docx-utils'
+import { readFileSync } from 'fs'
+import { join } from 'path'
+
+describe('docx conversion functions', () => {
+    it('should extract all footnotes from Vienna Gaspar article (Hyperreality)', async () => {
+        // This test validates that all footnotes are properly extracted from .docx files
+        // Previously, only 1-4 footnotes were being extracted instead of all 7
+        const docxPath = join(process.cwd(), 'scripts/seed-docx/hyperreality-cultural.docx')
+        const buffer = readFileSync(docxPath)
+
+        const result = await convertArticleDocx(buffer)
+
+        // The article should have 7 footnotes
+        const footnoteMatches = result.citations?.match(/id='f\d+'/g) || []
+        expect(footnoteMatches.length).toBe(7)
+
+        // Verify footnotes are numbered 1-7 in order
+        expect(result.citations).toContain("id='f1'")
+        expect(result.citations).toContain("id='f2'")
+        expect(result.citations).toContain("id='f3'")
+        expect(result.citations).toContain("id='f4'")
+        expect(result.citations).toContain("id='f5'")
+        expect(result.citations).toContain("id='f6'")
+        expect(result.citations).toContain("id='f7'")
+
+        // Verify key citation content is present
+        expect(result.citations).toContain('Jean Baudrillard')
+        expect(result.citations).toContain('Simulacra and Simulation')
+        expect(result.citations).toContain('Rolling Stone')
+    })
+
+    it('should properly separate article content from footnotes', async () => {
+        const docxPath = join(process.cwd(), 'scripts/seed-docx/hyperreality-cultural.docx')
+        const buffer = readFileSync(docxPath)
+
+        const result = await convertArticleDocx(buffer)
+
+        // Main content should have the article text but NOT the footnote content
+        expect(result.content).toContain('Jean Baudrillard')
+        expect(result.content).not.toContain('University Of Michigan Press')
+
+        // Citations should have the footnote content
+        expect(result.citations).toContain('University Of Michigan Press')
+    })
+
+    it('should extract preview text without formatting', async () => {
+        const docxPath = join(process.cwd(), 'scripts/seed-docx/hyperreality-cultural.docx')
+        const buffer = readFileSync(docxPath)
+
+        const preview = await convertPreviewDocx(buffer)
+
+        // Preview should contain main article text
+        expect(preview).toContain('simulation')
+        expect(preview.length).toBeGreaterThan(100) // Should be a substantial preview
+    })
+})

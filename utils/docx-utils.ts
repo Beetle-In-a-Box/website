@@ -33,32 +33,39 @@ export async function convertArticleDocx(buffer: Buffer): Promise<{
         // Convert plain text URLs to clickable links
         html = autolinkUrls(html)
 
-        // Split content from footnotes
-        // Footnotes are paragraphs that start with <p><sup>NUMBER</sup>
-        const paragraphs = html.split('</p>')
-        const contentParagraphs: string[] = []
-        const footnoteParagraphs: string[] = []
-        let inFootnotesSection = false
+        // Find where footnotes start
+        // Footnotes in the HTML are paragraphs that start with <p><sup>NUMBER</sup>
+        // They appear at the end of the content
+        const footnotePattern = /<p>(?:<em>)?(?:‌\s*)?<sup>(\d+)<\/sup>/g
+        const footnoteMatches = [...html.matchAll(footnotePattern)]
 
-        for (const para of paragraphs) {
-            if (!para.trim()) continue
+        let mainContent = html
+        const footnotes: Array<{ index: number; html: string }> = []
 
-            // Check if this paragraph starts with a footnote (e.g., <p><sup>1</sup>)
-            const footnoteMatch = para.match(/^<p><sup>(\d+)<\/sup>/)
+        if (footnoteMatches.length > 0) {
+            // Find the position of the first footnote
+            const firstFootnoteMatch = html.match(/<p>(?:<em>)?(?:‌\s*)?<sup>(\d+)<\/sup>/)
+            if (firstFootnoteMatch) {
+                const firstFootnoteIndex = html.indexOf(firstFootnoteMatch[0])
 
-            if (footnoteMatch) {
-                inFootnotesSection = true
-                // Extract footnote number and content
-                const footnoteNum = footnoteMatch[1]
-                const content = para.replace(/^<p><sup>\d+<\/sup>\s*/, '<p>')
-                footnoteParagraphs.push({ num: footnoteNum, content } as any)
-            } else if (!inFootnotesSection) {
-                contentParagraphs.push(para + '</p>')
+                // Split into main content and footnotes
+                mainContent = html.substring(0, firstFootnoteIndex)
+                const footnotesHtml = html.substring(firstFootnoteIndex)
+
+                // Extract all footnotes from the footnotes section
+                const footnoteRegex = /<p>(?:<em>)?(?:‌\s*)?<sup>(\d+)<\/sup>([\s\S]*?)<\/p>/g
+                let match
+                while ((match = footnoteRegex.exec(footnotesHtml)) !== null) {
+                    const [, index, content] = match
+                    footnotes.push({
+                        index: parseInt(index),
+                        html: content,
+                    })
+                }
             }
         }
 
         // Process main content - add IDs and onclick to footnote reference links
-        let mainContent = contentParagraphs.join('')
         let footnoteRefCount = 0
         mainContent = mainContent.replace(/<sup>/g, () => {
             footnoteRefCount++
@@ -67,13 +74,18 @@ export async function convertArticleDocx(buffer: Buffer): Promise<{
 
         // Process footnotes - format with proper structure
         let citationsHtml: string | null = null
-        if (footnoteParagraphs.length > 0) {
-            citationsHtml = footnoteParagraphs
-                .map((footnote: any) => {
-                    const { num, content } = footnote
-                    // Format: <p class='footnote' id='f1' onclick='...'><sup>1</sup> Content</p>
-                    const innerContent = content.replace('<p>', '').replace('</p>', '')
-                    return `<p class='footnote' id='f${num}' onclick="goToElementWithHighlightModern('fl${num}')"><sup>${num}</sup> ${innerContent}</p>`
+        if (footnotes.length > 0) {
+            citationsHtml = footnotes
+                .sort((a, b) => a.index - b.index) // Ensure footnotes are in order
+                .map((footnote) => {
+                    const { index, html: content } = footnote
+                    // Clean the footnote content
+                    const cleanedContent = cleanText(content)
+                        .replace(/<em>/g, '<i>')
+                        .replace(/<\/em>/g, '</i>')
+                        .replace(/<\/?p>/g, '')
+                        .trim()
+                    return `<p class='text footnote' id='f${index}' onclick="goToElementWithHighlightModern('fl${index}')"><sup>${index}</sup> ${cleanedContent}</p>`
                 })
                 .join('\n')
         }
