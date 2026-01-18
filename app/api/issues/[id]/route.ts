@@ -150,13 +150,13 @@ export async function PATCH(
 
         // Parse FormData
         const formData = await request.formData()
-        const body: any = {}
+        const body: Record<string, string | boolean | File> = {}
 
         formData.forEach((value, key) => {
             // Convert 'true'/'false' strings to booleans
             if (value === 'true') body[key] = true
             else if (value === 'false') body[key] = false
-            else body[key] = value
+            else body[key] = value as string | File
         })
 
         console.log('Parsed body:', body)
