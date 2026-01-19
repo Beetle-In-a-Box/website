@@ -32,6 +32,8 @@ model Article {
   shortTitle      String?
   number          Int
   author          String
+  // Artist name for image attribution
+  imageArtist     String?
   // Cover image URL or path
   imageUrl        String?
   // Path to the .docx file containing article content and footnotes/endnotes

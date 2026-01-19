@@ -75,6 +75,7 @@ export default async function Home() {
                                 '/default-article-cover.png'
                             }
                             articleUrl={`/issue/${latestIssue.number}/${article.fileName}`}
+                            imageArtist={article.imageArtist || undefined}
                         />
                     ))}
                 </div>

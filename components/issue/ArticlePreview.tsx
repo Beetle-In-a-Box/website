@@ -9,6 +9,7 @@ interface ArticlePreviewProps {
     previewText: string
     imageUrl: string
     articleUrl: string
+    imageArtist?: string
 }
 
 export default function ArticlePreview({
@@ -18,6 +19,7 @@ export default function ArticlePreview({
     previewText,
     imageUrl,
     articleUrl,
+    imageArtist,
 }: ArticlePreviewProps) {
     const truncatedPreview = truncateText(previewText, 300)
 
@@ -27,6 +29,9 @@ export default function ArticlePreview({
                 className={styles.previewPicture}
                 style={{ backgroundImage: `url('${imageUrl}')` }}
             />
+            {imageArtist && (
+                <div className={styles.imageArtist}>Art by {imageArtist}</div>
+            )}
             <div className={styles.previewTitle}>
                 <Link
                     className={styles.previewTitleA}

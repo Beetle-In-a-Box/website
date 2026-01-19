@@ -2,3 +2,17 @@
     border-top: 2px solid darkgray;
     margin-top: 4vh;
 }
+
+.imageWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.imageArtist {
+    text-align: center;
+    font-size: 0.95rem;
+    font-style: italic;
+    color: #666;
+    margin-top: 8px;
+}

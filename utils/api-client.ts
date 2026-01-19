@@ -22,6 +22,7 @@ export interface Article {
     title: string;
     shortTitle: string | null;
     author: string;
+    imageArtist: string | null;
     number: number;
     content: string;
     citations: string;

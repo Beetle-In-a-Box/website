@@ -16,6 +16,7 @@ interface ArticleData {
     author: string
     imageFileName: string
     number: number
+    imageArtist: string
 }
 
 const articles: ArticleData[] = [
@@ -25,6 +26,7 @@ const articles: ArticleData[] = [
         author: 'Sichen Li',
         imageFileName: 'making-beauty_cover.jpeg',
         number: 1,
+        imageArtist: 'Sophie Yi',
     },
     {
         fileName: 'convenience-illusion',
@@ -32,6 +34,7 @@ const articles: ArticleData[] = [
         author: 'Nicole Kadi',
         imageFileName: 'convenience-illusion_cover.png',
         number: 2,
+        imageArtist: 'Judy Qu',
     },
     {
         fileName: 'only-thing',
@@ -39,6 +42,7 @@ const articles: ArticleData[] = [
         author: 'Deniz Durusoy',
         imageFileName: 'only-thing_cover.jpeg',
         number: 3,
+        imageArtist: 'Sophie Yi',
     },
     {
         fileName: 'hyperreality-cultural',
@@ -46,6 +50,7 @@ const articles: ArticleData[] = [
         author: 'Vienna Gaspar',
         imageFileName: 'life-simulators_cover.png',
         number: 4,
+        imageArtist: 'Judy Qu',
     },
     {
         fileName: 'does-liberalism',
@@ -53,6 +58,7 @@ const articles: ArticleData[] = [
         author: 'Max Abubucker',
         imageFileName: 'does-liberalism_cover.png',
         number: 5,
+        imageArtist: 'Judy Qu',
     },
     {
         fileName: 'gossiping-tweens',
@@ -60,6 +66,7 @@ const articles: ArticleData[] = [
         author: 'Karis Morasch',
         imageFileName: 'gossiping-tweens_cover.png',
         number: 6,
+        imageArtist: 'Judy Qu',
     },
 ]
 
@@ -129,6 +136,7 @@ async function createArticleViaAPI(issueId: string, articleData: ArticleData) {
     formData.append('issueId', issueId)
     formData.append('title', articleData.title)
     formData.append('author', articleData.author)
+    formData.append('imageArtist', articleData.imageArtist)
     formData.append('number', articleData.number.toString())
     formData.append('published', 'true')
 

@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
         const title = formData.get('title') as string
         const shortTitle = formData.get('shortTitle') as string | null
         const author = formData.get('author') as string
+        const imageArtist = formData.get('imageArtist') as string | null
         const number = parseInt(formData.get('number') as string)
         const published = formData.get('published') === 'true'
 
@@ -144,6 +145,7 @@ export async function POST(request: NextRequest) {
                 title,
                 shortTitle: shortTitle || null,
                 author,
+                imageArtist: imageArtist || null,
                 number,
                 contentDocxPath,
                 previewText,

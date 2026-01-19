@@ -16,6 +16,7 @@ function NewArticleForm() {
         title: '',
         shortTitle: '',
         author: '',
+        imageArtist: '',
         number: '',
         published: false,
     })
@@ -68,6 +69,7 @@ function NewArticleForm() {
         data.append('title', formData.title)
         if (formData.shortTitle) data.append('shortTitle', formData.shortTitle)
         data.append('author', formData.author)
+        if (formData.imageArtist) data.append('imageArtist', formData.imageArtist)
         data.append('number', formData.number)
         data.append('published', String(formData.published))
         data.append('content', contentFile)
@@ -195,6 +197,24 @@ function NewArticleForm() {
                         }
                         required
                     />
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label htmlFor="imageArtist">Image Artist</label>
+                    <input
+                        type="text"
+                        id="imageArtist"
+                        value={formData.imageArtist}
+                        onChange={e =>
+                            setFormData({
+                                ...formData,
+                                imageArtist: e.target.value,
+                            })
+                        }
+                    />
+                    <p className={styles.helperText}>
+                        Name of the artist who created the article image (optional)
+                    </p>
                 </div>
 
                 <div className={styles.formGroup}>

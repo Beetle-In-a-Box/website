@@ -115,13 +115,20 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 <ArticleTitle title={article.title} />
                 <ArticleAuthor author={article.author} role="Staff Writer" />
                 {article.imageUrl && (
-                    <Image
-                        src={article.imageUrl}
-                        alt={article.title}
-                        width={800}
-                        height={600}
-                        style={{ width: '100%', height: 'auto' }}
-                    />
+                    <div className={styles.imageWrapper}>
+                        <Image
+                            src={article.imageUrl}
+                            alt={article.title}
+                            width={800}
+                            height={600}
+                            style={{ width: '100%', height: 'auto', maxWidth: '600px' }}
+                        />
+                        {article.imageArtist && (
+                            <div className={styles.imageArtist}>
+                                Art by {article.imageArtist}
+                            </div>
+                        )}
+                    </div>
                 )}
                 <ArticleContent>
                     {/* Render article content as React components */}
