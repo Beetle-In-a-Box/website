@@ -7,6 +7,7 @@ interface IssueListItemProps {
     date: string
     imageUrl: string
     articleCount: number
+    pdfUrl?: string
 }
 
 export default function IssueListItem({
@@ -15,13 +16,16 @@ export default function IssueListItem({
     date,
     imageUrl,
     articleCount,
+    pdfUrl,
 }: IssueListItemProps) {
     return (
-        <Link href={`/issue/${number}`} className={styles.issueListItem}>
-            <div
-                className={styles.thumbnail}
-                style={{ backgroundImage: `url('${imageUrl}')` }}
-            />
+        <div className={styles.issueListItem}>
+            <Link href={`/issue/${number}`} className={styles.thumbnailLink}>
+                <div
+                    className={styles.thumbnail}
+                    style={{ backgroundImage: `url('${imageUrl}')` }}
+                />
+            </Link>
             <div className={styles.metadata}>
                 <div className={styles.issueNumber}>Issue {number}</div>
                 <div className={styles.issueTitle}>{title}</div>
@@ -32,7 +36,17 @@ export default function IssueListItem({
                         {articleCount} {articleCount === 1 ? 'article' : 'articles'}
                     </span>
                 </div>
+                <div className={styles.actions}>
+                    <Link href={`/issue/${number}`} className={styles.button}>
+                        Visit
+                    </Link>
+                    {pdfUrl && (
+                        <a href={pdfUrl} download className={styles.button}>
+                            Download PDF
+                        </a>
+                    )}
+                </div>
             </div>
-        </Link>
+        </div>
     )
 }

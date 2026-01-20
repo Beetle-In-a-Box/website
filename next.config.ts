@@ -22,6 +22,10 @@ const nextConfig: NextConfig = {
                 source: '/articles/:path*',
                 destination: '/api/static/articles/:path*',
             },
+            {
+                source: '/pdfs/:path*',
+                destination: '/api/static/pdfs/:path*',
+            },
         ]
     },
 }

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/utils/prisma'
-import { saveImage, validateImageFile } from '@/utils/file-upload'
+import { saveImage, validateImageFile, savePdf, validatePdfFile } from '@/utils/file-upload'
 
 /**
  * POST /api/issues
- * Create a new issue with optional cover image
+ * Create a new issue with optional cover image and PDF
  */
 export async function POST(request: NextRequest) {
     try {
@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
         const date = formData.get('date') as string
         const published = formData.get('published') === 'true'
         const imageFile = formData.get('image') as File | null
+        const pdfFile = formData.get('pdf') as File | null
 
         // Validation
         if (!title || !number || !date) {
@@ -48,6 +49,19 @@ export async function POST(request: NextRequest) {
             imageUrl = await saveImage(imageFile, number, 'issue-cover')
         }
 
+        // Handle PDF upload
+        let pdfUrl: string | null = null
+        if (pdfFile && pdfFile.size > 0) {
+            const validation = validatePdfFile(pdfFile)
+            if (!validation.valid) {
+                return NextResponse.json(
+                    { error: validation.error },
+                    { status: 400 },
+                )
+            }
+            pdfUrl = await savePdf(pdfFile, `issue-${number}`)
+        }
+
         // Create issue
         const issue = await prisma.issue.create({
             data: {
@@ -55,6 +69,7 @@ export async function POST(request: NextRequest) {
                 number,
                 date,
                 imageUrl,
+                pdfUrl,
                 published,
             },
         })

@@ -32,7 +32,10 @@ async function getArticle(issueNumber: number, articleFileName: string) {
                 issue: { number: issueNumber },
                 published: true,
             },
-            include: { issue: true },
+            include: {
+                issue: true,
+                author: true,
+            },
         })
         return article
     } catch (error) {

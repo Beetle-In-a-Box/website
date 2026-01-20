@@ -44,11 +44,15 @@ export default function EditArticlePage() {
             toast.error(articleResult.error);
         } else if (articleResult.data) {
             const article = articleResult.data;
+            // Handle both string and Author object
+            const authorName = typeof article.author === 'string'
+                ? article.author
+                : article.author?.name || '';
             setFormData({
                 issueId: article.issueId,
                 title: article.title,
                 shortTitle: article.shortTitle || '',
-                author: article.author,
+                author: authorName,
                 imageArtist: article.imageArtist || '',
                 number: String(article.number),
                 published: article.published,

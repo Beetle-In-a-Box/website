@@ -1,11 +1,15 @@
 import Link from '@/components/ui/Link'
+import AuthorLink from '@/components/ui/AuthorLink'
 import { truncateText } from '@/utils/text-utils'
 import styles from './ArticlePreview.module.scss'
 
 interface ArticlePreviewProps {
     id: string
     title: string
-    author: string
+    author: {
+        name: string
+        slug: string
+    } | string | null
     previewText: string
     imageUrl: string
     articleUrl: string
@@ -40,14 +44,24 @@ export default function ArticlePreview({
                 >
                     {title}
                 </Link>
-                <Link
-                    className={styles.previewAuthor}
-                    href="/about"
-                    target="_blank"
-                    variant="bold"
-                >
-                    {author}
-                </Link>
+                {author && (
+                    typeof author === 'string' ? (
+                        <Link
+                            className={styles.previewAuthor}
+                            href="/about"
+                            target="_blank"
+                            variant="bold"
+                        >
+                            {author}
+                        </Link>
+                    ) : (
+                        <AuthorLink
+                            name={author.name}
+                            slug={author.slug}
+                            className={styles.previewAuthor}
+                        />
+                    )
+                )}
             </div>
             <div className={styles.previewContent}>
                 <p className={styles.previewContentP}>

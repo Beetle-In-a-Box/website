@@ -18,6 +18,8 @@ model Issue {
   date      String
   // Image URL or path - can store uploaded image paths
   imageUrl  String?
+  // PDF URL or path - optional PDF download for the entire issue
+  pdfUrl    String?
   published Boolean   @default(false)
   articles  Article[]
   createdAt DateTime  @default(now())
@@ -27,12 +29,22 @@ model Issue {
   @@index([published])
 }
 
+model Author {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique  // e.g., "john-smith-abc123"
+  articles  Article[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([slug])
+}
+
 model Article {
   id              String   @id @default(cuid())
   title           String
   shortTitle      String?
   number          Int
-  author          String
   // Artist name for image attribution
   imageArtist     String?
   // Cover image URL or path
@@ -49,11 +61,16 @@ model Article {
   issueId         String
   issue           Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
 
+  // Relation to Author
+  authorId        String?
+  author          Author?  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   @@unique([issueId, number])
   @@index([issueId])
+  @@index([authorId])
   @@index([published])
   @@index([fileName])
 }

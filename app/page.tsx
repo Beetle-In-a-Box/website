@@ -20,6 +20,9 @@ async function getPublishedIssues() {
                 articles: {
                     where: { published: true },
                     orderBy: { number: 'asc' },
+                    include: {
+                        author: true,
+                    },
                 },
             },
             orderBy: { number: 'desc' },

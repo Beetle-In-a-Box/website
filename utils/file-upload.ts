@@ -138,6 +138,71 @@ export function validateDocxFile(file: File): {
 }
 
 /**
+ * Validate that uploaded file is a PDF document
+ */
+export function validatePdfFile(file: File): {
+    valid: boolean
+    error?: string
+} {
+    const allowedTypes = ['application/pdf']
+    const maxSize = 200 * 1024 * 1024 // 200MB
+
+    if (!allowedTypes.includes(file.type)) {
+        return {
+            valid: false,
+            error: 'Invalid file type. File must be a PDF document',
+        }
+    }
+
+    if (file.size > maxSize) {
+        return {
+            valid: false,
+            error: `File too large. Maximum size: ${maxSize / 1024 / 1024}MB`,
+        }
+    }
+
+    if (file.size === 0) {
+        return {
+            valid: false,
+            error: 'File is empty',
+        }
+    }
+
+    return { valid: true }
+}
+
+/**
+ * Save uploaded PDF file to public directory
+ * @param file - The uploaded PDF file
+ * @param prefix - Prefix for filename (e.g., 'issue')
+ * @returns The public URL path to the saved PDF file
+ */
+export async function savePdf(
+    file: File,
+    prefix: string = 'issue',
+): Promise<string> {
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
+
+    // Create directory structure: /uploads/pdfs/
+    const pdfsDir = join(process.cwd(), 'uploads', 'pdfs')
+    if (!existsSync(pdfsDir)) {
+        await mkdir(pdfsDir, { recursive: true })
+    }
+
+    // Generate filename with timestamp
+    const timestamp = Date.now()
+    const filename = `${prefix}-${timestamp}.pdf`
+
+    // Save file
+    const filepath = join(pdfsDir, filename)
+    await writeFile(filepath, buffer)
+
+    // Return public URL path
+    return `/pdfs/${filename}`
+}
+
+/**
  * Delete a file from the filesystem
  * @param publicPath - The public path (e.g., '/images/file.jpg', '/articles/file.docx')
  */

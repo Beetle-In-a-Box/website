@@ -35,7 +35,7 @@ export default function ArticleCard({ article, onDelete, onTogglePublished }: Ar
             )}
             <div className={styles.cardInfo}>
                 <h3>{article.title}</h3>
-                <p className={styles.cardAuthor}>by {article.author}</p>
+                <p className={styles.cardAuthor}>by {typeof article.author === 'string' ? article.author : article.author?.name}</p>
                 {article.issue && (
                     <p className={styles.cardIssue}>
                         Issue {article.issue.number}: {article.issue.title}

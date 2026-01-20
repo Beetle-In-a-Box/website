@@ -104,7 +104,7 @@ export default function AdminDashboard() {
                             <div key={article.id} className={styles.item}>
                                 <div className={styles.itemInfo}>
                                     <h4>{article.title}</h4>
-                                    <p>by {article.author} • {article.published ? 'Published' : 'Unpublished'}</p>
+                                    <p>by {typeof article.author === 'string' ? article.author : article.author?.name} • {article.published ? 'Published' : 'Unpublished'}</p>
                                 </div>
                                 <Link href={`/admin/articles/${article.id}/edit`} className={styles.btnEdit}>
                                     Edit

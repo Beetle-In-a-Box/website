@@ -139,12 +139,31 @@ export async function POST(request: NextRequest) {
         // Generate filename
         const fileName = generateFileName(title)
 
+        // Look up or create author
+        let authorId: string | null = null
+        if (author) {
+            const authorRecord = await prisma.author.findFirst({
+                where: { name: author },
+            })
+            if (authorRecord) {
+                authorId = authorRecord.id
+            } else {
+                const newAuthor = await prisma.author.create({
+                    data: {
+                        name: author,
+                        slug: `${author.toLowerCase().replace(/\s+/g, '-')}-${Math.random().toString(36).substring(2, 8)}`,
+                    },
+                })
+                authorId = newAuthor.id
+            }
+        }
+
         // Create article
         const article = await prisma.article.create({
             data: {
                 title,
                 shortTitle: shortTitle || null,
-                author,
+                authorId,
                 imageArtist: imageArtist || null,
                 number,
                 contentDocxPath,
@@ -153,6 +172,9 @@ export async function POST(request: NextRequest) {
                 fileName,
                 published,
                 issueId,
+            },
+            include: {
+                author: true,
             },
         })
 

@@ -10,7 +10,7 @@ interface IssueCoverProps {
     articles: {
         id: string
         title: string
-        author: string
+        author: string | { name: string; slug: string } | null
     }[]
 }
 
@@ -51,7 +51,9 @@ export default function IssueCover({ imageSrc, articles }: IssueCoverProps) {
                                 }
                                 className={styles.clickableAuthor}
                             >
-                                {article.author}
+                                {typeof article.author === 'string'
+                                    ? article.author
+                                    : article.author?.name || 'Unknown'}
                             </span>
                             {index < articles.length - 1 && (
                                 <>

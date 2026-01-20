@@ -4,7 +4,7 @@ import { join } from 'path'
 import { existsSync } from 'fs'
 
 /**
- * GET /api/static/images/[filename] or /api/static/articles/[filename]
+ * GET /api/static/images/[filename] or /api/static/articles/[filename] or /api/static/pdfs/[filename]
  * Serve uploaded files from the volume at runtime
  *
  * This API is transparent to the browser - files are loaded normally in HTML,
@@ -17,8 +17,8 @@ export async function GET(
     try {
         const { type, filename } = await params
 
-        // Validate type (images or articles)
-        if (type !== 'images' && type !== 'articles') {
+        // Validate type (images, articles, or pdfs)
+        if (type !== 'images' && type !== 'articles' && type !== 'pdfs') {
             return NextResponse.json(
                 { error: 'Invalid file type' },
                 { status: 400 }
@@ -50,6 +50,9 @@ export async function GET(
         else if (ext === 'docx') {
             contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
         }
+        else if (ext === 'pdf') {
+            contentType = 'application/pdf'
+        }
 
         // Return file with aggressive caching headers
         // Files are immutable (timestamped filenames), so cache forever
@@ -57,7 +60,7 @@ export async function GET(
             headers: {
                 'Content-Type': contentType,
                 'Cache-Control': 'public, max-age=31536000, immutable',
-                'Content-Disposition': type === 'articles'
+                'Content-Disposition': (type === 'articles' || type === 'pdfs')
                     ? `attachment; filename="${filename}"`
                     : 'inline',
             },

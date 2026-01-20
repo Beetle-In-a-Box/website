@@ -67,6 +67,7 @@ export default async function Archive() {
                         date={issue.date}
                         imageUrl={issue.imageUrl || '/default-issue-cover.png'}
                         articleCount={issue._count.articles}
+                        pdfUrl={issue.pdfUrl || undefined}
                     />
                 ))}
             </IssueListContainer>

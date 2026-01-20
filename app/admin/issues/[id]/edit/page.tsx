@@ -20,6 +20,8 @@ export default function EditIssuePage() {
     });
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
+    const [pdfFile, setPdfFile] = useState<File | null>(null);
+    const [currentPdfUrl, setCurrentPdfUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
@@ -42,6 +44,7 @@ export default function EditIssuePage() {
                 published: issue.published,
             });
             setCurrentImageUrl(issue.imageUrl);
+            setCurrentPdfUrl(issue.pdfUrl);
             setLoading(false);
         }
     };
@@ -58,6 +61,10 @@ export default function EditIssuePage() {
 
         if (imageFile) {
             data.append('image', imageFile);
+        }
+
+        if (pdfFile) {
+            data.append('pdf', pdfFile);
         }
 
         const result = await updateIssue(issueId, data);
@@ -144,6 +151,26 @@ export default function EditIssuePage() {
                     onChange={setImageFile}
                     selectedFileName={imageFile?.name}
                     helperText={currentImageUrl ? "Upload a new image to replace the current one" : "Upload a cover image for this issue"}
+                />
+
+                {currentPdfUrl && !pdfFile && (
+                    <div className={styles.formGroup}>
+                        <label>Current PDF</label>
+                        <div style={{ marginTop: '0.5rem' }}>
+                            <a href={currentPdfUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#0066cc', textDecoration: 'underline' }}>
+                                Download current PDF
+                            </a>
+                        </div>
+                    </div>
+                )}
+
+                <FileInput
+                    label={currentPdfUrl ? "Replace PDF" : "Issue PDF"}
+                    name="pdf"
+                    accept="application/pdf"
+                    onChange={setPdfFile}
+                    selectedFileName={pdfFile?.name}
+                    helperText={currentPdfUrl ? "Upload a new PDF to replace the current one" : "Upload a PDF file for this issue"}
                 />
 
                 <div className={styles.formGroup}>

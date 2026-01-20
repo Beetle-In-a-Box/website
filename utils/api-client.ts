@@ -11,9 +11,20 @@ export interface Issue {
     number: number;
     date: string;
     imageUrl: string | null;
+    pdfUrl: string | null;
     published: boolean;
     createdAt: string;
     updatedAt: string;
+    articles?: Article[];
+}
+
+export interface Author {
+    id: string;
+    name: string;
+    slug: string;
+    createdAt: string;
+    updatedAt: string;
+    _count?: { articles: number };
     articles?: Article[];
 }
 
@@ -21,7 +32,7 @@ export interface Article {
     id: string;
     title: string;
     shortTitle: string | null;
-    author: string;
+    author: string | Author;
     imageArtist: string | null;
     number: number;
     content: string;
@@ -231,5 +242,123 @@ export async function deleteArticle(id: string): Promise<ApiResponse<{ message: 
     } catch (error) {
         console.error('Error deleting article:', error);
         return { data: null, error: 'Network error while deleting article' };
+    }
+}
+
+// Authors API functions
+
+export async function fetchAuthors(): Promise<ApiResponse<Author[]>> {
+    try {
+        const response = await fetch('/api/authors');
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            return { data: null, error: errorData.error || 'Failed to fetch authors' };
+        }
+
+        const data = await response.json();
+        return { data, error: null };
+    } catch (error) {
+        console.error('Error fetching authors:', error);
+        return { data: null, error: 'Network error while fetching authors' };
+    }
+}
+
+export async function fetchAuthor(id: string): Promise<ApiResponse<Author>> {
+    try {
+        const response = await fetch(`/api/authors/${id}`);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            return { data: null, error: errorData.error || 'Failed to fetch author' };
+        }
+
+        const data = await response.json();
+        return { data, error: null };
+    } catch (error) {
+        console.error('Error fetching author:', error);
+        return { data: null, error: 'Network error while fetching author' };
+    }
+}
+
+export async function fetchAuthorBySlug(slug: string): Promise<ApiResponse<Author>> {
+    try {
+        const response = await fetch(`/api/authors/by-slug/${slug}`);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            return { data: null, error: errorData.error || 'Failed to fetch author' };
+        }
+
+        const data = await response.json();
+        return { data, error: null };
+    } catch (error) {
+        console.error('Error fetching author:', error);
+        return { data: null, error: 'Network error while fetching author' };
+    }
+}
+
+export async function createAuthor(name: string): Promise<ApiResponse<Author>> {
+    try {
+        const response = await fetch('/api/authors', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            return { data: null, error: errorData.error || 'Failed to create author' };
+        }
+
+        const data = await response.json();
+        return { data, error: null };
+    } catch (error) {
+        console.error('Error creating author:', error);
+        return { data: null, error: 'Network error while creating author' };
+    }
+}
+
+export async function updateAuthor(id: string, name: string): Promise<ApiResponse<Author>> {
+    try {
+        const response = await fetch(`/api/authors/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            return { data: null, error: errorData.error || 'Failed to update author' };
+        }
+
+        const data = await response.json();
+        return { data, error: null };
+    } catch (error) {
+        console.error('Error updating author:', error);
+        return { data: null, error: 'Network error while updating author' };
+    }
+}
+
+export async function deleteAuthor(id: string): Promise<ApiResponse<{ message: string }>> {
+    try {
+        const response = await fetch(`/api/authors/${id}`, {
+            method: 'DELETE',
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            return { data: null, error: errorData.error || 'Failed to delete author' };
+        }
+
+        const data = await response.json();
+        return { data, error: null };
+    } catch (error) {
+        console.error('Error deleting author:', error);
+        return { data: null, error: 'Network error while deleting author' };
     }
 }

@@ -82,7 +82,7 @@ export async function PUT(
         // Check if article exists
         const existingArticle = await prisma.article.findUnique({
             where: { id },
-            include: { issue: true },
+            include: { issue: true, author: true },
         })
 
         if (!existingArticle) {
@@ -152,13 +152,34 @@ export async function PUT(
                 ? generateFileName(title)
                 : existingArticle.fileName
 
+        // If author name changed, look up the author
+        let authorId: string | null = existingArticle.authorId
+        if (author && author !== (typeof existingArticle.author === 'object' ? existingArticle.author?.name : existingArticle.author)) {
+            // Look up author by name
+            const authorRecord = await prisma.author.findFirst({
+                where: { name: author },
+            })
+            if (authorRecord) {
+                authorId = authorRecord.id
+            } else {
+                // Create new author if it doesn't exist
+                const newAuthor = await prisma.author.create({
+                    data: {
+                        name: author,
+                        slug: `${author.toLowerCase().replace(/\s+/g, '-')}-${id.substring(0, 6)}`,
+                    },
+                })
+                authorId = newAuthor.id
+            }
+        }
+
         // Update article
         const article = await prisma.article.update({
             where: { id },
             data: {
                 title,
                 shortTitle: shortTitle || null,
-                author,
+                authorId,
                 imageArtist: imageArtist || null,
                 number,
                 contentDocxPath,
@@ -169,6 +190,7 @@ export async function PUT(
             },
             include: {
                 issue: true,
+                author: true,
             },
         })
 

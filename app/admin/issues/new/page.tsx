@@ -16,6 +16,7 @@ export default function NewIssuePage() {
         published: false,
     });
     const [imageFile, setImageFile] = useState<File | null>(null);
+    const [pdfFile, setPdfFile] = useState<File | null>(null);
     const [submitting, setSubmitting] = useState(false);
 
     const handleSubmit = async (e: FormEvent) => {
@@ -30,6 +31,10 @@ export default function NewIssuePage() {
 
         if (imageFile) {
             data.append('image', imageFile);
+        }
+
+        if (pdfFile) {
+            data.append('pdf', pdfFile);
         }
 
         const result = await createIssue(data);
@@ -99,6 +104,15 @@ export default function NewIssuePage() {
                     onChange={setImageFile}
                     selectedFileName={imageFile?.name}
                     helperText="Upload a cover image for this issue (optional)"
+                />
+
+                <FileInput
+                    label="Issue PDF"
+                    name="pdf"
+                    accept="application/pdf"
+                    onChange={setPdfFile}
+                    selectedFileName={pdfFile?.name}
+                    helperText="Upload a PDF file for this issue (optional)"
                 />
 
                 <div className={styles.formGroup}>

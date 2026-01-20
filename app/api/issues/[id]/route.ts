@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/utils/prisma'
 import { verifyAuth } from '@/utils/auth'
-import { saveImage, validateImageFile, deleteFile } from '@/utils/file-upload'
+import { saveImage, validateImageFile, savePdf, validatePdfFile, deleteFile } from '@/utils/file-upload'
 
 /**
  * GET /api/issues/[id]
@@ -56,6 +56,7 @@ export async function PUT(
         const date = formData.get('date') as string
         const published = formData.get('published') === 'true'
         const imageFile = formData.get('image') as File | null
+        const pdfFile = formData.get('pdf') as File | null
 
         // Validation
         if (!title || !number || !date) {
@@ -104,6 +105,19 @@ export async function PUT(
             imageUrl = await saveImage(imageFile, number, 'issue-cover')
         }
 
+        // Handle PDF upload
+        let pdfUrl = existingIssue.pdfUrl
+        if (pdfFile && pdfFile.size > 0) {
+            const validation = validatePdfFile(pdfFile)
+            if (!validation.valid) {
+                return NextResponse.json(
+                    { error: validation.error },
+                    { status: 400 },
+                )
+            }
+            pdfUrl = await savePdf(pdfFile, `issue-${number}`)
+        }
+
         // Update issue
         const issue = await prisma.issue.update({
             where: { id },
@@ -112,6 +126,7 @@ export async function PUT(
                 number,
                 date,
                 imageUrl,
+                pdfUrl,
                 published,
             },
             include: {
@@ -222,8 +237,9 @@ export async function DELETE(
             await deleteFile(article.contentDocxPath)
         }
 
-        // Delete issue image
+        // Delete issue image and PDF
         await deleteFile(issue.imageUrl)
+        await deleteFile(issue.pdfUrl)
 
         // Delete issue (articles will be cascade deleted from database)
         await prisma.issue.delete({
