@@ -34,9 +34,10 @@ async function getAuthorBySlug(slug: string) {
 export default async function AuthorPage({
     params,
 }: {
-    params: { slug: string }
+    params: Promise<{ slug: string }>
 }) {
-    const author = await getAuthorBySlug(params.slug)
+    const resolvedParams = await params
+    const author = await getAuthorBySlug(resolvedParams.slug)
 
     if (!author) {
         notFound()
