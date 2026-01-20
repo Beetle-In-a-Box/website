@@ -1,14 +1,22 @@
 .footer {
-    display: flex;
-    height: 12vh;
     background-color: white;
     color: gray;
-    justify-content: space-between;
-    align-items: center;
     padding-left: 2vw;
     padding-right: 2vw;
+    padding-top: 2vh;
+    padding-bottom: 2vh;
     margin-top: 10px;
     border-top: solid 1px rgba(240, 240, 240, 1);
     line-height: 2.2;
     font-size: 0.9rem;
+}
+
+.footerContent {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.ocfLink {
+    display: inline-block;
 }
