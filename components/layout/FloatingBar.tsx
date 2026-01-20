@@ -34,6 +34,8 @@ export default function FloatingBar({
                 </>
             )}
             <Link href="/archive">Archive</Link>
+            <Text as="p">|</Text>
+            <Link href="/apply">Apply</Link>
         </div>
     )
 }

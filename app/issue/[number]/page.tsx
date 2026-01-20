@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation'
 import NavBar from '@/components/layout/NavBar'
 import FloatingBar from '@/components/layout/FloatingBar'
 import Footer from '@/components/layout/Footer'
@@ -12,61 +13,77 @@ import { getSeasonFromIssueDate } from '@/utils/date-utils'
 // Always fetch fresh data - don't cache this page
 export const dynamic = 'force-dynamic'
 
-async function getPublishedIssues() {
+async function getIssueByNumber(number: number) {
     try {
-        const issues = await prisma.issue.findMany({
-            where: { published: true },
+        const issue = await prisma.issue.findFirst({
+            where: {
+                number: number,
+                published: true,
+            },
             include: {
                 articles: {
                     where: { published: true },
                     orderBy: { number: 'asc' },
                 },
             },
-            orderBy: { number: 'desc' },
         })
-        return issues
+        return issue
     } catch (error) {
-        console.error('Error fetching issues:', error)
-        return []
+        console.error('Error fetching issue:', error)
+        return null
     }
 }
 
-export default async function Home() {
-    const issues = await getPublishedIssues()
+export default async function IssuePage({
+    params,
+}: {
+    params: { number: string }
+}) {
+    const issueNumber = parseInt(params.number, 10)
 
-    // If no issues, show a message
-    if (issues.length === 0) {
+    // Validate that number is a valid integer
+    if (isNaN(issueNumber) || issueNumber <= 0) {
+        notFound()
+    }
+
+    const issue = await getIssueByNumber(issueNumber)
+
+    // If issue not found or not published, show 404
+    if (!issue) {
+        notFound()
+    }
+
+    // If no articles, show empty state
+    if (issue.articles.length === 0) {
+        const issueDate = getSeasonFromIssueDate(issue.date)
         return (
             <MainContainer>
-                <NavBar clickable={false} />
-                <ContentsContainer>
-                    <Empty>No published issues available yet. Check back soon!</Empty>
+                <NavBar clickable={true} date={issueDate} />
+                <ContentsContainer title={issue.title}>
+                    <Empty>No published articles in this issue yet.</Empty>
                 </ContentsContainer>
-                <FloatingBar showAbout={true} showLatest={false} />
+                <FloatingBar showAbout={true} showLatest={true} />
                 <Footer />
             </MainContainer>
         )
     }
 
-    // Get the latest issue (first one after sorting by number desc)
-    const latestIssue = issues[0]
-
-    const issueDate = getSeasonFromIssueDate(latestIssue.date)
+    const issueDate = getSeasonFromIssueDate(issue.date)
 
     return (
         <MainContainer>
-            <NavBar clickable={false} date={issueDate} />
-            <ContentsContainer title={latestIssue.title}>
+            <NavBar clickable={true} date={issueDate} />
+            <ContentsContainer title={issue.title}>
                 <IssueCover
-                    imageSrc={latestIssue.imageUrl || '/default-issue-cover.png'}
-                    articles={latestIssue.articles.map(article => ({
+                    imageSrc={issue.imageUrl || '/default-issue-cover.png'}
+                    articles={issue.articles.map(article => ({
                         id: article.id,
                         title: article.shortTitle || article.title,
                         author: article.author,
                     }))}
                 />
                 <div className="text contents previewContainer">
-                    {latestIssue.articles.map(article => (
+                    {issue.articles.map(article => (
                         <ArticlePreview
                             key={article.id}
                             id={article.id}
@@ -77,13 +94,13 @@ export default async function Home() {
                                 article.imageUrl ||
                                 '/default-article-cover.png'
                             }
-                            articleUrl={`/issue/${latestIssue.number}/${article.fileName}`}
+                            articleUrl={`/issue/${issue.number}/${article.fileName}`}
                             imageArtist={article.imageArtist || undefined}
                         />
                     ))}
                 </div>
             </ContentsContainer>
-            <FloatingBar showAbout={true} showLatest={false} />
+            <FloatingBar showAbout={true} showLatest={true} />
             <Footer />
         </MainContainer>
     )

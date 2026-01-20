@@ -14,6 +14,7 @@ model Issue {
   id        String    @id @default(cuid())
   title     String
   number    Int       @unique
+  // Date in "Month Year" format (e.g., "August 2025", "January 2026")
   date      String
   // Image URL or path - can store uploaded image paths
   imageUrl  String?

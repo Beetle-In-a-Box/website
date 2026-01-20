@@ -1,0 +1,16 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    width: 85vw;
+    margin-top: 20vh;
+    margin-bottom: 10vh;
+    align-self: center;
+    gap: clamp(2rem, 4vh, 4rem);
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1rem, 2vh, 1.5rem);
+    width: 100%;
+}
