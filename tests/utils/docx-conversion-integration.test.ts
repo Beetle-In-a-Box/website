@@ -3,7 +3,6 @@ import { readFile } from 'fs/promises'
 import path from 'path'
 import {
     convertArticleDocx,
-    convertCitationsDocx,
     convertPreviewDocx,
     generateFileName,
 } from '@/utils/docx-utils'
@@ -27,7 +26,8 @@ describe('docx-utils.ts - Integration Tests with Seed Data', () => {
             const buffer = await readFile(
                 path.join(SEED_DOCX_DIR, 'convenience-illusion.docx')
             )
-            const html = await convertArticleDocx(buffer)
+            const result = await convertArticleDocx(buffer)
+            const html = result.content
 
             // Should contain footnote links with proper IDs and onclick
             expect(html).toContain(
@@ -53,7 +53,8 @@ describe('docx-utils.ts - Integration Tests with Seed Data', () => {
             const buffer = await readFile(
                 path.join(SEED_DOCX_DIR, 'does-liberalism.docx')
             )
-            const html = await convertArticleDocx(buffer)
+            const result = await convertArticleDocx(buffer)
+            const html = result.content
 
             // Should contain footnotes (this article has many)
             expect(html).toContain(
@@ -73,7 +74,8 @@ describe('docx-utils.ts - Integration Tests with Seed Data', () => {
             const buffer = await readFile(
                 path.join(SEED_DOCX_DIR, 'convenience-illusion.docx')
             )
-            const html = await convertArticleDocx(buffer)
+            const result = await convertArticleDocx(buffer)
+            const html = result.content
 
             // If the article contains URLs, they should be linked
             // Check for both http and https
@@ -86,7 +88,8 @@ describe('docx-utils.ts - Integration Tests with Seed Data', () => {
             const buffer = await readFile(
                 path.join(SEED_DOCX_DIR, 'convenience-illusion.docx')
             )
-            const html = await convertArticleDocx(buffer)
+            const result = await convertArticleDocx(buffer)
+            const html = result.content
 
             // Should have converted curly quotes to straight quotes
             expect(html).not.toContain('\u201c') // Left double quote
@@ -114,76 +117,13 @@ describe('docx-utils.ts - Integration Tests with Seed Data', () => {
 
             for (const article of articles) {
                 const buffer = await readFile(path.join(SEED_DOCX_DIR, article))
-                const html = await convertArticleDocx(buffer)
+                const result = await convertArticleDocx(buffer)
+            const html = result.content
 
                 // Basic checks
                 expect(html).toBeTruthy()
                 expect(html.length).toBeGreaterThan(100)
                 expect(html).toContain('<p>')
-            }
-        })
-    })
-
-    describe('convertCitationsDocx', () => {
-        it('should convert citations with clickable footnotes', async () => {
-            const buffer = await readFile(
-                path.join(SEED_DOCX_DIR, 'convenience-illusion.docx')
-            )
-            // Note: convertCitationsDocx treats each paragraph as a separate citation
-            // This is the expected behavior - it wraps every paragraph as a footnote
-            const html = await convertCitationsDocx(buffer)
-
-            // Should contain footnote paragraphs with IDs
-            expect(html).toMatch(
-                /<p class='text footnote' id='f\d+' onclick="goToElementWithHighlightModern\('fl\d+'\)">/
-            )
-
-            // Should contain paragraph tags and closing tags
-            expect(html).toContain("<p class='text footnote'")
-            expect(html).toContain('</p>')
-        })
-
-        it('should auto-link URLs in citations', async () => {
-            const buffer = await readFile(
-                path.join(SEED_DOCX_DIR, 'convenience-illusion.docx')
-            )
-            const html = await convertCitationsDocx(buffer)
-
-            // Citations often contain URLs
-            if (html.includes('http://') || html.includes('https://')) {
-                expect(html).toMatch(/<a href="https?:\/\/[^"]+">/)
-            }
-        })
-
-        it('should clean special characters from citations', async () => {
-            const buffer = await readFile(
-                path.join(SEED_DOCX_DIR, 'convenience-illusion.docx')
-            )
-            const html = await convertCitationsDocx(buffer)
-
-            // Should have cleaned special characters
-            expect(html).not.toContain('\u201c')
-            expect(html).not.toContain('\u201d')
-            expect(html).not.toContain('\u2018')
-            expect(html).not.toContain('\u2019')
-        })
-
-        it('should handle all Issue 1 citations without errors', async () => {
-            const articles = [
-                'convenience-illusion.docx',
-                'does-liberalism.docx',
-                'gossiping-tweens.docx',
-                'hyperreality-cultural.docx',
-                'making-beauty.docx',
-                'only-thing.docx',
-            ]
-
-            for (const article of articles) {
-                const buffer = await readFile(path.join(SEED_DOCX_DIR, article))
-                const html = await convertCitationsDocx(buffer)
-
-                expect(html).toBeTruthy()
-                expect(html.length).toBeGreaterThan(0)
             }
         })
     })
@@ -297,11 +237,11 @@ describe('docx-utils.ts - Integration Tests with Seed Data', () => {
             const buffer = await readFile(
                 path.join(SEED_DOCX_DIR, 'convenience-illusion.docx')
             )
-            const articleHtml = await convertArticleDocx(buffer)
+            const result = await convertArticleDocx(buffer)
 
-            // Extract footnote numbers from article
+            // Extract footnote numbers from article content
             const articleFootnotes =
-                articleHtml.match(/id='fl(\d+)'/g)?.map(match => {
+                result.content.match(/id='fl(\d+)'/g)?.map(match => {
                     const num = match.match(/\d+/)
                     return num ? parseInt(num[0]) : 0
                 }) || []
@@ -317,29 +257,6 @@ describe('docx-utils.ts - Integration Tests with Seed Data', () => {
             // Should have at least 3 footnotes in this article
             expect(articleFootnotes.length).toBeGreaterThanOrEqual(3)
         })
-
-        it('should number citation footnotes sequentially starting from 1', async () => {
-            const buffer = await readFile(
-                path.join(SEED_DOCX_DIR, 'convenience-illusion.docx')
-            )
-            const citationsHtml = await convertCitationsDocx(buffer)
-
-            // Extract footnote numbers from citations
-            // Note: convertCitationsDocx treats each paragraph as a citation
-            const citationFootnotes =
-                citationsHtml.match(/id='f(\d+)'/g)?.map(match => {
-                    const num = match.match(/\d+/)
-                    return num ? parseInt(num[0]) : 0
-                }) || []
-
-            // Should start from 1
-            expect(citationFootnotes[0]).toBe(1)
-
-            // Should be sequential (1, 2, 3, ...)
-            for (let i = 0; i < citationFootnotes.length; i++) {
-                expect(citationFootnotes[i]).toBe(i + 1)
-            }
-        })
     })
 
     describe('URL Auto-linking', () => {
@@ -350,7 +267,8 @@ describe('docx-utils.ts - Integration Tests with Seed Data', () => {
             const buffer = await readFile(
                 path.join(SEED_DOCX_DIR, 'convenience-illusion.docx')
             )
-            const html = await convertArticleDocx(buffer)
+            const result = await convertArticleDocx(buffer)
+            const html = result.content
 
             // If URLs exist in the article, they should be linked
             const urlPattern = /https?:\/\/[^\s<>"]+[^\s<>".,;:!?)]/

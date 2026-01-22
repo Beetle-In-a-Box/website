@@ -34,17 +34,19 @@ export async function convertArticleDocx(buffer: Buffer): Promise<{
         html = autolinkUrls(html)
 
         // Find where footnotes start
-        // Footnotes in the HTML are paragraphs that start with <p><sup>NUMBER</sup>
+        // Footnotes in the HTML are paragraphs that start with either:
+        // 1. <p><sup>NUMBER</sup> (Word/Google Docs footnotes)
+        // 2. <p>[NUMBER] (manually typed endnotes)
         // They appear at the end of the content
-        const footnotePattern = /<p>(?:<em>)?(?:‌\s*)?<sup>(\d+)<\/sup>/g
+        const footnotePattern = /(?:<p>(?:<em>)?(?:‌\s*)?<sup>(\d+)<\/sup>)|(?:<p>\[(\d+)\])/g
         const footnoteMatches = [...html.matchAll(footnotePattern)]
 
         let mainContent = html
         const footnotes: Array<{ index: number; html: string }> = []
 
         if (footnoteMatches.length > 0) {
-            // Find the position of the first footnote
-            const firstFootnoteMatch = html.match(/<p>(?:<em>)?(?:‌\s*)?<sup>(\d+)<\/sup>/)
+            // Find the position of the first footnote (either format)
+            const firstFootnoteMatch = html.match(/(?:<p>(?:<em>)?(?:‌\s*)?<sup>(\d+)<\/sup>)|(?:<p>\[(\d+)\])/)
             if (firstFootnoteMatch) {
                 const firstFootnoteIndex = html.indexOf(firstFootnoteMatch[0])
 
@@ -52,25 +54,50 @@ export async function convertArticleDocx(buffer: Buffer): Promise<{
                 mainContent = html.substring(0, firstFootnoteIndex)
                 const footnotesHtml = html.substring(firstFootnoteIndex)
 
-                // Extract all footnotes from the footnotes section
-                const footnoteRegex = /<p>(?:<em>)?(?:‌\s*)?<sup>(\d+)<\/sup>([\s\S]*?)<\/p>/g
+                // Extract all footnotes from the footnotes section (both formats)
+                const footnoteRegex = /(?:<p>(?:<em>)?(?:‌\s*)?<sup>(\d+)<\/sup>([\s\S]*?)<\/p>)|(?:<p>\[(\d+)\]([\s\S]*?)<\/p>)/g
                 let match
                 while ((match = footnoteRegex.exec(footnotesHtml)) !== null) {
-                    const [, index, content] = match
-                    footnotes.push({
-                        index: parseInt(index),
-                        html: content,
-                    })
+                    // Check which format matched
+                    if (match[1]) {
+                        // <sup> format
+                        const [, index, content] = match
+                        footnotes.push({
+                            index: parseInt(index),
+                            html: content,
+                        })
+                    } else if (match[3]) {
+                        // [NUMBER] format
+                        const [, , , index, content] = match
+                        footnotes.push({
+                            index: parseInt(index),
+                            html: content,
+                        })
+                    }
                 }
             }
         }
 
         // Process main content - add IDs and onclick to footnote reference links
+        // Handle both <sup> tags (from Word footnotes) and [NUMBER] format
         let footnoteRefCount = 0
-        mainContent = mainContent.replace(/<sup>/g, () => {
-            footnoteRefCount++
-            return `<sup class='footnoteLink' id='fl${footnoteRefCount}' onclick="goToElementWithHighlightModern('f${footnoteRefCount}')">`
-        })
+
+        // Check if we have <sup> tags in main content
+        const hasSuperscript = /<sup>/g.test(mainContent)
+
+        if (hasSuperscript) {
+            // Replace <sup> tags (Word footnote references)
+            mainContent = mainContent.replace(/<sup>/g, () => {
+                footnoteRefCount++
+                return `<sup class='footnoteLink' id='fl${footnoteRefCount}' onclick="goToElementWithHighlightModern('f${footnoteRefCount}')">`
+            })
+        } else {
+            // Replace [NUMBER] references (manually typed endnote references)
+            mainContent = mainContent.replace(/\[(\d+)\]/g, (match, num) => {
+                footnoteRefCount++
+                return `<sup class='footnoteLink' id='fl${footnoteRefCount}' onclick="goToElementWithHighlightModern('f${footnoteRefCount}')">[${num}]</sup>`
+            })
+        }
 
         // Process footnotes - format with proper structure
         let citationsHtml: string | null = null
@@ -94,41 +121,6 @@ export async function convertArticleDocx(buffer: Buffer): Promise<{
     } catch (error) {
         throw new Error(
             `Failed to convert article .docx: ${error instanceof Error ? error.message : String(error)}`,
-        )
-    }
-}
-
-/**
- * Convert .docx buffer to HTML for citations/footnotes
- * Each line becomes a clickable footnote
- */
-export async function convertCitationsDocx(buffer: Buffer): Promise<string> {
-    try {
-        const result = await mammoth.convertToHtml({ buffer })
-        let html = result.value
-
-        // Clean the text
-        html = cleanText(html)
-
-        // Convert plain text URLs to clickable links
-        html = autolinkUrls(html)
-
-        // Extract paragraphs and wrap them as footnotes
-        const paragraphs = html
-            .split(/<\/?p>/)
-            .filter(p => p.trim().length > 0)
-            .map(p => p.trim())
-
-        let footnoteHtml = ''
-        paragraphs.forEach((paragraph, index) => {
-            const footnoteNumber = index + 1
-            footnoteHtml += `<p class='text footnote' id='f${footnoteNumber}' onclick="goToElementWithHighlightModern('fl${footnoteNumber}')">${paragraph}</p>\n`
-        })
-
-        return footnoteHtml
-    } catch (error) {
-        throw new Error(
-            `Failed to convert citations .docx: ${error instanceof Error ? error.message : String(error)}`,
         )
     }
 }

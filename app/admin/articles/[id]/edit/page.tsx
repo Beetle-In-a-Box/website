@@ -24,7 +24,6 @@ export default function EditArticlePage() {
     });
     const [contentFile, setContentFile] = useState<File | null>(null);
     const [previewFile, setPreviewFile] = useState<File | null>(null);
-    const [citationsFile, setCitationsFile] = useState<File | null>(null);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -86,10 +85,6 @@ export default function EditArticlePage() {
 
         if (previewFile) {
             data.append('preview', previewFile);
-        }
-
-        if (citationsFile) {
-            data.append('citations', citationsFile);
         }
 
         if (imageFile) {
@@ -220,15 +215,6 @@ export default function EditArticlePage() {
                     onChange={setPreviewFile}
                     selectedFileName={previewFile?.name}
                     helperText="Upload a new .docx file to replace the current preview (leave empty to keep current)"
-                />
-
-                <FileInput
-                    label="Citations File"
-                    name="citations"
-                    accept=".docx"
-                    onChange={setCitationsFile}
-                    selectedFileName={citationsFile?.name}
-                    helperText="Upload a new .docx file to replace the current citations (optional)"
                 />
 
                 {currentImageUrl && !imageFile && (

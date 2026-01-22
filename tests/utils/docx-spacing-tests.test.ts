@@ -24,7 +24,8 @@ describe('Spacing around inline formatting', () => {
             const buffer = await readFile(
                 path.join(SEED_DOCX_DIR, 'making-beauty.docx')
             )
-            const html = await convertArticleDocx(buffer)
+            const result = await convertArticleDocx(buffer)
+            const html = result.content
 
             // Find the paragraph
             const davidSection = html.substring(
@@ -47,7 +48,8 @@ describe('Spacing around inline formatting', () => {
             const buffer = await readFile(
                 path.join(SEED_DOCX_DIR, 'making-beauty.docx')
             )
-            const html = await convertArticleDocx(buffer)
+            const result = await convertArticleDocx(buffer)
+            const html = result.content
 
             // Find sections with italics followed by punctuation
             const giorgioSection = html.substring(
@@ -74,7 +76,8 @@ describe('Spacing around inline formatting', () => {
             const buffer = await readFile(
                 path.join(SEED_DOCX_DIR, 'making-beauty.docx')
             )
-            const html = await convertArticleDocx(buffer)
+            const result = await convertArticleDocx(buffer)
+            const html = result.content
 
             // Words before opening italic tags should have spaces
             // "title <i>Mystery" not "title<i>Mystery"
@@ -85,7 +88,8 @@ describe('Spacing around inline formatting', () => {
             const buffer = await readFile(
                 path.join(SEED_DOCX_DIR, 'making-beauty.docx')
             )
-            const html = await convertArticleDocx(buffer)
+            const result = await convertArticleDocx(buffer)
+            const html = result.content
 
             // Closing tags before words should have spaces
             // "</i> word" not "</i>word"
@@ -118,7 +122,8 @@ describe('Spacing around inline formatting', () => {
                 const buffer = await readFile(
                     path.join(SEED_DOCX_DIR, article)
                 )
-                const html = await convertArticleDocx(buffer)
+                const result = await convertArticleDocx(buffer)
+            const html = result.content
 
                 // Common punctuation that should NOT have space before it
                 const badPatterns = [
@@ -149,7 +154,8 @@ describe('Spacing around inline formatting', () => {
                 const buffer = await readFile(
                     path.join(SEED_DOCX_DIR, article)
                 )
-                const html = await convertArticleDocx(buffer)
+                const result = await convertArticleDocx(buffer)
+            const html = result.content
 
                 // Opening tag preceded by letter should have space
                 const wordBeforeItalic = html.match(/[a-zA-Z0-9]<(em|i)>/g)
@@ -181,7 +187,8 @@ describe('Spacing around inline formatting', () => {
             const buffer = await readFile(
                 path.join(SEED_DOCX_DIR, 'making-beauty.docx')
             )
-            const html = await convertArticleDocx(buffer)
+            const result = await convertArticleDocx(buffer)
+            const html = result.content
 
             // Exact expected pattern
             const hasCorrectPattern =
@@ -204,7 +211,8 @@ describe('Spacing around inline formatting', () => {
             const buffer = await readFile(
                 path.join(SEED_DOCX_DIR, 'making-beauty.docx')
             )
-            const html = await convertArticleDocx(buffer)
+            const result = await convertArticleDocx(buffer)
+            const html = result.content
 
             // Should have NO space before period
             const hasCorrectPattern =

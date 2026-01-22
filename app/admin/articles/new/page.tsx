@@ -22,7 +22,6 @@ function NewArticleForm() {
     })
     const [contentFile, setContentFile] = useState<File | null>(null)
     const [previewFile, setPreviewFile] = useState<File | null>(null)
-    const [citationsFile, setCitationsFile] = useState<File | null>(null)
     const [imageFile, setImageFile] = useState<File | null>(null)
     const [loading, setLoading] = useState(true)
     const [submitting, setSubmitting] = useState(false)
@@ -74,10 +73,6 @@ function NewArticleForm() {
         data.append('published', String(formData.published))
         data.append('content', contentFile)
         data.append('preview', previewFile)
-
-        if (citationsFile) {
-            data.append('citations', citationsFile)
-        }
 
         if (imageFile) {
             data.append('image', imageFile)
@@ -254,15 +249,6 @@ function NewArticleForm() {
                     onChange={setPreviewFile}
                     selectedFileName={previewFile?.name}
                     helperText="Upload the article preview/excerpt as a .docx file (required)"
-                />
-
-                <FileInput
-                    label="Citations File"
-                    name="citations"
-                    accept=".docx"
-                    onChange={setCitationsFile}
-                    selectedFileName={citationsFile?.name}
-                    helperText="Upload the citations/footnotes as a .docx file (optional)"
                 />
 
                 <FileInput

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'bun:test'
+import { describe, it, expect, mock } from 'bun:test'
 import { generateFileName } from '@/utils/docx-utils'
 
 describe('generateFileName', () => {
@@ -78,7 +78,7 @@ import { readFileSync } from 'fs'
 import { join } from 'path'
 
 describe('docx conversion functions', () => {
-    it('should extract all footnotes from Vienna Gaspar article (Hyperreality)', async () => {
+    it('should extract all footnotes from Vienna Gaspar article (Hyperreality) using <sup> format', async () => {
         // This test validates that all footnotes are properly extracted from .docx files
         // Previously, only 1-4 footnotes were being extracted instead of all 7
         const docxPath = join(process.cwd(), 'scripts/seed-docx/hyperreality-cultural.docx')
@@ -118,6 +118,11 @@ describe('docx conversion functions', () => {
         // Citations should have the footnote content
         expect(result.citations).toContain('University Of Michigan Press')
     })
+
+    // Note: To test [1], [2] endnote format, create a .docx file manually with:
+    // - Main text: "Article text with reference [1] and [2]"
+    // - End of document: "[1] First citation\n[2] Second citation"
+    // The parser will recognize both <sup> (Word footnotes) and [NUMBER] (manually typed) formats
 
     it('should extract preview text without formatting', async () => {
         const docxPath = join(process.cwd(), 'scripts/seed-docx/hyperreality-cultural.docx')
