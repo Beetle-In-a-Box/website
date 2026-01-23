@@ -130,7 +130,7 @@ export async function PATCH(
             data: {
                 title,
                 number,
-                date,
+                date: new Date(date),
                 imageUrl,
                 pdfUrl,
                 published,
