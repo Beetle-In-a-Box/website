@@ -105,7 +105,7 @@ async function createIssueViaAPI() {
     const formData = new FormData()
     formData.append('title', 'Issue 1')
     formData.append('number', '1')
-    formData.append('date', 'August 2025')
+    formData.append('date', '2025-08-01') // August 1, 2025 in ISO format
     formData.append('published', 'true')
 
     // Add issue cover image

@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
             data: {
                 title,
                 number,
-                date,
+                date: new Date(date),
                 imageUrl,
                 pdfUrl,
                 published,

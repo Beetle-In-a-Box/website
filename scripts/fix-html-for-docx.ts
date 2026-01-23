@@ -32,10 +32,14 @@ export function fixHTMLForDocx(html: string): string {
     // Add space after closing tag only if followed by alphanumeric (not punctuation or space)
     fixed = fixed.replace(/(<\/(?:i|em|b|strong|u|a)>)([a-zA-Z0-9])/gi, '$1 $2')
 
-    // Step 4: Clean up any double spaces we might have created
+    // Step 4: Ensure space after semicolons (but not in HTML entities like &nbsp;)
+    // Match semicolons not followed by a space or ampersand (to avoid breaking entities)
+    fixed = fixed.replace(/;(?![&\s])/g, '; ')
+
+    // Step 5: Clean up any double spaces we might have created
     fixed = fixed.replace(/\s{2,}/g, ' ')
 
-    // Step 5: Ensure content is wrapped in <p> tags if it isn't already
+    // Step 6: Ensure content is wrapped in <p> tags if it isn't already
     // Split by paragraph tags
     const lines = fixed.split(/(<\/?p[^>]*>)/gi)
     const wrapped: string[] = []
