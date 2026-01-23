@@ -7,6 +7,9 @@ import Empty from '@/components/ui/Empty'
 import { prisma } from '@/utils/prisma'
 import { formatIssueDate } from '@/utils/date-utils'
 
+// Always fetch fresh data - don't cache this page
+export const dynamic = 'force-dynamic'
+
 async function getLatestIssueDate() {
     try {
         const latestIssue = await prisma.issue.findFirst({
