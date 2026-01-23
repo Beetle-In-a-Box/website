@@ -20,10 +20,10 @@ export default function EditArticlePage() {
         author: '',
         imageArtist: '',
         number: '',
+        previewText: '',
         published: false,
     });
     const [contentFile, setContentFile] = useState<File | null>(null);
-    const [previewFile, setPreviewFile] = useState<File | null>(null);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -54,6 +54,7 @@ export default function EditArticlePage() {
                 author: authorName,
                 imageArtist: article.imageArtist || '',
                 number: String(article.number),
+                previewText: article.previewText || '',
                 published: article.published,
             });
             setCurrentImageUrl(article.imageUrl);
@@ -77,14 +78,11 @@ export default function EditArticlePage() {
         data.append('author', formData.author);
         if (formData.imageArtist) data.append('imageArtist', formData.imageArtist);
         data.append('number', formData.number);
+        if (formData.previewText) data.append('previewText', formData.previewText);
         data.append('published', String(formData.published));
 
         if (contentFile) {
             data.append('content', contentFile);
-        }
-
-        if (previewFile) {
-            data.append('preview', previewFile);
         }
 
         if (imageFile) {
@@ -208,14 +206,20 @@ export default function EditArticlePage() {
                     helperText="Upload a new .docx file to replace the current content (leave empty to keep current)"
                 />
 
-                <FileInput
-                    label="Preview File"
-                    name="preview"
-                    accept=".docx"
-                    onChange={setPreviewFile}
-                    selectedFileName={previewFile?.name}
-                    helperText="Upload a new .docx file to replace the current preview (leave empty to keep current)"
-                />
+                <div className={styles.formGroup}>
+                    <label htmlFor="previewText">Preview Text</label>
+                    <textarea
+                        id="previewText"
+                        value={formData.previewText}
+                        onChange={(e) => setFormData({ ...formData, previewText: e.target.value })}
+                        rows={6}
+                        placeholder="Leave blank to auto-extract from content file"
+                        style={{ resize: 'none' }}
+                    />
+                    <p className={styles.helperText}>
+                        Optional preview text for issue listing page. If left blank and content file is updated, will be automatically extracted from the content file.
+                    </p>
+                </div>
 
                 {currentImageUrl && !imageFile && (
                     <div className={styles.formGroup}>

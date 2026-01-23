@@ -7,6 +7,7 @@ import ContentsContainer from '@/components/issue/ContentsContainer'
 import ArticlePreview from '@/components/issue/ArticlePreview'
 import Empty from '@/components/ui/Empty'
 import { prisma } from '@/utils/prisma'
+import { formatIssueDate } from '@/utils/date-utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,6 +32,18 @@ async function getAuthorBySlug(slug: string) {
     }
 }
 
+async function getLatestIssue() {
+    try {
+        return await prisma.issue.findFirst({
+            where: { published: true },
+            orderBy: { number: 'desc' },
+        })
+    } catch (error) {
+        console.error('Error fetching latest issue:', error)
+        return null
+    }
+}
+
 export default async function AuthorPage({
     params,
 }: {
@@ -43,10 +56,14 @@ export default async function AuthorPage({
         notFound()
     }
 
+    // Get the latest issue's date for the header
+    const latestIssue = await getLatestIssue()
+    const issueDate = latestIssue ? formatIssueDate(latestIssue.date) : undefined
+
     if (author.articles.length === 0) {
         return (
             <MainContainer>
-                <NavBar clickable={true} />
+                <NavBar clickable={true} date={issueDate} />
                 <ContentsContainer title={`${author.name}`}>
                     <Empty>No published articles by this author yet.</Empty>
                 </ContentsContainer>
@@ -58,7 +75,7 @@ export default async function AuthorPage({
 
     return (
         <MainContainer>
-            <NavBar clickable={true} />
+            <NavBar clickable={true} date={issueDate} />
             <ContentsContainer title={`${author.name}`}>
                 <div className="text contents previewContainer">
                     {author.articles.map(article => (

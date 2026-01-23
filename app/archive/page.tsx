@@ -6,7 +6,7 @@ import IssueListContainer from '@/components/issue/IssueListContainer'
 import IssueListItem from '@/components/issue/IssueListItem'
 import Empty from '@/components/ui/Empty'
 import { prisma } from '@/utils/prisma'
-import { getSeasonFromIssueDate } from '@/utils/date-utils'
+import { formatIssueDate } from '@/utils/date-utils'
 
 // Always fetch fresh data - don't cache this page
 export const dynamic = 'force-dynamic'
@@ -37,11 +37,15 @@ export default async function Archive() {
     const allIssues = await getPublishedIssuesWithCounts()
     const archivedIssues = allIssues.slice(1) // Exclude the latest issue
 
+    // Get the latest issue's date for the header
+    const latestIssue = allIssues[0]
+    const issueDate = latestIssue ? formatIssueDate(latestIssue.date) : undefined
+
     // If no archived issues, show a message
     if (archivedIssues.length === 0) {
         return (
             <MainContainer>
-                <NavBar clickable={true} />
+                <NavBar clickable={true} date={issueDate} />
                 <IssueListContainer>
                     <Empty>No archived issues available yet. Check back soon!</Empty>
                 </IssueListContainer>
@@ -50,10 +54,6 @@ export default async function Archive() {
             </MainContainer>
         )
     }
-
-    // Get the latest issue's date for the header
-    const latestIssue = allIssues[0]
-    const issueDate = latestIssue ? getSeasonFromIssueDate(latestIssue.date) : undefined
 
     return (
         <MainContainer>

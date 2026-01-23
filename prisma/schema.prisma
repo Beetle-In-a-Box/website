@@ -14,8 +14,8 @@ model Issue {
   id        String    @id @default(cuid())
   title     String
   number    Int       @unique
-  // Date in "Month Year" format (e.g., "August 2025", "January 2026")
-  date      String
+  // Date of issue publication (formatted as "MONTH YEAR" in UI)
+  date      DateTime
   // Image URL or path - can store uploaded image paths
   imageUrl  String?
   // PDF URL or path - optional PDF download for the entire issue
@@ -27,6 +27,7 @@ model Issue {
 
   @@index([number])
   @@index([published])
+  @@index([date])
 }
 
 model Author {
@@ -51,7 +52,7 @@ model Article {
   imageUrl        String?
   // Path to the .docx file containing article content and footnotes/endnotes
   contentDocxPath String
-  // Preview text extracted from .docx for issue page (generated on upload)
+  // Preview text for issue page (can be manually entered or auto-extracted from .docx)
   previewText     String   @db.Text
   // Generated filename for URL-friendly access
   fileName        String

@@ -1,6 +1,7 @@
 'use client'
 
 import { Issue } from '@/utils/api-client'
+import { formatIssueDate } from '@/utils/date-utils'
 import Card from './Card'
 import styles from './IssueCard.module.scss'
 
@@ -46,7 +47,7 @@ export default function IssueCard({
                     Issue {issue.number}: {issue.title}
                 </h3>
                 <p className={styles.cardDate}>
-                    {new Date(issue.date).toLocaleDateString()}
+                    {formatIssueDate(issue.date)}
                 </p>
                 <p className={styles.cardMeta}>
                     <span

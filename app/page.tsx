@@ -7,7 +7,7 @@ import IssueCover from '@/components/issue/IssueCover'
 import ArticlePreview from '@/components/issue/ArticlePreview'
 import Empty from '@/components/ui/Empty'
 import { prisma } from '@/utils/prisma'
-import { getSeasonFromIssueDate } from '@/utils/date-utils'
+import { formatIssueDate } from '@/utils/date-utils'
 
 // Always fetch fresh data - don't cache this page
 export const dynamic = 'force-dynamic'
@@ -54,7 +54,7 @@ export default async function Home() {
     // Get the latest issue (first one after sorting by number desc)
     const latestIssue = issues[0]
 
-    const issueDate = getSeasonFromIssueDate(latestIssue.date)
+    const issueDate = formatIssueDate(latestIssue.date)
 
     return (
         <MainContainer>

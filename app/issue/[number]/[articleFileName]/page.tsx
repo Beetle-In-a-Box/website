@@ -14,7 +14,7 @@ import ArticleHtmlContent from '@/components/article/ArticleHtmlContent'
 import FootnoteHandler from '@/components/article/FootnoteHandler'
 import { prisma } from '@/utils/prisma'
 import { convertArticleDocx } from '@/utils/docx-utils'
-import { getSeasonFromIssueDate } from '@/utils/date-utils'
+import { formatIssueDate } from '@/utils/date-utils'
 import styles from './page.module.scss'
 
 interface ArticlePageProps {
@@ -111,7 +111,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         article.contentDocxPath
     )
 
-    const issueDate = getSeasonFromIssueDate(article.issue.date)
+    const issueDate = formatIssueDate(article.issue.date)
 
     return (
         <MainContainer>

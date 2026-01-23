@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
         const number = parseInt(formData.get('number') as string)
         const published = formData.get('published') === 'true'
 
+        const previewText = formData.get('previewText') as string | null
         const contentFile = formData.get('content') as File | null
         const imageFile = formData.get('image') as File | null
 
@@ -49,6 +50,7 @@ export async function POST(request: NextRequest) {
             title,
             author,
             number,
+            previewText: previewText ? 'provided' : 'will extract',
             contentFile: contentFile ? `File: ${contentFile.name}` : null,
             imageFile: imageFile ? `File: ${imageFile.name}` : null,
         })
@@ -112,9 +114,15 @@ export async function POST(request: NextRequest) {
         // Save .docx file
         const contentDocxPath = await saveDocx(contentFile, `article-${number}`)
 
-        // Generate preview text from .docx
-        const contentBuffer = Buffer.from(await contentFile.arrayBuffer())
-        const previewText = await convertPreviewDocx(contentBuffer)
+        // Use provided preview text or extract from .docx
+        let finalPreviewText: string
+        if (previewText && previewText.trim().length > 0) {
+            finalPreviewText = previewText.trim()
+        } else {
+            // Generate preview text from content .docx
+            const contentBuffer = Buffer.from(await contentFile.arrayBuffer())
+            finalPreviewText = await convertPreviewDocx(contentBuffer)
+        }
 
         // Handle image upload
         let imageUrl: string | null = null
@@ -167,7 +175,7 @@ export async function POST(request: NextRequest) {
                 imageArtist: imageArtist || null,
                 number,
                 contentDocxPath,
-                previewText,
+                previewText: finalPreviewText,
                 imageUrl,
                 fileName,
                 published,
@@ -207,6 +215,7 @@ export async function GET(request: NextRequest) {
             where,
             include: {
                 issue: true,
+                author: true,
             },
             orderBy: [{ issue: { number: 'desc' } }, { number: 'asc' }],
         })

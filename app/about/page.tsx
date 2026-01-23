@@ -5,7 +5,7 @@ import MainContainer from '@/components/layout/MainContainer'
 import ContentsContainer from '@/components/issue/ContentsContainer'
 import Empty from '@/components/ui/Empty'
 import { prisma } from '@/utils/prisma'
-import { getSeasonFromIssueDate } from '@/utils/date-utils'
+import { formatIssueDate } from '@/utils/date-utils'
 
 async function getLatestIssueDate() {
     try {
@@ -23,7 +23,7 @@ async function getLatestIssueDate() {
 
 export default async function About() {
     const latestDate = await getLatestIssueDate()
-    const headerDate = latestDate ? getSeasonFromIssueDate(latestDate) : undefined
+    const headerDate = latestDate ? formatIssueDate(latestDate) : undefined
 
     return (
         <MainContainer>

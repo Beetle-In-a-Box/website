@@ -40,10 +40,10 @@ export async function GET(
 }
 
 /**
- * PUT /api/issues/[id]
+ * PATCH /api/issues/[id]
  * Update an entire issue (replace all fields)
  */
-export async function PUT(
+export async function PATCH(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> },
 ) {
@@ -165,7 +165,7 @@ export async function PATCH(
 
         // Parse FormData
         const formData = await request.formData()
-        const body: Record<string, string | boolean | File> = {}
+        const body: Record<string, any> = {}
 
         formData.forEach((value, key) => {
             // Convert 'true'/'false' strings to booleans
@@ -188,10 +188,17 @@ export async function PATCH(
             )
         }
 
+        // Convert types for Prisma
+        const updateData: any = {}
+        if (body.title !== undefined) updateData.title = body.title
+        if (body.number !== undefined) updateData.number = parseInt(body.number as string)
+        if (body.date !== undefined) updateData.date = new Date(body.date as string)
+        if (body.published !== undefined) updateData.published = body.published
+
         // Update only provided fields
         const issue = await prisma.issue.update({
             where: { id },
-            data: body,
+            data: updateData,
             include: {
                 articles: {
                     orderBy: { number: 'asc' },

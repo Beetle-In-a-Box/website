@@ -24,6 +24,7 @@ export async function GET(
             where: { id },
             include: {
                 issue: true,
+                author: true,
             },
         })
 
@@ -45,10 +46,10 @@ export async function GET(
 }
 
 /**
- * PUT /api/articles/[id]
+ * PATCH /api/articles/[id]
  * Update an article
  */
-export async function PUT(
+export async function PATCH(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> },
 ) {
@@ -68,6 +69,7 @@ export async function PUT(
         const imageArtist = formData.get('imageArtist') as string | null
         const number = parseInt(formData.get('number') as string)
         const published = formData.get('published') === 'true'
+        const previewTextInput = formData.get('previewText') as string | null
         const contentFile = formData.get('content') as File | null
         const imageFile = formData.get('image') as File | null
 
@@ -114,7 +116,13 @@ export async function PUT(
         // Process .docx file if provided, otherwise keep existing path
         let contentDocxPath = existingArticle.contentDocxPath
         let previewText = existingArticle.previewText
-        if (contentFile && contentFile.size > 0) {
+
+        // Handle preview text update
+        if (previewTextInput !== null && previewTextInput.trim().length > 0) {
+            // Use provided preview text
+            previewText = previewTextInput.trim()
+        } else if (contentFile && contentFile.size > 0) {
+            // Content file changed, regenerate preview text
             const contentValidation = validateDocxFile(contentFile)
             if (!contentValidation.valid) {
                 return NextResponse.json(
@@ -128,6 +136,7 @@ export async function PUT(
             const contentBuffer = Buffer.from(await contentFile.arrayBuffer())
             previewText = await convertPreviewDocx(contentBuffer)
         }
+        // Otherwise keep existing previewText
 
         // Handle image upload
         let imageUrl = existingArticle.imageUrl

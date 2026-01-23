@@ -18,10 +18,10 @@ function NewArticleForm() {
         author: '',
         imageArtist: '',
         number: '',
+        previewText: '',
         published: false,
     })
     const [contentFile, setContentFile] = useState<File | null>(null)
-    const [previewFile, setPreviewFile] = useState<File | null>(null)
     const [imageFile, setImageFile] = useState<File | null>(null)
     const [loading, setLoading] = useState(true)
     const [submitting, setSubmitting] = useState(false)
@@ -56,11 +56,6 @@ function NewArticleForm() {
             return
         }
 
-        if (!previewFile) {
-            toast.error('Preview file is required')
-            return
-        }
-
         setSubmitting(true)
 
         const data = new FormData()
@@ -70,9 +65,9 @@ function NewArticleForm() {
         data.append('author', formData.author)
         if (formData.imageArtist) data.append('imageArtist', formData.imageArtist)
         data.append('number', formData.number)
+        if (formData.previewText) data.append('previewText', formData.previewText)
         data.append('published', String(formData.published))
         data.append('content', contentFile)
-        data.append('preview', previewFile)
 
         if (imageFile) {
             data.append('image', imageFile)
@@ -241,15 +236,25 @@ function NewArticleForm() {
                     helperText="Upload the article content as a .docx file (required)"
                 />
 
-                <FileInput
-                    label="Preview File"
-                    name="preview"
-                    accept=".docx"
-                    required
-                    onChange={setPreviewFile}
-                    selectedFileName={previewFile?.name}
-                    helperText="Upload the article preview/excerpt as a .docx file (required)"
-                />
+                <div className={styles.formGroup}>
+                    <label htmlFor="previewText">Preview Text</label>
+                    <textarea
+                        id="previewText"
+                        value={formData.previewText}
+                        onChange={e =>
+                            setFormData({
+                                ...formData,
+                                previewText: e.target.value,
+                            })
+                        }
+                        rows={6}
+                        placeholder="Leave blank to auto-extract from content file"
+                        style={{ resize: 'none' }}
+                    />
+                    <p className={styles.helperText}>
+                        Optional preview text for issue listing page. If left blank, will be automatically extracted from the content file.
+                    </p>
+                </div>
 
                 <FileInput
                     label="Article Image"

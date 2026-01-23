@@ -31,27 +31,53 @@ export function getCurrentYear(): number {
 }
 
 /**
- * Format an issue date string (e.g., "August 2025") to uppercase month + year
- * Expected format: "Month Year" (e.g., "August 2025", "January 2026")
+ * Format a Date object or ISO string as "MONTH YEAR" (e.g., "JANUARY 2026")
+ * This is the standard format for displaying issue dates across the site
+ * Uses UTC to avoid timezone issues
  */
-export function getSeasonFromIssueDate(dateString: string): string {
-    const months: { [key: string]: string } = {
-        'january': 'JANUARY', 'february': 'FEBRUARY', 'march': 'MARCH', 'april': 'APRIL',
-        'may': 'MAY', 'june': 'JUNE', 'july': 'JULY', 'august': 'AUGUST',
-        'september': 'SEPTEMBER', 'october': 'OCTOBER', 'november': 'NOVEMBER', 'december': 'DECEMBER',
-    };
+export function formatIssueDate(date: Date | string): string {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
 
-    const parts = dateString.trim().split(/\s+/);
-    const monthStr = parts[0]?.toLowerCase();
-    const yearStr = parts[1];
+    const months = [
+        'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+        'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'
+    ];
 
-    if (monthStr && yearStr && months[monthStr]) {
-        const year = parseInt(yearStr, 10);
-        if (!isNaN(year)) {
-            return `${months[monthStr]} ${year}`;
+    // Use UTC methods to avoid timezone conversion issues
+    const month = months[dateObj.getUTCMonth()];
+    const year = dateObj.getUTCFullYear();
+
+    return `${month} ${year}`;
+}
+
+/**
+ * Format an issue date string or Date object to uppercase month + year
+ * For backwards compatibility - use formatIssueDate() for new code
+ */
+export function getSeasonFromIssueDate(date: string | Date): string {
+    if (typeof date === 'string') {
+        // Legacy string format: "August 2025"
+        const months: { [key: string]: string } = {
+            'january': 'JANUARY', 'february': 'FEBRUARY', 'march': 'MARCH', 'april': 'APRIL',
+            'may': 'MAY', 'june': 'JUNE', 'july': 'JULY', 'august': 'AUGUST',
+            'september': 'SEPTEMBER', 'october': 'OCTOBER', 'november': 'NOVEMBER', 'december': 'DECEMBER',
+        };
+
+        const parts = date.trim().split(/\s+/);
+        const monthStr = parts[0]?.toLowerCase();
+        const yearStr = parts[1];
+
+        if (monthStr && yearStr && months[monthStr]) {
+            const year = parseInt(yearStr, 10);
+            if (!isNaN(year)) {
+                return `${months[monthStr]} ${year}`;
+            }
         }
-    }
 
-    // Fallback to current season/year if parsing fails
-    return getSeasonAndYear();
+        // Fallback to current season/year if parsing fails
+        return getSeasonAndYear();
+    } else {
+        // Date object - use new formatter
+        return formatIssueDate(date);
+    }
 }

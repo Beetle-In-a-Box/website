@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { fetchIssues, fetchArticles, Issue, Article } from '@/utils/api-client';
+import { formatIssueDate } from '@/utils/date-utils';
 import styles from './Admin.module.scss';
 
 export default function AdminDashboard() {
@@ -78,7 +79,7 @@ export default function AdminDashboard() {
                             <div key={issue.id} className={styles.item}>
                                 <div className={styles.itemInfo}>
                                     <h4>Issue {issue.number}: {issue.title}</h4>
-                                    <p>{new Date(issue.date).toLocaleDateString()} • {issue.published ? 'Published' : 'Unpublished'}</p>
+                                    <p>{formatIssueDate(issue.date)} • {issue.published ? 'Published' : 'Unpublished'}</p>
                                 </div>
                                 <Link href={`/admin/issues/${issue.id}/edit`} className={styles.btnEdit}>
                                     Edit

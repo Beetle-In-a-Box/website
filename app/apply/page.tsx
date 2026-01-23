@@ -5,12 +5,31 @@ import Text from '@/components/ui/Text';
 import Link from '@/components/ui/Link';
 import FloatingBar from '@/components/layout/FloatingBar';
 import Footer from '@/components/layout/Footer';
+import { prisma } from '@/utils/prisma';
+import { formatIssueDate } from '@/utils/date-utils';
 import styles from './page.module.scss';
 
-export default function ApplyPage() {
+async function getLatestIssueDate() {
+  try {
+    const latestIssue = await prisma.issue.findFirst({
+      where: { published: true },
+      orderBy: { number: 'desc' },
+      select: { date: true },
+    });
+    return latestIssue?.date || undefined;
+  } catch (error) {
+    console.error('Error fetching latest issue:', error);
+    return undefined;
+  }
+}
+
+export default async function ApplyPage() {
+  const latestDate = await getLatestIssueDate();
+  const headerDate = latestDate ? formatIssueDate(latestDate) : undefined;
+
   return (
     <MainContainer>
-      <NavBar />
+      <NavBar date={headerDate} />
       <ContentsContainer title="Apply">
         <Text as="p" className={styles.centeredText}>
           Beetle in a Box is recruiting writers and artists. Please fill out{' '}

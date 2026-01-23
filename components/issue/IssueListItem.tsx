@@ -1,10 +1,11 @@
 import Link from '@/components/ui/Link'
+import { formatIssueDate } from '@/utils/date-utils'
 import styles from './IssueListItem.module.scss'
 
 interface IssueListItemProps {
     number: number
     title: string
-    date: string
+    date: Date | string
     imageUrl: string
     articleCount: number
     pdfUrl?: string
@@ -30,7 +31,7 @@ export default function IssueListItem({
                 <div className={styles.issueNumber}>Issue {number}</div>
                 <div className={styles.issueTitle}>{title}</div>
                 <div className={styles.issueDetails}>
-                    <span className={styles.date}>{date}</span>
+                    <span className={styles.date}>{formatIssueDate(date)}</span>
                     <span className={styles.separator}>•</span>
                     <span className={styles.articleCount}>
                         {articleCount} {articleCount === 1 ? 'article' : 'articles'}
