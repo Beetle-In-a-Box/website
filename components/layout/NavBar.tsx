@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import styles from './NavBar.module.scss';
 
 interface NavBarProps {
@@ -23,8 +24,20 @@ export default function NavBar({ clickable = true, date }: NavBarProps) {
         <h3>BERKELEY, CA</h3>
       </div>
       <div className={`${styles.item} ${styles.center}`} id="cNav">
-        <h1 id="cNavTitle">BEETLE IN A BOX</h1>
-        <p>UC BERKELEY UNDERGRADUATE PHILOSOPHY REVIEW</p>
+        <div className={styles.centerContent}>
+          <div className={styles.logoContainer}>
+            <Image
+              src="/logo.jpg"
+              alt="Beetle in a Box Logo"
+              fill
+              className={styles.logo}
+            />
+          </div>
+          <div className={styles.textContainer}>
+            <h1 id="cNavTitle">BEETLE IN A BOX</h1>
+            <p>UC BERKELEY UNDERGRADUATE PHILOSOPHY REVIEW</p>
+          </div>
+        </div>
       </div>
       <div className={`${styles.item} ${styles.rightSide}`} id="rNav">
         <h3>{date}</h3>

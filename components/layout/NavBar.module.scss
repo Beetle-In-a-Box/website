@@ -15,6 +15,7 @@
     font-weight: 200;
     letter-spacing: 5px;
     margin: 0;
+    transform: translateX(-0.15vh);
 }
 
 .navBar h3 {
@@ -25,7 +26,7 @@
 .navBar p {
     font-family: 'Playfair Display', serif;
     font-size: clamp(0.8rem, 1.5vw, 1.7vh);
-    text-align: center;
+    text-align: left;
 }
 
 .navBar .item {
@@ -41,4 +42,34 @@
 .navBar .center {
     grid-column: auto / span 5;
     flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.centerContent {
+    display: flex;
+    flex-direction: row;
+    gap: 2vh;
+    align-items: stretch;
+}
+
+.textContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.logoContainer {
+    position: relative;
+    aspect-ratio: 1;
+    align-self: stretch;
+    min-width: 0;
+    margin-top: 1vh;
+    margin-bottom: 1vh;
+    transform: translateY(0.5vh);
+}
+
+.logo {
+    object-fit: contain;
 }
