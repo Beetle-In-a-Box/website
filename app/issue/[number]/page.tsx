@@ -7,6 +7,7 @@ import ContentsContainer from '@/components/issue/ContentsContainer'
 import IssueCover from '@/components/issue/IssueCover'
 import ArticlePreview from '@/components/issue/ArticlePreview'
 import Empty from '@/components/ui/Empty'
+import PdfDownloadButton from '@/components/issue/PdfDownloadButton'
 import { prisma } from '@/utils/prisma'
 import { formatIssueDate } from '@/utils/date-utils'
 
@@ -77,38 +78,7 @@ export default async function IssuePage({
         <MainContainer>
             <NavBar clickable={true} date={issueDate} />
             <ContentsContainer title={issue.title}>
-                {issue.pdfUrl && (
-                    <div style={{ marginBottom: '2rem' }}>
-                        <a
-                            href={issue.pdfUrl}
-                            download
-                            style={{
-                                display: 'inline-block',
-                                padding: '0.75rem 1.5rem',
-                                fontFamily: "'Lora', serif",
-                                fontSize: '1rem',
-                                fontWeight: 500,
-                                color: '#1a1a1a',
-                                backgroundColor: 'transparent',
-                                border: '1px solid #1a1a1a',
-                                borderRadius: '2px',
-                                textDecoration: 'none',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease',
-                            }}
-                            onMouseEnter={e => {
-                                e.currentTarget.style.backgroundColor = '#1a1a1a'
-                                e.currentTarget.style.color = 'white'
-                            }}
-                            onMouseLeave={e => {
-                                e.currentTarget.style.backgroundColor = 'transparent'
-                                e.currentTarget.style.color = '#1a1a1a'
-                            }}
-                        >
-                            Download PDF
-                        </a>
-                    </div>
-                )}
+                {issue.pdfUrl && <PdfDownloadButton pdfUrl={issue.pdfUrl} />}
                 <IssueCover
                     imageSrc={issue.imageUrl || '/default-issue-cover.png'}
                     articles={issue.articles.map(article => ({
