@@ -35,7 +35,7 @@ export default function NavBar({ clickable = true, date }: NavBarProps) {
           </div>
           <div className={styles.textContainer}>
             <h1 id="cNavTitle">BEETLE IN A BOX</h1>
-            <p>UC BERKELEY UNDERGRADUATE PHILOSOPHY REVIEW</p>
+            <p>UNDERGRADUATE PHILOSOPHY REVIEW AT BERKELEY</p>
           </div>
         </div>
       </div>
