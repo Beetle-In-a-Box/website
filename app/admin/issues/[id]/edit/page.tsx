@@ -168,7 +168,6 @@ export default function EditIssuePage() {
                         id="imageArtist"
                         value={formData.imageArtist}
                         onChange={(e) => setFormData({ ...formData, imageArtist: e.target.value })}
-                        placeholder="e.g., Sophie Yi"
                     />
                     <small className={styles.helperText}>Artist name for cover image attribution (optional)</small>
                 </div>
