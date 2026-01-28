@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
         const number = parseInt(formData.get('number') as string)
         const date = formData.get('date') as string
         const published = formData.get('published') === 'true'
+        const imageArtist = formData.get('imageArtist') as string | null
         const imageFile = formData.get('image') as File | null
         const pdfFile = formData.get('pdf') as File | null
 
@@ -69,6 +70,7 @@ export async function POST(request: NextRequest) {
                 number,
                 date: new Date(date),
                 imageUrl,
+                imageArtist: imageArtist || null,
                 pdfUrl,
                 published,
             },

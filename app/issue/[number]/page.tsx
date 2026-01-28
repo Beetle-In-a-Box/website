@@ -79,6 +79,7 @@ export default async function IssuePage({
             <ContentsContainer title={issue.title}>
                 <IssueCover
                     imageSrc={issue.imageUrl || '/default-issue-cover.png'}
+                    imageArtist={issue.imageArtist || undefined}
                     articles={issue.articles.map(article => ({
                         id: article.id,
                         title: article.shortTitle || article.title,

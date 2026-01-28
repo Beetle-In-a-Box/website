@@ -62,6 +62,7 @@ export default async function Home() {
             <ContentsContainer title={latestIssue.title}>
                 <IssueCover
                     imageSrc={latestIssue.imageUrl || '/default-issue-cover.png'}
+                    imageArtist={latestIssue.imageArtist || undefined}
                     articles={latestIssue.articles.map(article => ({
                         id: article.id,
                         title: article.shortTitle || article.title,

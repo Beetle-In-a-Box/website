@@ -7,6 +7,7 @@ import styles from './IssueCover.module.scss'
 
 interface IssueCoverProps {
     imageSrc: string
+    imageArtist?: string
     articles: {
         id: string
         title: string
@@ -14,7 +15,7 @@ interface IssueCoverProps {
     }[]
 }
 
-export default function IssueCover({ imageSrc, articles }: IssueCoverProps) {
+export default function IssueCover({ imageSrc, imageArtist, articles }: IssueCoverProps) {
     const goToElementWithBorder = (elementId: string) => {
         const element = document.getElementById(elementId)
         if (!element) return
@@ -32,7 +33,14 @@ export default function IssueCover({ imageSrc, articles }: IssueCoverProps) {
 
     return (
         <div className={styles.middle}>
-            <Image src={imageSrc} alt="Issue Cover" width={600} height={800} />
+            <div>
+                <Image src={imageSrc} alt="Issue Cover" width={600} height={800} />
+                {imageArtist && (
+                    <div style={{ fontSize: '0.95rem', fontStyle: 'italic', color: '#666', marginTop: '0.5rem', textAlign: 'center' }}>
+                        Art by {imageArtist}
+                    </div>
+                )}
+            </div>
             <div className={`${styles.slideFadeIn}`}>
                 <ol>
                     {articles.map((article, index) => (

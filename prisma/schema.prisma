@@ -11,19 +11,21 @@ datasource db {
 }
 
 model Issue {
-  id        String    @id @default(cuid())
-  title     String
-  number    Int       @unique
+  id          String    @id @default(cuid())
+  title       String
+  number      Int       @unique
   // Date of issue publication (formatted as "MONTH YEAR" in UI)
-  date      DateTime
+  date        DateTime
   // Image URL or path - can store uploaded image paths
-  imageUrl  String?
+  imageUrl    String?
+  // Artist name for cover image attribution
+  imageArtist String?
   // PDF URL or path - optional PDF download for the entire issue
-  pdfUrl    String?
-  published Boolean   @default(false)
-  articles  Article[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  pdfUrl      String?
+  published   Boolean   @default(false)
+  articles    Article[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([number])
   @@index([published])

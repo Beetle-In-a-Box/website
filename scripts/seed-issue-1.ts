@@ -107,6 +107,7 @@ async function createIssueViaAPI() {
     formData.append('number', '1')
     formData.append('date', '2025-08-01') // August 1, 2025 in ISO format
     formData.append('published', 'true')
+    formData.append('imageArtist', 'Sophie Yi')
 
     // Add issue cover image
     const issueImagePath = join(SEED_IMAGES_PATH, 'issue-1_cover.png')

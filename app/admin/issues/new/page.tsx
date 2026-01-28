@@ -13,6 +13,7 @@ export default function NewIssuePage() {
         title: '',
         number: '',
         date: '',
+        imageArtist: '',
         published: false,
     });
     const [imageFile, setImageFile] = useState<File | null>(null);
@@ -28,6 +29,10 @@ export default function NewIssuePage() {
         data.append('number', formData.number);
         data.append('date', formData.date);
         data.append('published', String(formData.published));
+
+        if (formData.imageArtist) {
+            data.append('imageArtist', formData.imageArtist);
+        }
 
         if (imageFile) {
             data.append('image', imageFile);
@@ -105,6 +110,20 @@ export default function NewIssuePage() {
                     selectedFileName={imageFile?.name}
                     helperText="Upload a cover image for this issue (optional)"
                 />
+
+                <div className={styles.formGroup}>
+                    <label htmlFor="imageArtist">
+                        Cover Artist
+                    </label>
+                    <input
+                        type="text"
+                        id="imageArtist"
+                        value={formData.imageArtist}
+                        onChange={(e) => setFormData({ ...formData, imageArtist: e.target.value })}
+                        placeholder="e.g., Sophie Yi"
+                    />
+                    <small className={styles.helperText}>Artist name for cover image attribution (optional)</small>
+                </div>
 
                 <FileInput
                     label="Issue PDF"

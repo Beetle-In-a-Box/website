@@ -16,6 +16,7 @@ export default function EditIssuePage() {
         title: '',
         number: '',
         date: '',
+        imageArtist: '',
         published: false,
     });
     const [imageFile, setImageFile] = useState<File | null>(null);
@@ -41,6 +42,7 @@ export default function EditIssuePage() {
                 title: issue.title,
                 number: String(issue.number),
                 date: issue.date.split('T')[0], // Format date for input
+                imageArtist: issue.imageArtist || '',
                 published: issue.published,
             });
             setCurrentImageUrl(issue.imageUrl);
@@ -58,6 +60,10 @@ export default function EditIssuePage() {
         data.append('number', formData.number);
         data.append('date', formData.date);
         data.append('published', String(formData.published));
+
+        if (formData.imageArtist) {
+            data.append('imageArtist', formData.imageArtist);
+        }
 
         if (imageFile) {
             data.append('image', imageFile);
@@ -152,6 +158,20 @@ export default function EditIssuePage() {
                     selectedFileName={imageFile?.name}
                     helperText={currentImageUrl ? "Upload a new image to replace the current one" : "Upload a cover image for this issue"}
                 />
+
+                <div className={styles.formGroup}>
+                    <label htmlFor="imageArtist">
+                        Cover Artist
+                    </label>
+                    <input
+                        type="text"
+                        id="imageArtist"
+                        value={formData.imageArtist}
+                        onChange={(e) => setFormData({ ...formData, imageArtist: e.target.value })}
+                        placeholder="e.g., Sophie Yi"
+                    />
+                    <small className={styles.helperText}>Artist name for cover image attribution (optional)</small>
+                </div>
 
                 {currentPdfUrl && !pdfFile && (
                     <div className={styles.formGroup}>
