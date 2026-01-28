@@ -12,7 +12,8 @@
         "test:coverage": "bun test --coverage",
         "db:clear": "bun scripts/clear-database.ts",
         "db:seed": "bun scripts/seed-issue-1.ts",
-        "db:reset": "bun run db:clear && bun run db:seed"
+        "db:reset": "bun run db:clear && bun run db:seed",
+        "postinstall": "prisma generate"
     },
     "dependencies": {
         "@prisma/client": "^6.19.1",
