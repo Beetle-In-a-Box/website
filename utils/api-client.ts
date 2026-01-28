@@ -11,6 +11,7 @@ export interface Issue {
     number: number;
     date: string;
     imageUrl: string | null;
+    imageArtist: string | null;
     pdfUrl: string | null;
     published: boolean;
     createdAt: string;
