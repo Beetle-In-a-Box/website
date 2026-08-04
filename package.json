@@ -15,7 +15,7 @@
         "db:reset": "bun run db:clear && bun run db:seed",
         "build:prod": "bunx next build",
         "serve": "bun run build:prod && node server.js",
-        "deploy": "bash ../deploy.sh",
+        "deploy": "bash deploy.sh",
         "postinstall": "prisma generate"
     },
     "dependencies": {
