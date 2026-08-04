@@ -1,14 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import styles from '../Admin.module.scss'
 
 export default function AdminLogin() {
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
-    const router = useRouter()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -25,8 +23,15 @@ export default function AdminLogin() {
             })
 
             if (response.ok) {
-                router.push('/admin')
-                router.refresh()
+                // Full navigation rather than router.push(). The session cookie is
+                // httpOnly and set by this response, and middleware re-checks it on
+                // the server; a hard load guarantees the new cookie is in play and
+                // sidesteps the client router's cached RSC payload for /admin.
+                // (The previous router.push() + router.refresh() pair cancelled each
+                // other out, leaving the user on the login page after a successful
+                // login, which looked exactly like a failure.)
+                window.location.assign('/admin')
+                return
             } else {
                 const data = await response.json()
                 setError(data.error || 'Invalid password')

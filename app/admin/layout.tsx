@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import AdminNav from '@/components/admin/AdminNav';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -10,6 +11,15 @@ export default function AdminLayout({
 }: {
     children: React.ReactNode;
 }) {
+    // The login page lives under /admin, so this layout wraps it too — in the App
+    // Router a nested layout nests INSIDE its parent rather than replacing it, so
+    // app/admin/login/layout.tsx cannot opt out on its own. Without this check the
+    // sidebar (including a Logout button) renders for signed-out visitors looking
+    // at the login form.
+    if (usePathname() === '/admin/login') {
+        return <>{children}</>;
+    }
+
     return (
         <div>
             <AdminNav />
