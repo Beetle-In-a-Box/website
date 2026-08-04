@@ -1,7 +1,7 @@
 import { existsSync } from 'fs'
 import { writeFile, mkdir, unlink } from 'fs/promises'
 import { join } from 'path'
-import sharp from 'sharp'
+import type { Sharp } from 'sharp'
 
 /** Maximum allowed size for uploaded files (200MB) */
 export const MAX_UPLOAD_BYTES = 200 * 1024 * 1024
@@ -37,6 +37,11 @@ export async function compressImage(
         return { buffer, extension: 'gif' }
     }
 
+    const sharp = await loadSharp()
+    if (!sharp) {
+        return { buffer, extension: extensionForMime(mimeType) }
+    }
+
     try {
         const compressed = await sharp(buffer)
             // Honour EXIF orientation, then strip metadata, so portrait photos
@@ -61,6 +66,36 @@ export async function compressImage(
         console.error('Image compression failed, storing original:', error)
         return { buffer, extension: extensionForMime(mimeType) }
     }
+}
+
+type SharpFactory = (input: Buffer) => Sharp
+
+let sharpModule: SharpFactory | null | undefined
+
+/**
+ * Load sharp lazily, tolerating its absence.
+ *
+ * sharp ships prebuilt native binaries that need glibc >= 2.28. The OCF host this
+ * app deploys to runs an older glibc (the same reason the deploy uses Node rather
+ * than Bun), so sharp may fail to install or load there. Rather than take the
+ * whole upload path — or the build — down with it, treat sharp as optional and
+ * fall back to storing originals uncompressed.
+ *
+ * Resolved once and cached; `null` means unavailable.
+ */
+async function loadSharp(): Promise<SharpFactory | null> {
+    if (sharpModule !== undefined) return sharpModule
+    try {
+        const mod = await import('sharp')
+        sharpModule = (mod.default ?? mod) as unknown as SharpFactory
+    } catch (error) {
+        console.error(
+            'sharp unavailable; storing images uncompressed. Install sharp to enable compression:',
+            error,
+        )
+        sharpModule = null
+    }
+    return sharpModule
 }
 
 /** Map a validated image MIME type to a safe file extension. */

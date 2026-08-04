@@ -31,8 +31,7 @@
         "react": "19.1.0",
         "react-dom": "19.1.0",
         "react-toastify": "^11.0.5",
-        "sass": "^1.97.3",
-        "sharp": "^0.35.3"
+        "sass": "^1.97.3"
     },
     "devDependencies": {
         "@eslint/eslintrc": "^3.3.3",
@@ -48,5 +47,8 @@
         "happy-dom": "^20.6.1",
         "prisma": "^6.19.2",
         "typescript": "^5.9.3"
+    },
+    "optionalDependencies": {
+        "sharp": "^0.35.3"
     }
 }
