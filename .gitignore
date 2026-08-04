@@ -51,3 +51,6 @@ next-env.d.ts
 !/uploads/images/.gitkeep
 !/uploads/articles/
 !/uploads/articles/.gitkeep
+
+# agent working files
+.claude/
