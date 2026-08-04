@@ -7,8 +7,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This repository contains three interconnected projects for "Beetle in a Box", an undergraduate philosophy review publication at Berkeley:
 
 1. **beetle-in-a-box/** - Next.js 15 web application (modern rebuild, in development)
-2. **BeetleInABox_Website/** - Static HTML/CSS/JS website (current production site)
-3. **ArticleFormatter/** - Python tool for generating article/issue HTML from templates and .docx files
+2. **BeetleInABox_Website/** - Static HTML/CSS/JS site. **DEAD — do not modify.** Superseded by the
+   Next.js app, which is now the live site. Kept only as reference material for rebuilding pages.
+3. **ArticleFormatter/** - Python tool that generated HTML for the old static site. **Not part of live
+   work** — reference only; the Next.js admin panel handles .docx uploads now.
 
 ## Development Commands
 
@@ -442,13 +444,15 @@ All content and code are copyrighted (see templates for copyright notices).
 
 ## Relationship Between Projects
 
-The **ArticleFormatter** generates HTML that matches the structure of **BeetleInABox_Website**. The static website displays the formatted articles. The **beetle-in-a-box** Next.js app is a modern rebuild that will eventually replace the static site.
+**Only `beetle-in-a-box/` is live work.** The Next.js app has replaced the static site and is deployed
+(see Deployment below). `BeetleInABox_Website/` and `ArticleFormatter/` are historical reference — do not
+clean, refactor, or commit to them. They are separate git repos; changes there are noise, not progress.
 
 **Migration Path**:
 1. ArticleFormatter will be adapted to generate data for the Next.js API
 2. Content will be stored in PostgreSQL via Prisma
 3. Next.js app will serve content dynamically from the database
-4. Static site will be deprecated once migration is complete
+4. Migration is complete — the Next.js app is live and the static site is retired
 
 ## Development Guidelines
 
