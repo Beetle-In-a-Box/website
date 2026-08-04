@@ -19,6 +19,7 @@ rsync -az --progress \
     --exclude='.env*' \
     --exclude='.DS_Store' \
     --exclude='.git' \
+    --exclude='.claude' \
     --exclude='tests' \
     "$LOCAL_DIR/" \
     "$OCF_USER@$OCF_HOST:$REMOTE_DIR/"
