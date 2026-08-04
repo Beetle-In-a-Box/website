@@ -40,9 +40,10 @@ async function getIssueByNumber(number: number) {
 export default async function IssuePage({
     params,
 }: {
-    params: { number: string }
+    params: Promise<{ number: string }>
 }) {
-    const issueNumber = parseInt(params.number, 10)
+    const { number } = await params
+    const issueNumber = parseInt(number, 10)
 
     // Validate that number is a valid integer
     if (isNaN(issueNumber) || issueNumber <= 0) {
