@@ -622,9 +622,33 @@ exit
 excluded from the rsync so deploys never clobber it. Files are served through `/api/static/*` with
 immutable caching.
 
-**Public hostname**: `beetleinabox.studentorg.berkeley.edu` does not currently resolve (NXDOMAIN on
-public resolvers), so the site is not reachable even when the service is running. That DNS/vhost record
-has to be provisioned separately from the deploy.
+**Live URL** (as of 2026-08-04):
+
+    https://beetleinabox-studentorg-berkeley-edu.apphost.ocf.berkeley.edu
+
+**`beetleinabox.studentorg.berkeley.edu` does NOT resolve** (NXDOMAIN on public resolvers) and is not the
+working address, despite being what `deploy.sh` prints on success. OCF's `/etc/ocf/vhost-app.conf` has:
+
+    beetleinabox beetleinabox.studentorg.berkeley.edu - - [dev]
+
+The `[dev]` flag means OCF serves the site only at the long dashed alias above. Getting the short hostname
+working needs OCF to drop that flag AND a campus DNS record — neither is doable from this repo.
+
+**How to tell whether the app is actually running** — do NOT judge by the public hostname or by
+`localhost:3000`; both will mislead you. The app binds a **unix socket**, not a TCP port:
+
+```bash
+ssh beetleinabox@apphost.ocf.berkeley.edu
+systemctl --user is-active myapp
+curl --unix-socket /srv/apps/beetleinabox/beetleinabox.sock http://localhost/   # expect 200
+journalctl --user -u myapp -n 40 --no-pager
+```
+`~/myapp/run` sets `PORT=/srv/apps/$USER/$USER.sock`, and `server.js` passes a non-numeric PORT straight to
+`server.listen()`, which makes it a socket path. Believing "nothing is deployed" because port 3000 is dead
+has already caused one wrong call about whether a live vulnerability was exposed.
+
+**SSH is key-authorized** — `ssh beetleinabox@apphost.ocf.berkeley.edu` works without a password, so
+deploys and diagnostics can run unattended.
 
 ## Troubleshooting
 
