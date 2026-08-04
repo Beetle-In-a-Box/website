@@ -20,6 +20,15 @@ const eslintConfig = [
       "next-env.d.ts",
     ],
   },
+  {
+    // server.js is the plain-Node production entrypoint used on OCF (Bun does
+    // not run there). It is executed directly by node, outside the Next/TS
+    // build, so CommonJS require() is correct rather than a style slip.
+    files: ["server.js"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
 ];
 
 export default eslintConfig;

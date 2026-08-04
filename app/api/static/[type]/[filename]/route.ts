@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { readFile } from 'fs/promises'
-import { join } from 'path'
+import { basename, resolve, sep } from 'path'
 import { existsSync } from 'fs'
 
 /**
@@ -25,8 +25,35 @@ export async function GET(
             )
         }
 
+        // Sanitize filename: strip any directory components. If the sanitized
+        // name differs from the input (or is empty/'.'/'..'), the input was
+        // attempting path traversal - reject it outright.
+        const safeFilename = basename(filename)
+        if (
+            !safeFilename ||
+            safeFilename !== filename ||
+            safeFilename === '.' ||
+            safeFilename === '..'
+        ) {
+            return NextResponse.json(
+                { error: 'Invalid filename' },
+                { status: 400 }
+            )
+        }
+
         // Build file path to uploaded files
-        const filePath = join(process.cwd(), 'uploads', type, filename)
+        const uploadsDir = resolve(process.cwd(), 'uploads', type)
+        const filePath = resolve(uploadsDir, safeFilename)
+
+        // Containment check: ensure the resolved path is genuinely inside the
+        // resolved uploads/<type> directory (include trailing separator so a
+        // sibling directory like 'uploads-evil' cannot pass this check).
+        if (!filePath.startsWith(uploadsDir + sep)) {
+            return NextResponse.json(
+                { error: 'Invalid filename' },
+                { status: 400 }
+            )
+        }
 
         // Check if file exists
         if (!existsSync(filePath)) {
@@ -40,7 +67,7 @@ export async function GET(
         const fileBuffer = await readFile(filePath)
 
         // Determine content type based on extension
-        const ext = filename.split('.').pop()?.toLowerCase()
+        const ext = safeFilename.split('.').pop()?.toLowerCase()
         let contentType = 'application/octet-stream'
 
         if (ext === 'png') contentType = 'image/png'
@@ -61,7 +88,7 @@ export async function GET(
                 'Content-Type': contentType,
                 'Cache-Control': 'public, max-age=31536000, immutable',
                 'Content-Disposition': (type === 'articles' || type === 'pdfs')
-                    ? `attachment; filename="${filename}"`
+                    ? `attachment; filename="${safeFilename}"`
                     : 'inline',
             },
         })

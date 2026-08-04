@@ -1,5 +1,5 @@
 import { prisma } from '@/utils/prisma'
-import { generateAuthorSlug } from '@/utils/author-utils'
+import { createAuthorWithSlug } from '@/utils/author-utils'
 
 async function migrateAuthors() {
     console.log('Starting author migration...')
@@ -45,17 +45,12 @@ async function migrateAuthors() {
         // Create Author records
         for (const authorName of uniqueAuthors) {
             try {
-                const author = await prisma.author.create({
-                    data: {
-                        name: authorName,
-                        slug: generateAuthorSlug(authorName, ''),
-                    },
-                })
+                const author = await createAuthorWithSlug(prisma, authorName)
                 authorMap.set(authorName, author.id)
                 console.log(`Created author: ${authorName} (id: ${author.id})`)
-            } catch (error: any) {
+            } catch (error) {
                 // Author might already exist (from previous migration attempt)
-                if (error.code === 'P2002') {
+                if ((error as { code?: string }).code === 'P2002') {
                     const existing = await prisma.author.findFirst({
                         where: { name: authorName },
                     })

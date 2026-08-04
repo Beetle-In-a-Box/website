@@ -138,8 +138,8 @@ export async function deleteIssue(id: string): Promise<ApiResponse<{ message: st
             return { data: null, error: errorData.error || 'Failed to delete issue' };
         }
 
-        const data = await response.json();
-        return { data, error: null };
+        // A successful DELETE returns 204 No Content — there is no body to parse.
+        return { data: { message: 'Issue deleted' }, error: null };
     } catch (error) {
         console.error('Error deleting issue:', error);
         return { data: null, error: 'Network error while deleting issue' };
@@ -238,8 +238,8 @@ export async function deleteArticle(id: string): Promise<ApiResponse<{ message: 
             return { data: null, error: errorData.error || 'Failed to delete article' };
         }
 
-        const data = await response.json();
-        return { data, error: null };
+        // A successful DELETE returns 204 No Content — there is no body to parse.
+        return { data: { message: 'Article deleted' }, error: null };
     } catch (error) {
         console.error('Error deleting article:', error);
         return { data: null, error: 'Network error while deleting article' };
@@ -325,7 +325,7 @@ export async function createAuthor(name: string): Promise<ApiResponse<Author>> {
 export async function updateAuthor(id: string, name: string): Promise<ApiResponse<Author>> {
     try {
         const response = await fetch(`/api/authors/${id}`, {
-            method: 'PUT',
+            method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -356,8 +356,8 @@ export async function deleteAuthor(id: string): Promise<ApiResponse<{ message: s
             return { data: null, error: errorData.error || 'Failed to delete author' };
         }
 
-        const data = await response.json();
-        return { data, error: null };
+        // A successful DELETE returns 204 No Content — there is no body to parse.
+        return { data: { message: 'Author deleted' }, error: null };
     } catch (error) {
         console.error('Error deleting author:', error);
         return { data: null, error: 'Network error while deleting author' };

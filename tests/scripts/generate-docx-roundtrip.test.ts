@@ -53,7 +53,7 @@ describe('HTML → .docx → HTML Round-trip Tests', () => {
             }) as unknown as Buffer
 
             // Convert back to HTML using mammoth
-            const convertedHTML = await convertArticleDocx(docxBuffer)
+            const { content: convertedHTML } = await convertArticleDocx(docxBuffer)
 
             // Check that italics are still inline, not broken into separate paragraphs
             expect(convertedHTML).not.toMatch(/<\/p>\s*<p>\s*<(em|i)>David<\/(em|i)>\s*<\/p>/)
@@ -91,7 +91,7 @@ describe('HTML → .docx → HTML Round-trip Tests', () => {
                 table: { row: { cantSplit: true } },
             }) as unknown as Buffer
 
-            const convertedHTML = await convertArticleDocx(docxBuffer)
+            const { content: convertedHTML } = await convertArticleDocx(docxBuffer)
 
             // Should not break into separate paragraphs
             const paraCount = (convertedHTML.match(/<p>/g) || []).length
@@ -145,7 +145,7 @@ describe('HTML → .docx → HTML Round-trip Tests', () => {
                     table: { row: { cantSplit: true } },
                 }) as unknown as Buffer
 
-                const convertedHTML = await convertArticleDocx(docxBuffer)
+                const { content: convertedHTML } = await convertArticleDocx(docxBuffer)
 
                 if (shouldNotMatch.test(convertedHTML)) {
                     console.error('\nOriginal HTML:', html)
@@ -196,7 +196,7 @@ describe('HTML → .docx → HTML Round-trip Tests', () => {
                     table: { row: { cantSplit: true } },
                 }) as unknown as Buffer
 
-                const convertedHTML = await convertArticleDocx(docxBuffer)
+                const { content: convertedHTML } = await convertArticleDocx(docxBuffer)
 
                 // Check for standalone word paragraphs
                 const badWords = ['or', 'and', 'but', 'the', 'a']

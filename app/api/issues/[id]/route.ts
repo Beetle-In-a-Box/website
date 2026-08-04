@@ -163,6 +163,12 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> },
 ) {
     try {
+        const token = request.cookies.get('admin-token')?.value
+        const isAuthenticated = await verifyAuth(token)
+        if (!isAuthenticated) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
         const { id } = await params
         const issue = await prisma.issue.findUnique({
             where: { id },
@@ -191,10 +197,7 @@ export async function DELETE(
             where: { id },
         })
 
-        return NextResponse.json(
-            { message: `Issue ${issue.number} deleted successfully` },
-            { status: 200 },
-        )
+        return new NextResponse(null, { status: 204 })
     } catch (error) {
         console.error('Error deleting issue:', error)
         return NextResponse.json(

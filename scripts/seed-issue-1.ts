@@ -1,8 +1,5 @@
 import { readFileSync } from 'fs'
 import { join } from 'path'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
 
 const SEED_IMAGES_PATH = join(process.cwd(), 'scripts', 'seed-images')
 const SEED_DOCX_PATH = join(process.cwd(), 'scripts', 'seed-docx')

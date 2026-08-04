@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/utils/prisma'
-import { generateAuthorSlug } from '@/utils/author-utils'
+import { verifyAuth } from '@/utils/auth'
+import { createAuthorWithSlug } from '@/utils/author-utils'
 
 export async function GET() {
     try {
@@ -24,6 +25,12 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
     try {
+        const token = request.cookies.get('admin-token')?.value
+        const isAuthenticated = await verifyAuth(token)
+        if (!isAuthenticated) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
         const body = await request.json()
         const { name } = body
 
@@ -34,12 +41,7 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        const author = await prisma.author.create({
-            data: {
-                name: name.trim(),
-                slug: generateAuthorSlug(name.trim(), ''),
-            },
-        })
+        const author = await createAuthorWithSlug(prisma, name.trim())
 
         return NextResponse.json(author, { status: 201 })
     } catch (error) {

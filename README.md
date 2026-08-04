@@ -91,10 +91,10 @@ beetle-in-a-box/
 │   ├── api/                 # API routes
 │   │   ├── issues/          # Issue CRUD endpoints
 │   │   │   ├── route.ts         # POST /api/issues, GET /api/issues
-│   │   │   └── [id]/route.ts    # GET/PUT/DELETE /api/issues/:id
+│   │   │   └── [id]/route.ts    # GET/PATCH/DELETE /api/issues/:id
 │   │   └── articles/        # Article CRUD endpoints
 │   │       ├── route.ts         # POST /api/articles, GET /api/articles
-│   │       └── [id]/route.ts    # GET/PUT/DELETE /api/articles/:id
+│   │       └── [id]/route.ts    # GET/PATCH/DELETE /api/articles/:id
 │   ├── layout.tsx           # Root layout with metadata
 │   └── globals.css          # Global styles and fonts
 │
@@ -111,8 +111,6 @@ beetle-in-a-box/
 │   │   ├── ArticleAuthor.tsx       # Author attribution
 │   │   ├── ArticleContent.tsx      # Article body
 │   │   ├── ArticleHtmlContent.tsx  # Converts HTML to React with safe Images
-│   │   ├── Footnote.tsx            # Citation/footnote
-│   │   ├── FootnoteLink.tsx        # In-text footnote links
 │   │   └── FootnoteHandler.tsx     # Client-side footnote click handling
 │   │
 │   ├── issue/               # Issue listing components
@@ -170,7 +168,7 @@ beetle-in-a-box/
 **GET /api/issues/:id** - Get single issue
 - Returns: Issue with articles (200) or error (404)
 
-**PUT /api/issues/:id** - Update issue
+**PATCH /api/issues/:id** - Update issue
 - Body: FormData with fields to update
 - Returns: Updated issue (200) or error (400/404/500)
 
@@ -190,7 +188,7 @@ beetle-in-a-box/
 **GET /api/articles/:id** - Get single article
 - Returns: Article with issue (200) or error (404)
 
-**PUT /api/articles/:id** - Update article
+**PATCH /api/articles/:id** - Update article
 - Body: FormData with fields to update (files optional, keeps existing if not provided)
 - Returns: Updated article (200) or error (400/404/500)
 
@@ -227,17 +225,15 @@ beetle-in-a-box/
 ## Utility Functions
 
 ### file-upload.ts
-- `validateImageFile(file)` - Validates image files (JPEG, PNG, WebP, GIF, max 10MB)
-- `validateDocxFile(file)` - Validates .docx files (max 10MB)
+- `validateImageFile(file)` - Validates image files (JPEG, PNG, WebP, GIF, max 200MB)
+- `validateDocxFile(file)` - Validates .docx files (max 200MB)
 - `saveImage(file, issueNumber, prefix)` - Saves uploaded images to public directory
 
 ### docx-utils.ts
-- `convertArticleDocx(buffer)` - Converts .docx to HTML with footnote links and auto-linked URLs
-  - Adds footnote IDs (fl1, fl2, etc.) and onclick handlers
+- `convertArticleDocx(buffer)` - Converts a single article .docx to HTML, returning `{ content, citations }`
+  - `content`: article body HTML with footnote reference IDs (fl1, fl2, etc.) and onclick handlers
+  - `citations`: HTML for the extracted footnotes, wrapped with IDs (f1, f2, etc.) and onclick handlers, or `null` if none were found
   - Automatically converts plain text URLs to clickable links
-- `convertCitationsDocx(buffer)` - Converts citations .docx to HTML with clickable footnotes
-  - Wraps paragraphs as footnotes with IDs (f1, f2, etc.) and onclick handlers
-  - Auto-links URLs in citations
 - `convertPreviewDocx(buffer)` - Extracts plain text preview from .docx
 - `generateFileName(title)` - Generates URL-friendly filename from title
 - `autolinkUrls(html)` - Converts plain text URLs to clickable links

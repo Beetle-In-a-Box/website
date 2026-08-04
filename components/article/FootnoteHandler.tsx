@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { scrollToElementWithOffset } from '@/utils/scroll-utils'
 
 /**
  * Client component that handles footnote click interactions
@@ -12,9 +13,7 @@ export default function FootnoteHandler() {
             const element = document.getElementById(elementID)
             if (!element) return
 
-            const yOffset = window.innerHeight * 0.22 // 22vh offset
-            const y = element.getBoundingClientRect().top + window.pageYOffset - yOffset
-            window.scrollTo({ top: y, behavior: 'smooth' })
+            scrollToElementWithOffset(element)
 
             // Highlight the element
             element.style.backgroundColor = 'yellow'

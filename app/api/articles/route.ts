@@ -8,6 +8,7 @@ import {
     validateDocxFile,
 } from '@/utils/file-upload'
 import { generateFileName, convertPreviewDocx } from '@/utils/docx-utils'
+import { createAuthorWithSlug } from '@/utils/author-utils'
 
 export const config = {
     maxDuration: 300,
@@ -44,17 +45,7 @@ export async function POST(request: NextRequest) {
         const contentFile = formData.get('content') as File | null
         const imageFile = formData.get('image') as File | null
 
-        // Validation with detailed logging
-        console.log('Form data received:', {
-            issueId,
-            title,
-            author,
-            number,
-            previewText: previewText ? 'provided' : 'will extract',
-            contentFile: contentFile ? `File: ${contentFile.name}` : null,
-            imageFile: imageFile ? `File: ${imageFile.name}` : null,
-        })
-
+        // Validation
         if (!issueId || !title || !author || isNaN(number) || !contentFile) {
             console.error('Validation failed:', {
                 issueId: !issueId ? 'missing' : 'ok',
@@ -73,7 +64,6 @@ export async function POST(request: NextRequest) {
 
         // Validate .docx file
         const contentValidation = validateDocxFile(contentFile)
-        console.log('Content file validation:', contentValidation)
         if (!contentValidation.valid) {
             console.error('Content file validation failed:', contentValidation.error)
             return NextResponse.json(
@@ -128,7 +118,6 @@ export async function POST(request: NextRequest) {
         let imageUrl: string | null = null
         if (imageFile && imageFile.size > 0) {
             const validation = validateImageFile(imageFile)
-            console.log('Image file validation:', validation)
             if (!validation.valid) {
                 console.error('Image validation failed:', validation.error)
                 return NextResponse.json(
@@ -156,12 +145,7 @@ export async function POST(request: NextRequest) {
             if (authorRecord) {
                 authorId = authorRecord.id
             } else {
-                const newAuthor = await prisma.author.create({
-                    data: {
-                        name: author,
-                        slug: `${author.toLowerCase().replace(/\s+/g, '-')}-${Math.random().toString(36).substring(2, 8)}`,
-                    },
-                })
+                const newAuthor = await createAuthorWithSlug(prisma, author)
                 authorId = newAuthor.id
             }
         }

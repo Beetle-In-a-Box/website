@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/utils/prisma'
+import { verifyAuth } from '@/utils/auth'
 import { generateAuthorSlug } from '@/utils/author-utils'
 
 export async function GET(
@@ -42,11 +43,17 @@ export async function GET(
     }
 }
 
-export async function PUT(
+export async function PATCH(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const token = request.cookies.get('admin-token')?.value
+        const isAuthenticated = await verifyAuth(token)
+        if (!isAuthenticated) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
         const { id } = await params
         const body = await request.json()
         const { name } = body
@@ -101,6 +108,12 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const token = request.cookies.get('admin-token')?.value
+        const isAuthenticated = await verifyAuth(token)
+        if (!isAuthenticated) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
         const { id } = await params
 
         const author = await prisma.author.findUnique({
@@ -133,7 +146,7 @@ export async function DELETE(
             where: { id },
         })
 
-        return NextResponse.json(null, { status: 204 })
+        return new NextResponse(null, { status: 204 })
     } catch (error) {
         console.error('Error deleting author:', error)
         return NextResponse.json(

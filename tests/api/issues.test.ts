@@ -1,19 +1,20 @@
 import { describe, it, expect, beforeEach, afterEach, spyOn } from 'bun:test'
 import { POST, GET } from '@/app/api/issues/route'
-import { GET as GET_BY_ID, PUT, DELETE } from '@/app/api/issues/[id]/route'
+import { GET as GET_BY_ID, PATCH, DELETE } from '@/app/api/issues/[id]/route'
 import { prismaMock } from '@/utils/prisma-test'
 import { NextRequest } from 'next/server'
 import * as fileUpload from '@/utils/file-upload'
+import * as authUtils from '@/utils/auth'
+import { restoreMocks } from '../mock-utils'
 
 describe('Issues API', () => {
     afterEach(() => {
         // Restore all mocks after each test
-        if ((fileUpload.validateImageFile as any).mockRestore) {
-            (fileUpload.validateImageFile as any).mockRestore()
-        }
-        if ((fileUpload.saveImage as any).mockRestore) {
-            (fileUpload.saveImage as any).mockRestore()
-        }
+        restoreMocks(
+            fileUpload.validateImageFile,
+            fileUpload.saveImage,
+            authUtils.verifyAuth,
+        )
     })
     beforeEach(() => {
         // Clear all mocks before each test
@@ -26,6 +27,9 @@ describe('Issues API', () => {
         // Mock file upload utilities
         spyOn(fileUpload, 'validateImageFile').mockReturnValue({ valid: true })
         spyOn(fileUpload, 'saveImage').mockResolvedValue('/images/test-image.jpg')
+
+        // PATCH/DELETE require authentication; default to authenticated
+        spyOn(authUtils, 'verifyAuth').mockResolvedValue(true)
     })
 
     describe('POST /api/issues', () => {
@@ -249,7 +253,6 @@ describe('Issues API', () => {
             )
 
             const response = await GET(request)
-            const data = await response.json()
 
             expect(response.status).toBe(200)
             expect(prismaMock.issue.findMany).toHaveBeenCalledWith(
@@ -307,7 +310,7 @@ describe('Issues API', () => {
         })
     })
 
-    describe('PUT /api/issues/[id]', () => {
+    describe('PATCH /api/issues/[id]', () => {
         it('should update an existing issue without changing image', async () => {
             const existingIssue = {
                 id: 'issue-1',
@@ -339,12 +342,12 @@ describe('Issues API', () => {
             const request = new NextRequest(
                 'http://localhost:3000/api/issues/issue-1',
                 {
-                    method: 'PUT',
+                    method: 'PATCH',
                     body: formData,
                 },
             )
 
-            const response = await PUT(request, { params: { id: 'issue-1' } })
+            const response = await PATCH(request, { params: { id: 'issue-1' } })
             const data = await response.json()
 
             expect(response.status).toBe(200)
@@ -388,12 +391,12 @@ describe('Issues API', () => {
             const request = new NextRequest(
                 'http://localhost:3000/api/issues/issue-1',
                 {
-                    method: 'PUT',
+                    method: 'PATCH',
                     body: formData,
                 },
             )
 
-            const response = await PUT(request, { params: { id: 'issue-1' } })
+            const response = await PATCH(request, { params: { id: 'issue-1' } })
 
             expect(fileUpload.validateImageFile).toHaveBeenCalled()
             expect(fileUpload.saveImage).toHaveBeenCalled()
@@ -412,18 +415,43 @@ describe('Issues API', () => {
             const request = new NextRequest(
                 'http://localhost:3000/api/issues/nonexistent',
                 {
-                    method: 'PUT',
+                    method: 'PATCH',
                     body: formData,
                 },
             )
 
-            const response = await PUT(request, {
+            const response = await PATCH(request, {
                 params: { id: 'nonexistent' },
             })
             const data = await response.json()
 
             expect(response.status).toBe(404)
             expect(data.error).toContain('not found')
+        })
+
+        it('should return 401 if not authenticated', async () => {
+            spyOn(authUtils, 'verifyAuth').mockResolvedValueOnce(false)
+
+            const formData = new FormData()
+            formData.append('title', 'Issue 1')
+            formData.append('number', '1')
+            formData.append('date', 'August 2025')
+            formData.append('published', 'false')
+
+            const request = new NextRequest(
+                'http://localhost:3000/api/issues/issue-1',
+                {
+                    method: 'PATCH',
+                    body: formData,
+                },
+            )
+
+            const response = await PATCH(request, { params: { id: 'issue-1' } })
+            const data = await response.json()
+
+            expect(response.status).toBe(401)
+            expect(data.error).toContain('Unauthorized')
+            expect(prismaMock.issue.update).not.toHaveBeenCalled()
         })
     })
 
@@ -451,10 +479,8 @@ describe('Issues API', () => {
             const response = await DELETE(request, {
                 params: { id: 'issue-1' },
             })
-            const data = await response.json()
-
-            expect(response.status).toBe(200)
-            expect(data.message).toContain('deleted successfully')
+            // DELETE returns 204 No Content — there is no body to parse.
+            expect(response.status).toBe(204)
         })
 
         it('should return 404 if issue not found', async () => {
@@ -471,6 +497,23 @@ describe('Issues API', () => {
 
             expect(response.status).toBe(404)
             expect(data.error).toContain('not found')
+        })
+
+        it('should return 401 if not authenticated', async () => {
+            spyOn(authUtils, 'verifyAuth').mockResolvedValueOnce(false)
+
+            const request = new NextRequest(
+                'http://localhost:3000/api/issues/issue-1',
+            )
+
+            const response = await DELETE(request, {
+                params: { id: 'issue-1' },
+            })
+            const data = await response.json()
+
+            expect(response.status).toBe(401)
+            expect(data.error).toContain('Unauthorized')
+            expect(prismaMock.issue.delete).not.toHaveBeenCalled()
         })
     })
 })

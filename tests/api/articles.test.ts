@@ -1,32 +1,49 @@
-import { describe, it, expect, beforeEach, afterEach, spyOn } from 'bun:test'
+import { describe, it, expect, beforeEach, afterEach, spyOn, mock } from 'bun:test'
 import { POST, GET } from '@/app/api/articles/route'
-import { GET as GET_BY_ID, PUT, DELETE } from '@/app/api/articles/[id]/route'
+import { GET as GET_BY_ID, PATCH, DELETE } from '@/app/api/articles/[id]/route'
 import { prismaMock } from '@/utils/prisma-test'
 import { NextRequest } from 'next/server'
 import * as fileUpload from '@/utils/file-upload'
 import * as docxUtils from '@/utils/docx-utils'
+import * as authUtils from '@/utils/auth'
+import { restoreMocks } from '../mock-utils'
+
+// prisma-test.ts predates the Author model, so the shared mock has no
+// `author` delegate. Extend it here so routes that look up/create authors
+// (POST and PATCH /api/articles) don't crash on `prisma.author.findFirst`.
+const prismaMockWithAuthor = prismaMock as unknown as {
+    author: {
+        findFirst: ReturnType<typeof mock>
+        create: ReturnType<typeof mock>
+    }
+}
+prismaMockWithAuthor.author = {
+    findFirst: mock(),
+    create: mock(),
+}
+
+function makeMockAuthor(name: string) {
+    return {
+        id: 'author-1',
+        name,
+        slug: `${name.toLowerCase().replace(/\s+/g, '-')}-abc123`,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+    }
+}
 
 describe('Articles API', () => {
     afterEach(() => {
         // Restore all mocks after each test
-        if ((fileUpload.validateImageFile as any).mockRestore) {
-            (fileUpload.validateImageFile as any).mockRestore()
-        }
-        if ((fileUpload.validateDocxFile as any).mockRestore) {
-            (fileUpload.validateDocxFile as any).mockRestore()
-        }
-        if ((fileUpload.saveImage as any).mockRestore) {
-            (fileUpload.saveImage as any).mockRestore()
-        }
-        if ((fileUpload.saveDocx as any).mockRestore) {
-            (fileUpload.saveDocx as any).mockRestore()
-        }
-        if ((docxUtils.convertPreviewDocx as any).mockRestore) {
-            (docxUtils.convertPreviewDocx as any).mockRestore()
-        }
-        if ((docxUtils.generateFileName as any).mockRestore) {
-            (docxUtils.generateFileName as any).mockRestore()
-        }
+        restoreMocks(
+            fileUpload.validateImageFile,
+            fileUpload.validateDocxFile,
+            fileUpload.saveImage,
+            fileUpload.saveDocx,
+            docxUtils.convertPreviewDocx,
+            docxUtils.generateFileName,
+            authUtils.verifyAuth,
+        )
     })
     const mockIssue = {
         id: 'issue-1',
@@ -47,6 +64,8 @@ describe('Articles API', () => {
         prismaMock.article.create.mockReset()
         prismaMock.article.update.mockReset()
         prismaMock.article.delete.mockReset()
+        prismaMockWithAuthor.author.findFirst.mockReset()
+        prismaMockWithAuthor.author.create.mockReset()
 
         // Mock file upload and docx utilities
         spyOn(fileUpload, 'validateImageFile').mockReturnValue({ valid: true })
@@ -55,6 +74,15 @@ describe('Articles API', () => {
         spyOn(fileUpload, 'saveDocx').mockResolvedValue('/articles/article-1-1234567890.docx')
         spyOn(docxUtils, 'convertPreviewDocx').mockResolvedValue('Article preview text')
         spyOn(docxUtils, 'generateFileName').mockReturnValue('test-article')
+
+        // POST/PATCH/DELETE require authentication; default to authenticated
+        spyOn(authUtils, 'verifyAuth').mockResolvedValue(true)
+
+        // Default: author already exists so routes don't need to create one
+        prismaMockWithAuthor.author.findFirst.mockImplementation(
+            async ({ where }: { where: { name: string } }) =>
+                makeMockAuthor(where.name),
+        )
     })
 
     describe('POST /api/articles', () => {
@@ -63,7 +91,8 @@ describe('Articles API', () => {
                 id: 'article-1',
                 title: 'Test Article',
                 shortTitle: 'Short',
-                author: 'John Doe',
+                authorId: 'author-1',
+                author: makeMockAuthor('John Doe'),
                 number: 1,
                 contentDocxPath: '/articles/article-1-1234567890.docx',
                 previewText: 'Article preview text',
@@ -110,7 +139,7 @@ describe('Articles API', () => {
 
             expect(response.status).toBe(201)
             expect(data.title).toBe('Test Article')
-            expect(data.author).toBe('John Doe')
+            expect(data.author.name).toBe('John Doe')
             // Verify mocked values were used (proves mocks were called)
             expect(data.contentDocxPath).toBe('/articles/article-1-1234567890.docx')
             expect(data.previewText).toBe('Article preview text')
@@ -123,7 +152,8 @@ describe('Articles API', () => {
                 id: 'article-1',
                 title: 'Test Article',
                 shortTitle: null,
-                author: 'John Doe',
+                authorId: 'author-1',
+                author: makeMockAuthor('John Doe'),
                 number: 1,
                 contentDocxPath: '/articles/article-1-1234567890.docx',
                 previewText: 'Article preview text',
@@ -195,7 +225,8 @@ describe('Articles API', () => {
                 id: 'article-1',
                 title: 'Existing Article',
                 shortTitle: null,
-                author: 'Jane Doe',
+                authorId: 'author-2',
+                author: makeMockAuthor('Jane Doe'),
                 number: 1,
                 contentDocxPath: '/articles/article-1-1234567890.docx',
                 previewText: 'Preview',
@@ -291,6 +322,32 @@ describe('Articles API', () => {
             expect(response.status).toBe(400)
             expect(data.error).toContain('must be an image')
         })
+
+        it('should return 401 if not authenticated', async () => {
+            spyOn(authUtils, 'verifyAuth').mockResolvedValueOnce(false)
+
+            const formData = new FormData()
+            formData.append('issueId', 'issue-1')
+            formData.append('title', 'Test Article')
+            formData.append('author', 'John Doe')
+            formData.append('number', '1')
+            formData.append('content', new File(['content'], 'content.docx'))
+
+            const request = new NextRequest(
+                'http://localhost:3000/api/articles',
+                {
+                    method: 'POST',
+                    body: formData,
+                },
+            )
+
+            const response = await POST(request)
+            const data = await response.json()
+
+            expect(response.status).toBe(401)
+            expect(data.error).toContain('Unauthorized')
+            expect(prismaMock.article.create).not.toHaveBeenCalled()
+        })
     })
 
     describe('GET /api/articles', () => {
@@ -300,10 +357,10 @@ describe('Articles API', () => {
                     id: 'article-1',
                     title: 'Test Article',
                     shortTitle: null,
-                    author: 'John Doe',
+                    authorId: 'author-1',
+                    author: makeMockAuthor('John Doe'),
                     number: 1,
-                    content: '<p>Content</p>',
-                    citations: null,
+                    contentDocxPath: '/articles/article-1-1234567890.docx',
                     previewText: 'Preview',
                     imageUrl: null,
                     fileName: 'test-article',
@@ -390,7 +447,8 @@ describe('Articles API', () => {
                 id: 'article-1',
                 title: 'Test Article',
                 shortTitle: null,
-                author: 'John Doe',
+                authorId: 'author-1',
+                author: makeMockAuthor('John Doe'),
                 number: 1,
                 contentDocxPath: '/articles/article-1-1234567890.docx',
                 previewText: 'Preview',
@@ -436,13 +494,14 @@ describe('Articles API', () => {
         })
     })
 
-    describe('PUT /api/articles/[id]', () => {
+    describe('PATCH /api/articles/[id]', () => {
         it('should update article without changing files', async () => {
             const existingArticle = {
                 id: 'article-1',
                 title: 'Test Article',
                 shortTitle: null,
-                author: 'John Doe',
+                authorId: 'author-1',
+                author: makeMockAuthor('John Doe'),
                 number: 1,
                 contentDocxPath: '/articles/article-1-1234567890.docx',
                 previewText: 'Preview',
@@ -473,17 +532,19 @@ describe('Articles API', () => {
             const request = new NextRequest(
                 'http://localhost:3000/api/articles/article-1',
                 {
-                    method: 'PUT',
+                    method: 'PATCH',
                     body: formData,
                 },
             )
 
-            const response = await PUT(request, { params: { id: 'article-1' } })
+            const response = await PATCH(request, { params: { id: 'article-1' } })
             const data = await response.json()
 
             expect(response.status).toBe(200)
             expect(data.title).toBe('Updated Article')
             expect(data.published).toBe(true)
+            // Author name unchanged from existing article, so no new lookup needed
+            expect(prismaMockWithAuthor.author.findFirst).not.toHaveBeenCalled()
         })
 
         it('should update article with new content file', async () => {
@@ -491,7 +552,8 @@ describe('Articles API', () => {
                 id: 'article-1',
                 title: 'Test Article',
                 shortTitle: null,
-                author: 'John Doe',
+                authorId: 'author-1',
+                author: makeMockAuthor('John Doe'),
                 number: 1,
                 contentDocxPath: '/articles/article-1-1234567890.docx',
                 previewText: 'Old preview',
@@ -524,12 +586,12 @@ describe('Articles API', () => {
             const request = new NextRequest(
                 'http://localhost:3000/api/articles/article-1',
                 {
-                    method: 'PUT',
+                    method: 'PATCH',
                     body: formData,
                 },
             )
 
-            const response = await PUT(request, { params: { id: 'article-1' } })
+            const response = await PATCH(request, { params: { id: 'article-1' } })
             const data = await response.json()
 
             expect(response.status).toBe(200)
@@ -542,7 +604,8 @@ describe('Articles API', () => {
                 id: 'article-1',
                 title: 'Test Article',
                 shortTitle: null,
-                author: 'John Doe',
+                authorId: 'author-1',
+                author: makeMockAuthor('John Doe'),
                 number: 1,
                 contentDocxPath: '/articles/article-1-1234567890.docx',
                 previewText: 'Preview',
@@ -577,16 +640,67 @@ describe('Articles API', () => {
             const request = new NextRequest(
                 'http://localhost:3000/api/articles/article-1',
                 {
-                    method: 'PUT',
+                    method: 'PATCH',
                     body: formData,
                 },
             )
 
-            const response = await PUT(request, { params: { id: 'article-1' } })
+            const response = await PATCH(request, { params: { id: 'article-1' } })
 
             expect(response.status).toBe(200)
             expect(fileUpload.validateImageFile).toHaveBeenCalled()
             expect(fileUpload.saveImage).toHaveBeenCalled()
+        })
+
+        it('should look up the new author when the author name changes', async () => {
+            const existingArticle = {
+                id: 'article-1',
+                title: 'Test Article',
+                shortTitle: null,
+                authorId: 'author-1',
+                author: makeMockAuthor('John Doe'),
+                number: 1,
+                contentDocxPath: '/articles/article-1-1234567890.docx',
+                previewText: 'Preview',
+                imageUrl: null,
+                fileName: 'test-article',
+                published: false,
+                issueId: 'issue-1',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                issue: mockIssue,
+            }
+
+            const updatedArticle = {
+                ...existingArticle,
+                authorId: 'author-1',
+                author: makeMockAuthor('Jane Smith'),
+            }
+
+            prismaMock.article.findUnique.mockResolvedValue(existingArticle)
+            prismaMock.article.update.mockResolvedValue(updatedArticle)
+
+            const formData = new FormData()
+            formData.append('title', 'Test Article')
+            formData.append('author', 'Jane Smith')
+            formData.append('number', '1')
+
+            const request = new NextRequest(
+                'http://localhost:3000/api/articles/article-1',
+                {
+                    method: 'PATCH',
+                    body: formData,
+                },
+            )
+
+            const response = await PATCH(request, { params: { id: 'article-1' } })
+            const data = await response.json()
+
+            expect(response.status).toBe(200)
+            expect(prismaMockWithAuthor.author.findFirst).toHaveBeenCalledWith(
+                expect.objectContaining({ where: { name: 'Jane Smith' } }),
+            )
+            expect(data.author.name).toBe('Jane Smith')
         })
 
         it('should return 404 if article not found', async () => {
@@ -600,18 +714,42 @@ describe('Articles API', () => {
             const request = new NextRequest(
                 'http://localhost:3000/api/articles/nonexistent',
                 {
-                    method: 'PUT',
+                    method: 'PATCH',
                     body: formData,
                 },
             )
 
-            const response = await PUT(request, {
+            const response = await PATCH(request, {
                 params: { id: 'nonexistent' },
             })
             const data = await response.json()
 
             expect(response.status).toBe(404)
             expect(data.error).toContain('not found')
+        })
+
+        it('should return 401 if not authenticated', async () => {
+            spyOn(authUtils, 'verifyAuth').mockResolvedValueOnce(false)
+
+            const formData = new FormData()
+            formData.append('title', 'Updated Article')
+            formData.append('author', 'John Doe')
+            formData.append('number', '1')
+
+            const request = new NextRequest(
+                'http://localhost:3000/api/articles/article-1',
+                {
+                    method: 'PATCH',
+                    body: formData,
+                },
+            )
+
+            const response = await PATCH(request, { params: { id: 'article-1' } })
+            const data = await response.json()
+
+            expect(response.status).toBe(401)
+            expect(data.error).toContain('Unauthorized')
+            expect(prismaMock.article.update).not.toHaveBeenCalled()
         })
     })
 
@@ -621,7 +759,8 @@ describe('Articles API', () => {
                 id: 'article-1',
                 title: 'Test Article',
                 shortTitle: null,
-                author: 'John Doe',
+                authorId: 'author-1',
+                author: makeMockAuthor('John Doe'),
                 number: 1,
                 contentDocxPath: '/articles/article-1-1234567890.docx',
                 previewText: 'Preview',
@@ -643,10 +782,8 @@ describe('Articles API', () => {
             const response = await DELETE(request, {
                 params: { id: 'article-1' },
             })
-            const data = await response.json()
-
-            expect(response.status).toBe(200)
-            expect(data.message).toContain('deleted successfully')
+            // DELETE returns 204 No Content — there is no body to parse.
+            expect(response.status).toBe(204)
         })
 
         it('should return 404 if article not found', async () => {
@@ -663,6 +800,23 @@ describe('Articles API', () => {
 
             expect(response.status).toBe(404)
             expect(data.error).toContain('not found')
+        })
+
+        it('should return 401 if not authenticated', async () => {
+            spyOn(authUtils, 'verifyAuth').mockResolvedValueOnce(false)
+
+            const request = new NextRequest(
+                'http://localhost:3000/api/articles/article-1',
+            )
+
+            const response = await DELETE(request, {
+                params: { id: 'article-1' },
+            })
+            const data = await response.json()
+
+            expect(response.status).toBe(401)
+            expect(data.error).toContain('Unauthorized')
+            expect(prismaMock.article.delete).not.toHaveBeenCalled()
         })
     })
 })

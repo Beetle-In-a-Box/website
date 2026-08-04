@@ -9,6 +9,7 @@ import {
     deleteFile,
 } from '@/utils/file-upload'
 import { generateFileName, convertPreviewDocx } from '@/utils/docx-utils'
+import { createAuthorWithSlug } from '@/utils/author-utils'
 
 /**
  * GET /api/articles/[id]
@@ -163,7 +164,7 @@ export async function PATCH(
 
         // If author name changed, look up the author
         let authorId: string | null = existingArticle.authorId
-        if (author && author !== (typeof existingArticle.author === 'object' ? existingArticle.author?.name : existingArticle.author)) {
+        if (author && author !== existingArticle.author?.name) {
             // Look up author by name
             const authorRecord = await prisma.author.findFirst({
                 where: { name: author },
@@ -172,12 +173,7 @@ export async function PATCH(
                 authorId = authorRecord.id
             } else {
                 // Create new author if it doesn't exist
-                const newAuthor = await prisma.author.create({
-                    data: {
-                        name: author,
-                        slug: `${author.toLowerCase().replace(/\s+/g, '-')}-${id.substring(0, 6)}`,
-                    },
-                })
+                const newAuthor = await createAuthorWithSlug(prisma, author)
                 authorId = newAuthor.id
             }
         }
@@ -249,10 +245,7 @@ export async function DELETE(
             where: { id },
         })
 
-        return NextResponse.json(
-            { message: `Article "${article.title}" deleted successfully` },
-            { status: 200 },
-        )
+        return new NextResponse(null, { status: 204 })
     } catch (error) {
         console.error('Error deleting article:', error)
         return NextResponse.json(

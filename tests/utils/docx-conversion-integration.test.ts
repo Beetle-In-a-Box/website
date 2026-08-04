@@ -186,27 +186,27 @@ describe('docx-utils.ts - Integration Tests with Seed Data', () => {
             const testCases = [
                 {
                     title: 'Making Beauty In Ugly Things',
-                    expected: 'making-beauty.html',
+                    expected: 'making-beauty',
                 },
                 {
                     title: 'The Convenience of Illusion: Are We Truly Committed to Reality?',
-                    expected: 'convenience-illusion.html',
+                    expected: 'convenience-illusion',
                 },
                 {
                     title: 'The Only Thing We Fear Is You: How Chernobyl Turned Fear of The Unknown Into Fear of Ourselves',
-                    expected: 'only-thing.html',
+                    expected: 'only-thing',
                 },
                 {
                     title: 'Hyperreality: A Cultural Analysis',
-                    expected: 'hyperreality-cultural.html',
+                    expected: 'hyperreality-cultural',
                 },
                 {
                     title: 'Does Liberalism Understand People?',
-                    expected: 'does-liberalism.html',
+                    expected: 'does-liberalism',
                 },
                 {
                     title: 'Gossiping Tweens & Ending Regimes: The Promises & Pitfalls of the Doctrine of Double Effect',
-                    expected: 'gossiping-tweens.html',
+                    expected: 'gossiping-tweens',
                 },
             ]
 
@@ -218,17 +218,17 @@ describe('docx-utils.ts - Integration Tests with Seed Data', () => {
 
         it('should filter common words', () => {
             const result = generateFileName('A Guide to the Theory of Everything')
-            expect(result).toBe('guide-theory.html')
+            expect(result).toBe('guide-theory')
         })
 
         it('should handle single-word titles', () => {
             const result = generateFileName('Philosophy')
-            expect(result).toBe('philosophy.html')
+            expect(result).toBe('philosophy')
         })
 
         it('should remove punctuation', () => {
             const result = generateFileName("What's the Point? A Question")
-            expect(result).toBe('whats-point.html')
+            expect(result).toBe('whats-point')
         })
     })
 
@@ -272,7 +272,6 @@ describe('docx-utils.ts - Integration Tests with Seed Data', () => {
 
             // If URLs exist in the article, they should be linked
             const urlPattern = /https?:\/\/[^\s<>"]+[^\s<>".,;:!?)]/
-            const linkPattern = /<a href="https?:\/\/[^"]+">https?:\/\/[^<]+<\/a>/
 
             // Find plain URLs (not already linked)
             const plainUrls = html.match(urlPattern)

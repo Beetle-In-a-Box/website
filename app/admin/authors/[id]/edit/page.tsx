@@ -48,7 +48,7 @@ export default function EditAuthorPage() {
 
         try {
             const response = await fetch(`/api/authors/${authorId}`, {
-                method: 'PUT',
+                method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                 },

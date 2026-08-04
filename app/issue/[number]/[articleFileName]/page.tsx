@@ -92,15 +92,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     const issueNumber = parseInt(resolvedParams.number, 10)
     const articleFileName = resolvedParams.articleFileName
 
-    console.log('Article page params:', { issueNumber, articleFileName })
-
     if (isNaN(issueNumber)) {
-        console.log('Invalid issue number')
         notFound()
     }
 
     const article = await getArticle(issueNumber, articleFileName)
-    console.log('Article found:', article ? article.title : 'null')
 
     if (!article || !article.issue.published) {
         notFound()

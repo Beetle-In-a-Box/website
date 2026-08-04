@@ -1,8 +1,8 @@
 'use client'
 
 import Image from 'next/image'
-import Link from '@/components/ui/Link'
 import Subheader from '@/components/ui/Subheader'
+import { scrollToElementWithOffset } from '@/utils/scroll-utils'
 import styles from './IssueCover.module.scss'
 
 interface IssueCoverProps {
@@ -20,10 +20,7 @@ export default function IssueCover({ imageSrc, imageArtist, articles }: IssueCov
         const element = document.getElementById(elementId)
         if (!element) return
 
-        const yOffset = window.innerHeight * 0.22
-        const y =
-            element.getBoundingClientRect().top + window.pageYOffset - yOffset
-        window.scrollTo({ top: y, behavior: 'smooth' })
+        scrollToElementWithOffset(element)
 
         element.style.border = '2px dashed black'
         setTimeout(() => {

@@ -1,21 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach, spyOn } from 'bun:test'
-import { validateImageFile, saveImage } from '@/utils/file-upload'
+import { validateImageFile, saveImage, MAX_UPLOAD_BYTES } from '@/utils/file-upload'
 import * as fs from 'fs/promises'
 import * as fsSync from 'fs'
-import * as path from 'path'
+import { restoreMocks } from '../mock-utils'
 
 describe('File Upload Utilities', () => {
     afterEach(() => {
         // Restore all mocks after each test to prevent leaks
-        if ((fs.mkdir as any).mockRestore) {
-            (fs.mkdir as any).mockRestore()
-        }
-        if ((fs.writeFile as any).mockRestore) {
-            (fs.writeFile as any).mockRestore()
-        }
-        if ((fsSync.existsSync as any).mockRestore) {
-            (fsSync.existsSync as any).mockRestore()
-        }
+        restoreMocks(fs.mkdir, fs.writeFile, fsSync.existsSync)
     })
     describe('validateImageFile', () => {
         it('should validate a valid JPEG image file', () => {
@@ -30,17 +22,40 @@ describe('File Upload Utilities', () => {
             expect(result.error).toBeUndefined()
         })
 
-        it('should reject files that are too large (>50MB)', () => {
+        it('should reject files that are too large (>200MB)', () => {
             const file = new File(['fake image content'], 'large.jpg', {
                 type: 'image/jpeg',
             })
-            Object.defineProperty(file, 'size', { value: 51 * 1024 * 1024 }) // 51MB
+            Object.defineProperty(file, 'size', { value: MAX_UPLOAD_BYTES + 1 })
 
             const result = validateImageFile(file)
 
             expect(result.valid).toBe(false)
             expect(result.error).toContain('too large')
-            expect(result.error).toContain('50MB')
+            expect(result.error).toContain('200MB')
+        })
+
+        it('should accept a file right at the 200MB limit', () => {
+            const file = new File(['fake image content'], 'at-limit.jpg', {
+                type: 'image/jpeg',
+            })
+            Object.defineProperty(file, 'size', { value: MAX_UPLOAD_BYTES })
+
+            const result = validateImageFile(file)
+
+            expect(result.valid).toBe(true)
+        })
+
+        it('should accept a normal-sized file', () => {
+            const file = new File(['fake image content'], 'normal.jpg', {
+                type: 'image/jpeg',
+            })
+            Object.defineProperty(file, 'size', { value: 2 * 1024 * 1024 }) // 2MB
+
+            const result = validateImageFile(file)
+
+            expect(result.valid).toBe(true)
+            expect(result.error).toBeUndefined()
         })
 
         it('should reject non-image files', () => {
@@ -129,7 +144,8 @@ describe('File Upload Utilities', () => {
             await saveImage(file, issueNumber, 'issue-cover')
 
             expect(fs.mkdir).toHaveBeenCalled()
-            const mkdirCall = (fs.mkdir as any).mock?.calls?.[0]
+            const mkdirCall = (fs.mkdir as unknown as { mock?: { calls?: unknown[][] } })
+                .mock?.calls?.[0]
             if (mkdirCall) {
                 expect(mkdirCall[0]).toContain('images')
                 expect(mkdirCall[1]).toEqual({ recursive: true })
@@ -145,14 +161,16 @@ describe('File Upload Utilities', () => {
             expect(result).toMatch(/\.png$/)
         })
 
-        it('should handle files without extensions by using jpg as default', async () => {
+        it('should derive the extension from the encoder, not the uploaded filename', async () => {
             const file = new File(['fake content'], 'test', {
                 type: 'image/jpeg',
             })
             const result = await saveImage(file, 1, 'test')
 
-            // Files without extension get 'test' as extension (the filename itself)
-            expect(result).toMatch(/\/images\/test-\d+\.test$/)
+            // The bytes here are not a decodable image, so compression falls back
+            // to the original buffer and the extension comes from the MIME type.
+            // Critically it is NOT 'test' — the filename no longer decides it.
+            expect(result).toMatch(/\/images\/test-\d+\.jpg$/)
         })
 
         it('should use unique timestamps for different files', async () => {

@@ -15,7 +15,7 @@ export async function verifyAuth(token: string | undefined): Promise<boolean> {
         const secret = new TextEncoder().encode(sessionSecret)
         await jwtVerify(token, secret)
         return true
-    } catch (error) {
+    } catch {
         return false
     }
 }
