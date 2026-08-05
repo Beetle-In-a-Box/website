@@ -127,10 +127,26 @@
     }
 }
 
-@include bp.tablet {
+// Between the stack point and the full desktop composition the old 0.5fr
+// column left the artwork at 193px against wide text -- a thumbnail on a
+// magazine, and a harsh step down from the full-width image just below 768.
+// Near-equal columns keep the art legible and make that boundary far less
+// abrupt.
+//
+// Must stay ABOVE the stacked block: both match below 768, and the single
+// column has to win there.
+// Any fr ratio more generous than desktop's 0.5fr steps DOWN when the band
+// ends -- the artwork would shrink as the window grew, which is worse than the
+// problem being fixed. Tried 1fr (440px at 1100 vs desktop's 287 at 1101) and
+// 0.8fr (389 -> 287); both shrank.
+//
+// So converge instead of switch. 28vw lands within ~1px of what the desktop
+// 0.5fr column computes at 1100, making the boundary continuous, while the
+// 240px floor stops the artwork collapsing to the 193px thumbnail it was at
+// 769. Continuous beats a smaller cliff.
+@include bp.below-wide {
     .articlePreview {
-        // Give the artwork a fairer share once there is less width to split.
-        grid-template-columns: 0.8fr 1fr;
+        grid-template-columns: minmax(240px, 28vw) 1fr;
     }
 }
 
