@@ -65,3 +65,38 @@
         gap: 6px;
     }
 }
+
+// --- Get out of the way while reading ---------------------------------------
+//
+// The pill is opaque and fixed, so on a narrow screen it sits on top of body
+// text rather than beside it -- there is no margin to occupy the way there is
+// on desktop. Rather than shrink it into illegibility or make it translucent
+// (which just makes two layers of text overlap), it slides away while the
+// reader scrolls down and comes back the instant they scroll up.
+//
+// Deliberately scoped to <=768px: on desktop the bar sits in empty margin and
+// never covers anything, so the approved desktop behaviour is left exactly as
+// it is. `.hidden` is emitted by the component at every width but only means
+// anything inside this query.
+@include bp.tablet {
+    .floatingBar {
+        transition:
+            transform 0.25s ease,
+            opacity 0.25s ease;
+    }
+
+    .hidden {
+        // Translated rather than display:none so it can animate back, and so
+        // its links stay reachable to assistive tech instead of vanishing from
+        // the tree on every scroll gesture.
+        transform: translateY(calc(100% + 8vh));
+        opacity: 0;
+        pointer-events: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .floatingBar {
+        transition: none;
+    }
+}
