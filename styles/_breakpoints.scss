@@ -2,48 +2,104 @@
 //
 // Usage from any CSS module:
 //   @use 'breakpoints' as bp;
-//   .thing { ... }
-//   @include bp.phone { .thing { ... } }
+//   .thing { ...desktop... }
+//   @include bp.stacked { .thing { ...one column... } }
 //
 // Resolved via `sassOptions.includePaths` in next.config.ts, so the import
 // specifier is bare ('breakpoints') from every file regardless of depth.
-//
-// The site is designed mobile-up in behaviour but written desktop-first in
-// source, because the existing desktop rules are the ones already reviewed and
-// signed off. These mixins therefore describe "at most" widths.
 
-// Narrowest device we support. Below this we simply let content scroll.
+// --- Why these values, and why not 480/768/1024 -----------------------------
+//
+// The first pass used the conventional 480/768/1024. That was chosen from
+// device-name convention rather than from where THIS layout stops working, and
+// it produced a visible cliff: the artwork column measured 400px at 440px wide
+// (stacked, correct) and collapsed to 178px at 500px wide, because 500 misses
+// the 480 phone query by 20px and falls back to a layout composed for 1440.
+//
+//   width | artwork column
+//   ------|----------------
+//    440  | 400px  <- stacked
+//    500  | 178px  <- two columns return
+//    560  | 202px
+//    620  | 227px
+//    700  | 260px
+//
+// So the stack point is set where the two-column image+text pattern actually
+// becomes unusable, not where a phone happens to end. Everything below
+// $stacked is a single column -- per the user 2026-08-05: "all this should be
+// vertical at phone sizes".
+//
+// The names describe the LAYOUT STATE, not a device. Device names are how 480
+// got picked in the first place.
+
+/// Below this, every multi-column layout collapses to one column.
+$stacked: 768px;
+
+/// Below this, tighten padding and type further -- the narrowest phones.
+$compact: 400px;
+
+/// Above this is the full desktop composition, which is signed off and must
+/// not regress.
+$wide: 1100px;
+
+/// Narrowest width supported at all.
 $min-supported: 320px;
 
-$phone: 480px;
-$tablet: 768px;
-$desktop: 1024px;
-
-/// Phones, portrait. Down to 320px.
-@mixin phone {
-    @media (max-width: $phone) {
+/// One column. Everything vertical.
+@mixin stacked {
+    @media (max-width: $stacked) {
         @content;
     }
 }
 
-/// Phones and tablets — anything narrower than a small laptop.
-@mixin tablet {
-    @media (max-width: $tablet) {
+/// The tightest phones, where even the stacked layout needs less padding.
+@mixin compact {
+    @media (max-width: $compact) {
         @content;
     }
 }
 
-/// Small laptops and below.
-@mixin desktop-down {
-    @media (max-width: $desktop) {
+/// Everything below the full desktop composition.
+@mixin below-wide {
+    @media (max-width: $wide) {
         @content;
     }
 }
 
-/// Short viewports — phones in landscape, where vertical space is the scarce
-/// axis and a tall fixed header would eat the screen.
+/// Short viewports -- phones in landscape, where vertical space is the scarce
+/// axis and a tall fixed header or footer eats the screen.
 @mixin short {
     @media (max-height: 500px) {
+        @content;
+    }
+}
+
+// --- Deprecated aliases ------------------------------------------------------
+//
+// Kept ONLY so the migration can land file by file without breaking the build
+// in between. Renaming outright would break every consumer at once.
+//
+// Note `phone` now maps to $stacked (768px), NOT its old 480px. That is
+// deliberate and is the actual fix: every existing "stack it" rule immediately
+// starts applying across the whole band that was broken, rather than waiting
+// for each file to be migrated.
+//
+// Remove these once no file references them.
+
+@mixin phone {
+    @include stacked {
+        @content;
+    }
+}
+
+@mixin tablet {
+    @include stacked {
+        @content;
+    }
+}
+
+@mixin desktop-down {
+    @include below-wide {
         @content;
     }
 }
