@@ -87,15 +87,38 @@ $min-supported: 320px;
 // enlarged without breaking the line they sit in. Do NOT apply this mixin to
 // them. It is for standalone links that merely happen to be short.
 //
-// Scoped to `pointer: coarse` on purpose: the desktop composition is signed off,
-// and a mouse does not need a finger-sized hit area. A desktop browser cannot
-// match this query, so this can never change the approved desktop rendering --
-// including when a desktop window is merely resized narrow.
+// What 2.5.8 measures is the TARGET -- the hit region -- not the visible glyph.
+// So the fix is a transparent pseudo-element that enlarges the hit region while
+// leaving every rendered pixel exactly where it was. The signed-off desktop
+// composition is therefore untouched by construction, and no media query is
+// needed to protect it.
+//
+// Do NOT "optimise" this back into `@media (pointer: coarse)`. That was the
+// first attempt and it is NOT conformant: the SC says "pointer inputs", and
+// WCAG's glossary defines a pointer as "a mouse, pen, or touch contact" -- no
+// device carve-out exists in the criterion or in any of its five exceptions.
+// Worse, the users the criterion most protects -- hand tremor, limited fine
+// motor control, head-pointer and eye-gaze input -- are all driving a FINE
+// pointer, so a touch-only fix helps precisely nobody it was written for.
+//
+// The `Spacing` exception does not rescue small targets here either: it needs a
+// 24px circle centred on each target not to touch its neighbour's, which for a
+// 16px-tall target means at least 8px of vertical clearance. The pill's wrapped
+// rows sat at 4px, so its gaps are widened to 8px alongside this.
 @mixin tap-target($min: 24px) {
-    @media (pointer: coarse) {
-        display: inline-flex;
-        align-items: center;
-        min-height: $min;
+    position: relative;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        min-width: $min;
+        height: $min;
+        // Transparent and out of flow: it cannot paint, and it cannot move
+        // anything. It only has to exist to be hit-tested as part of the link.
     }
 }
 

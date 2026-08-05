@@ -26,8 +26,9 @@
     text-decoration: none;
     // These render 16px tall from their line box alone -- the smallest targets
     // on the site, and they are on every page. Standalone links in a row, so
-    // none of them qualify for WCAG 2.5.8's inline-in-a-sentence exemption.
-    // Only takes effect on a touch pointer; see the mixin.
+    // none of them qualify for WCAG 2.5.8's inline-in-a-sentence exemption,
+    // and the wrapped-row gap is too tight for its Spacing exception either.
+    // Enlarges the hit region only; the pill looks identical.
     @include bp.tap-target;
 }
 
@@ -54,7 +55,11 @@
         max-width: calc(100vw - 20px);
         flex-wrap: wrap;
         justify-content: center;
-        gap: 4px 8px;
+        // Row gap must be >= 8px: each link's 24px hit region (see
+        // bp.tap-target) extends 4px past a 16px-tall link top and bottom, so
+        // anything tighter makes stacked rows' hit regions overlap and the
+        // wrong link gets activated. Was 4px.
+        gap: 8px;
         padding: 6px 10px;
         font-size: 0.75rem;
     }
@@ -67,7 +72,9 @@
     .floatingBar {
         bottom: 1.5vh;
         padding: 4px 8px;
-        gap: 6px;
+        // 8px for the same hit-region reason as the stacked block above; 6px
+        // let adjacent rows' 24px targets overlap.
+        gap: 8px;
     }
 }
 
