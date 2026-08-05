@@ -130,6 +130,10 @@ export async function getVariant(
     const name = safeName(filename)
     if (!name) return null
 
+    // VariantWidth is a TypeScript type erased at runtime, so enforce the allowlist here.
+    // Without this check, a caller could pass a traversal string and write to arbitrary paths.
+    if (!(VARIANT_WIDTHS as readonly number[]).includes(width as number)) return null
+
     const cachePath = join(variantsDir(), `${name}@${width}.webp`)
 
     if (existsSync(cachePath)) {

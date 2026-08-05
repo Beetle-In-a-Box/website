@@ -134,4 +134,14 @@ describe('getVariant', () => {
         expect(results[0]!.equals(results[1]!)).toBe(true)
         expect(results[1]!.equals(results[2]!)).toBe(true)
     })
+
+    it('refuses a width that is not on the allowlist, including a traversal attempt', async () => {
+        // VariantWidth is erased at runtime, so this is what a forgetful caller
+        // could actually pass. path.join would collapse the ../ segments.
+        const evil = '../../../../../../tmp/pwned' as unknown as VariantWidth
+        expect(await getVariant(FIXTURE, evil)).toBeNull()
+        expect(existsSync('/tmp/pwned.webp')).toBe(false)
+
+        expect(await getVariant(FIXTURE, 401 as VariantWidth)).toBeNull()
+    })
 })
