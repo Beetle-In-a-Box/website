@@ -205,8 +205,7 @@ export async function getBlurDataUrl(filename: string): Promise<string | null> {
     if (!name) return null
 
     const cached = blurCache.get(name)
-    const cachePath = join(variantsDir(), `${name}@blur.txt`)
-    if (cached !== undefined && existsSync(cachePath)) return cached
+    if (cached !== undefined) return cached
 
     const value = await resolveBlurDataUrl(name)
     blurCache.set(name, value)

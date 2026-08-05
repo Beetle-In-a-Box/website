@@ -151,16 +151,18 @@ describe('getVariant', () => {
 })
 
 describe('getBlurDataUrl', () => {
+    const BLUR_FIXTURE = 'test-fixture-blur-1234567890.png'
+
     beforeEach(async () => {
-        await writeFixture()
+        await writeFixture(BLUR_FIXTURE)
     })
 
     afterEach(async () => {
-        await cleanupFixture()
+        await cleanupFixture(BLUR_FIXTURE)
     })
 
     it('returns a WebP data URI that is small enough to inline', async () => {
-        const uri = await getBlurDataUrl(FIXTURE)
+        const uri = await getBlurDataUrl(BLUR_FIXTURE)
 
         expect(uri).not.toBeNull()
         expect(uri!.startsWith('data:image/webp;base64,')).toBe(true)
@@ -177,31 +179,33 @@ describe('getBlurDataUrl', () => {
     })
 
     it('returns the same value on a second call', async () => {
-        const first = await getBlurDataUrl(FIXTURE)
-        const second = await getBlurDataUrl(FIXTURE)
+        const first = await getBlurDataUrl(BLUR_FIXTURE)
+        const second = await getBlurDataUrl(BLUR_FIXTURE)
 
         expect(second).toBe(first)
     })
 })
 
 describe('warmVariants and deleteVariants', () => {
+    const WARM_FIXTURE = 'test-fixture-warm-1234567890.png'
+
     beforeEach(async () => {
-        await writeFixture()
+        await writeFixture(WARM_FIXTURE)
     })
 
     afterEach(async () => {
-        await cleanupFixture()
+        await cleanupFixture(WARM_FIXTURE)
     })
 
     it('warmVariants creates every width plus the blur', async () => {
-        await warmVariants(FIXTURE)
+        await warmVariants(WARM_FIXTURE)
 
         for (const width of VARIANT_WIDTHS) {
             expect(
-                existsSync(join(variantsDir(), `${FIXTURE}@${width}.webp`)),
+                existsSync(join(variantsDir(), `${WARM_FIXTURE}@${width}.webp`)),
             ).toBe(true)
         }
-        expect(existsSync(join(variantsDir(), `${FIXTURE}@blur.txt`))).toBe(true)
+        expect(existsSync(join(variantsDir(), `${WARM_FIXTURE}@blur.txt`))).toBe(true)
     })
 
     it('warmVariants does not throw on a missing source', async () => {
@@ -209,15 +213,15 @@ describe('warmVariants and deleteVariants', () => {
     })
 
     it('deleteVariants removes every derivative', async () => {
-        await warmVariants(FIXTURE)
-        await deleteVariants(FIXTURE)
+        await warmVariants(WARM_FIXTURE)
+        await deleteVariants(WARM_FIXTURE)
 
         for (const width of VARIANT_WIDTHS) {
             expect(
-                existsSync(join(variantsDir(), `${FIXTURE}@${width}.webp`)),
+                existsSync(join(variantsDir(), `${WARM_FIXTURE}@${width}.webp`)),
             ).toBe(false)
         }
-        expect(existsSync(join(variantsDir(), `${FIXTURE}@blur.txt`))).toBe(false)
+        expect(existsSync(join(variantsDir(), `${WARM_FIXTURE}@blur.txt`))).toBe(false)
     })
 
     it('deleteVariants does not throw when nothing exists', async () => {
