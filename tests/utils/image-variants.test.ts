@@ -6,6 +6,7 @@ import {
     getVariant,
     imagesDir,
     variantsDir,
+    type VariantWidth,
 } from '@/utils/image-variants'
 import { mkdir, writeFile, rm } from 'fs/promises'
 import { existsSync } from 'fs'
