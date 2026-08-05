@@ -73,11 +73,14 @@ async function main() {
             console.log(
                 `  ${name}: ${formatBytes(originalSize)} -> ${formatBytes(displaySize)} (${pct}% smaller)`,
             )
-        } catch (error) {
+        } catch (thrownError) {
             failures += 1
-            const originalSize = (await stat(join(dir, name))).size
-            failedBytes += originalSize
-            console.log(`  ${name}: FAILED (${error instanceof Error ? error.message : 'unknown error'})`)
+            try {
+                failedBytes += (await stat(join(dir, name))).size
+            } catch {
+                // File size could not be determined; continue without counting it
+            }
+            console.log(`  ${name}: FAILED (${thrownError instanceof Error ? thrownError.message : 'unknown error'})`)
         }
     }
 
