@@ -2,7 +2,13 @@
     display: flex;
     flex-direction: column;
     width: 85vw;
-    min-height: 60vh;
+    // Grow into whatever space MainContainer's 100vh leaves, rather than
+    // claiming a fixed 60vh. The old `min-height: 60vh` plus this 20vh margin
+    // came to 80vh, which together with the footer overflowed the viewport by
+    // ~40px on pages with little content - so they scrolled pointlessly and the
+    // footer never reached the bottom. `0 auto` means grow but never shrink
+    // below the content, so tall pages are unaffected.
+    flex: 1 0 auto;
     margin-top: 20vh;
     align-self: center;
     gap: 8vh;
