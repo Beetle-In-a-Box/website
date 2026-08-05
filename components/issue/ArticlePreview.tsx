@@ -35,7 +35,18 @@ export default function ArticlePreview({
                 alt={title}
                 className={styles.previewPicture}
                 fit="contain"
-                sizes="(max-width: 700px) 40vw, 300px"
+                // Must track ArticlePreview.module.scss, or the browser picks a
+                // variant sized for a slot that no longer exists. The old value
+                // ("(max-width: 700px) 40vw, 300px") described the pre-responsive
+                // layout: a 700px breakpoint that is now 768, a 40vw column that
+                // is now the full stacked width, and a flat 300px desktop column
+                // that is now fluid. It made the browser request an 800px bitmap
+                // for what is really a 353px slot at DPR 3 -- soft artwork on a
+                // modern phone, on a site whose whole point is the artwork.
+                //   <=768  stacked, image spans the content width (~90vw)
+                //   <=1100 minmax(240px, 28vw), so the floor dominates near 768
+                //   >1100  0.5fr of the grid, measured ~27vw at 1280 and 1440
+                sizes="(max-width: 768px) 92vw, (max-width: 1100px) 32vw, 28vw"
                 linkToFullRes
             />
             {imageArtist && (
