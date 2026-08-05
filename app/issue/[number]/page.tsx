@@ -1,8 +1,5 @@
 import { notFound } from 'next/navigation'
-import NavBar from '@/components/layout/NavBar'
-import FloatingBar from '@/components/layout/FloatingBar'
-import Footer from '@/components/layout/Footer'
-import MainContainer from '@/components/layout/MainContainer'
+import PageLayout from '@/components/layout/PageLayout'
 import ContentsContainer from '@/components/issue/ContentsContainer'
 import IssueCover from '@/components/issue/IssueCover'
 import CoverImage from '@/components/ui/CoverImage'
@@ -62,22 +59,18 @@ export default async function IssuePage({
     if (issue.articles.length === 0) {
         const issueDate = formatIssueDate(issue.date)
         return (
-            <MainContainer>
-                <NavBar clickable={true} date={issueDate} />
+            <PageLayout clickable={true} date={issueDate} showAbout={true} showLatest={true}>
                 <ContentsContainer title={issue.title}>
                     <Empty>No published articles in this issue yet.</Empty>
                 </ContentsContainer>
-                <FloatingBar showAbout={true} showLatest={true} />
-                <Footer />
-            </MainContainer>
+            </PageLayout>
         )
     }
 
     const issueDate = formatIssueDate(issue.date)
 
     return (
-        <MainContainer>
-            <NavBar clickable={true} date={issueDate} />
+        <PageLayout clickable={true} date={issueDate} showAbout={true} showLatest={true}>
             <ContentsContainer title={issue.title}>
                 <IssueCover
                     cover={
@@ -115,8 +108,6 @@ export default async function IssuePage({
                     ))}
                 </div>
             </ContentsContainer>
-            <FloatingBar showAbout={true} showLatest={true} />
-            <Footer />
-        </MainContainer>
+        </PageLayout>
     )
 }

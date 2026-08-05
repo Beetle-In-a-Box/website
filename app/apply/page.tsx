@@ -1,10 +1,7 @@
-import NavBar from '@/components/layout/NavBar';
-import MainContainer from '@/components/layout/MainContainer';
+import PageLayout from '@/components/layout/PageLayout';
 import ContentsContainer from '@/components/issue/ContentsContainer';
 import Text from '@/components/ui/Text';
 import Link from '@/components/ui/Link';
-import FloatingBar from '@/components/layout/FloatingBar';
-import Footer from '@/components/layout/Footer';
 import { formatIssueDate } from '@/utils/date-utils';
 import { getLatestIssueDate } from '@/utils/issue-utils';
 import styles from './page.module.scss';
@@ -17,8 +14,7 @@ export default async function ApplyPage() {
   const headerDate = latestDate ? formatIssueDate(latestDate) : undefined;
 
   return (
-    <MainContainer>
-      <NavBar date={headerDate} />
+    <PageLayout date={headerDate} showAbout={true} showLatest={true}>
       <ContentsContainer title="Apply">
         <Text as="p" className={styles.centeredText}>
           Beetle in a Box is recruiting writers and artists. Please fill out{' '}
@@ -31,8 +27,6 @@ export default async function ApplyPage() {
           by Sunday, 2/1 to apply.
         </Text>
       </ContentsContainer>
-      <FloatingBar showAbout={true} showLatest={true} />
-      <Footer />
-    </MainContainer>
+    </PageLayout>
   );
 }

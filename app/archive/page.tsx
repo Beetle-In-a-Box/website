@@ -1,7 +1,4 @@
-import NavBar from '@/components/layout/NavBar'
-import FloatingBar from '@/components/layout/FloatingBar'
-import Footer from '@/components/layout/Footer'
-import MainContainer from '@/components/layout/MainContainer'
+import PageLayout from '@/components/layout/PageLayout'
 import IssueListContainer from '@/components/issue/IssueListContainer'
 import IssueListItem from '@/components/issue/IssueListItem'
 import Empty from '@/components/ui/Empty'
@@ -44,20 +41,16 @@ export default async function Archive() {
     // If no archived issues, show a message
     if (archivedIssues.length === 0) {
         return (
-            <MainContainer>
-                <NavBar clickable={true} date={issueDate} />
+            <PageLayout clickable={true} date={issueDate} showAbout={true} showLatest={true}>
                 <IssueListContainer>
                     <Empty>No archived issues available yet. Check back soon!</Empty>
                 </IssueListContainer>
-                <FloatingBar showAbout={true} showLatest={true} />
-                <Footer />
-            </MainContainer>
+            </PageLayout>
         )
     }
 
     return (
-        <MainContainer>
-            <NavBar clickable={true} date={issueDate} />
+        <PageLayout clickable={true} date={issueDate} showAbout={true} showLatest={true}>
             <IssueListContainer title="Past Issues">
                 {archivedIssues.map(issue => (
                     <IssueListItem
@@ -71,8 +64,6 @@ export default async function Archive() {
                     />
                 ))}
             </IssueListContainer>
-            <FloatingBar showAbout={true} showLatest={true} />
-            <Footer />
-        </MainContainer>
+        </PageLayout>
     )
 }

@@ -1,10 +1,7 @@
 import { notFound } from 'next/navigation'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
-import NavBar from '@/components/layout/NavBar'
-import FloatingBar from '@/components/layout/FloatingBar'
-import Footer from '@/components/layout/Footer'
-import MainContainer from '@/components/layout/MainContainer'
+import PageLayout from '@/components/layout/PageLayout'
 import ArticleContainer from '@/components/article/ArticleContainer'
 import ArticleTitle from '@/components/article/ArticleTitle'
 import ArticleAuthor from '@/components/article/ArticleAuthor'
@@ -110,9 +107,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     const issueDate = formatIssueDate(article.issue.date)
 
     return (
-        <MainContainer>
+        <PageLayout date={issueDate} showAbout={true} showLatest={true}>
             <FootnoteHandler />
-            <NavBar date={issueDate} />
             <ArticleContainer>
                 <ArticleTitle title={article.title} />
                 <ArticleAuthor author={article.author} role="Staff Writer" />
@@ -145,8 +141,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     )}
                 </ArticleContent>
             </ArticleContainer>
-            <FloatingBar showAbout={true} showLatest={true} />
-            <Footer />
-        </MainContainer>
+        </PageLayout>
     )
 }

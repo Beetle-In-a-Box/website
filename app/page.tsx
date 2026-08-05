@@ -1,7 +1,4 @@
-import NavBar from '@/components/layout/NavBar'
-import FloatingBar from '@/components/layout/FloatingBar'
-import Footer from '@/components/layout/Footer'
-import MainContainer from '@/components/layout/MainContainer'
+import PageLayout from '@/components/layout/PageLayout'
 import ContentsContainer from '@/components/issue/ContentsContainer'
 import IssueCover from '@/components/issue/IssueCover'
 import CoverImage from '@/components/ui/CoverImage'
@@ -41,14 +38,11 @@ export default async function Home() {
     // If no issues, show a message
     if (issues.length === 0) {
         return (
-            <MainContainer>
-                <NavBar clickable={false} />
+            <PageLayout clickable={false} showAbout={true} showLatest={false}>
                 <ContentsContainer>
                     <Empty>No published issues available yet. Check back soon!</Empty>
                 </ContentsContainer>
-                <FloatingBar showAbout={true} showLatest={false} />
-                <Footer />
-            </MainContainer>
+            </PageLayout>
         )
     }
 
@@ -58,8 +52,7 @@ export default async function Home() {
     const issueDate = formatIssueDate(latestIssue.date)
 
     return (
-        <MainContainer>
-            <NavBar clickable={false} date={issueDate} />
+        <PageLayout clickable={false} date={issueDate} showAbout={true} showLatest={false}>
             <ContentsContainer title={latestIssue.title}>
                 <IssueCover
                     cover={
@@ -97,8 +90,6 @@ export default async function Home() {
                     ))}
                 </div>
             </ContentsContainer>
-            <FloatingBar showAbout={true} showLatest={false} />
-            <Footer />
-        </MainContainer>
+        </PageLayout>
     )
 }

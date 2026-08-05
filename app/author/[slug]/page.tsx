@@ -1,8 +1,5 @@
 import { notFound } from 'next/navigation'
-import NavBar from '@/components/layout/NavBar'
-import FloatingBar from '@/components/layout/FloatingBar'
-import Footer from '@/components/layout/Footer'
-import MainContainer from '@/components/layout/MainContainer'
+import PageLayout from '@/components/layout/PageLayout'
 import ContentsContainer from '@/components/issue/ContentsContainer'
 import ArticlePreview from '@/components/issue/ArticlePreview'
 import Empty from '@/components/ui/Empty'
@@ -62,20 +59,16 @@ export default async function AuthorPage({
 
     if (author.articles.length === 0) {
         return (
-            <MainContainer>
-                <NavBar clickable={true} date={issueDate} />
+            <PageLayout clickable={true} date={issueDate} showAbout={true} showLatest={true}>
                 <ContentsContainer title={`${author.name}`}>
                     <Empty>No published articles by this author yet.</Empty>
                 </ContentsContainer>
-                <FloatingBar showAbout={true} showLatest={true} />
-                <Footer />
-            </MainContainer>
+            </PageLayout>
         )
     }
 
     return (
-        <MainContainer>
-            <NavBar clickable={true} date={issueDate} />
+        <PageLayout clickable={true} date={issueDate} showAbout={true} showLatest={true}>
             <ContentsContainer title={`${author.name}`}>
                 <div className="text contents previewContainer">
                     {author.articles.map(article => (
@@ -98,8 +91,6 @@ export default async function AuthorPage({
                     ))}
                 </div>
             </ContentsContainer>
-            <FloatingBar showAbout={true} showLatest={true} />
-            <Footer />
-        </MainContainer>
+        </PageLayout>
     )
 }
