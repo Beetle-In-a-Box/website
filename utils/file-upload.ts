@@ -45,10 +45,18 @@ export async function storeOriginal(
         const metadata = await image.metadata()
         const longestEdge = Math.max(metadata.width ?? 0, metadata.height ?? 0)
 
+        // Trust what sharp actually decoded, not the caller-supplied MIME type.
+        // File.type comes from the browser, which infers it from the uploaded
+        // file's name - a real PNG saved with a .jpg extension reports
+        // 'image/jpeg' while its bytes are PNG. Storing under the MIME-derived
+        // extension would then serve mismatched Content-Type vs. bytes on the
+        // "open full resolution" link.
+        const extension = extensionForFormat(metadata.format, mimeType)
+
         // Already within the cap: store the exact bytes that were uploaded. Any
         // re-encode here would lose quality for no benefit.
         if (longestEdge <= MAX_ORIGINAL_DIMENSION) {
-            return { buffer, extension: extensionForMime(mimeType) }
+            return { buffer, extension }
         }
 
         const resized = await image
@@ -61,7 +69,7 @@ export async function storeOriginal(
             })
             .toBuffer()
 
-        return { buffer: resized, extension: extensionForMime(mimeType) }
+        return { buffer: resized, extension }
     } catch (error) {
         console.error('Could not inspect upload, storing original:', error)
         return { buffer, extension: extensionForMime(mimeType) }
@@ -79,6 +87,30 @@ function extensionForMime(mimeType: string): string {
             return 'gif'
         default:
             return 'jpg'
+    }
+}
+
+/**
+ * Map sharp's detected source format to a stored extension.
+ *
+ * Used only when sharp has successfully decoded the image, so this is the
+ * source of truth for what the bytes actually are - unlike extensionForMime,
+ * which only knows what the browser claimed. Falls back to the MIME-derived
+ * guess for any format outside the upload allowlist, rather than inventing an
+ * extension for something like TIFF or HEIF.
+ */
+function extensionForFormat(format: string | undefined, mimeType: string): string {
+    switch (format) {
+        case 'jpeg':
+            return 'jpg'
+        case 'png':
+            return 'png'
+        case 'webp':
+            return 'webp'
+        case 'gif':
+            return 'gif'
+        default:
+            return extensionForMime(mimeType)
     }
 }
 
