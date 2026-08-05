@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { readFile } from 'fs/promises'
 import { basename, resolve, sep } from 'path'
 import { existsSync } from 'fs'
+import { getVariant, parseVariantWidth } from '@/utils/image-variants'
 
 /**
  * GET /api/static/images/[filename] or /api/static/articles/[filename] or /api/static/pdfs/[filename]
@@ -61,6 +62,31 @@ export async function GET(
                 { error: 'File not found' },
                 { status: 404 }
             )
+        }
+
+        // Serve a compressed derivative when an allowlisted width is requested.
+        // This runs only after every sanitisation and containment check above
+        // has passed. An unrecognised width falls through to the original,
+        // which is also what the full-resolution click-through link requests.
+        if (type === 'images') {
+            const width = parseVariantWidth(
+                request.nextUrl.searchParams.get('w'),
+            )
+            if (width) {
+                const variant = await getVariant(safeFilename, width)
+                if (variant) {
+                    return new NextResponse(new Uint8Array(variant), {
+                        headers: {
+                            'Content-Type': 'image/webp',
+                            'Cache-Control':
+                                'public, max-age=31536000, immutable',
+                            'Content-Disposition': 'inline',
+                        },
+                    })
+                }
+                // sharp unavailable or encoding failed - fall through and serve
+                // the original rather than 500ing.
+            }
         }
 
         // Read file
