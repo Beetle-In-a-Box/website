@@ -161,7 +161,15 @@
         grid-template-columns: 1fr;
         grid-template-rows: auto;
         row-gap: 0.5rem;
-        padding-bottom: 1.5rem;
+        // The 1px rules are the only thing marking where the issue ends and
+        // the articles begin, and stacked they had 1.5rem below them but
+        // NOTHING above the content that follows -- so the first rule sat
+        // directly on the cover art and read as an edge of the image rather
+        // than as a section break. Symmetric padding turns each rule into a
+        // real divider: 1.75rem of clear space on both sides of it, 3.5rem
+        // between consecutive previews.
+        padding-top: 1.75rem;
+        padding-bottom: 1.75rem;
     }
 
     .articlePreview .previewPicture {
