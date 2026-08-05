@@ -1,5 +1,8 @@
 import { join } from 'path'
 import type { Sharp } from 'sharp'
+import { existsSync } from 'fs'
+import { mkdir, readFile, writeFile } from 'fs/promises'
+import { basename } from 'path'
 
 /**
  * Widths, in pixels, that a caller may request a derivative at.
@@ -89,4 +92,89 @@ export async function loadSharp(): Promise<SharpFactory | null> {
         sharpModule = null
     }
     return sharpModule
+}
+
+/**
+ * In-flight generation promises, keyed by cache path.
+ *
+ * A page with six images fires six requests for the same derivative at once on a
+ * cold cache. Without this, all six would decode and re-encode the same file.
+ */
+const inFlight = new Map<string, Promise<Buffer | null>>()
+
+/**
+ * Reject anything that is not a plain filename.
+ *
+ * The static route already sanitises with basename() before calling in; this is
+ * defence in depth so the service is safe to call from a script or a future
+ * caller that forgets.
+ */
+function safeName(filename: string): string | null {
+    if (!filename) return null
+    const base = basename(filename)
+    if (base !== filename || base === '.' || base === '..') return null
+    return base
+}
+
+/**
+ * Return a WebP derivative of an uploaded image at the given width, generating
+ * and caching it on first request.
+ *
+ * Returns null when the source does not exist, sharp is unavailable, or encoding
+ * fails - the caller is expected to serve the untouched original in that case.
+ */
+export async function getVariant(
+    filename: string,
+    width: VariantWidth,
+): Promise<Buffer | null> {
+    const name = safeName(filename)
+    if (!name) return null
+
+    const cachePath = join(variantsDir(), `${name}@${width}.webp`)
+
+    if (existsSync(cachePath)) {
+        try {
+            return await readFile(cachePath)
+        } catch {
+            // Fall through and regenerate if the cached file is unreadable.
+        }
+    }
+
+    const pending = inFlight.get(cachePath)
+    if (pending) return pending
+
+    const work = generateVariant(name, width, cachePath).finally(() => {
+        inFlight.delete(cachePath)
+    })
+    inFlight.set(cachePath, work)
+    return work
+}
+
+async function generateVariant(
+    name: string,
+    width: VariantWidth,
+    cachePath: string,
+): Promise<Buffer | null> {
+    const sourcePath = join(imagesDir(), name)
+    if (!existsSync(sourcePath)) return null
+
+    const sharp = await loadSharp()
+    if (!sharp) return null
+
+    try {
+        const buffer = await sharp(sourcePath)
+            // Honour EXIF orientation before metadata is dropped, so portrait
+            // photos do not come out sideways.
+            .rotate()
+            .resize({ width, withoutEnlargement: true })
+            .webp({ quality: VARIANT_QUALITY })
+            .toBuffer()
+
+        await mkdir(variantsDir(), { recursive: true })
+        await writeFile(cachePath, buffer)
+        return buffer
+    } catch (error) {
+        console.error(`Failed to generate ${width}px variant of ${name}:`, error)
+        return null
+    }
 }
