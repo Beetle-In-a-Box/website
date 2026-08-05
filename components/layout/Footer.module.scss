@@ -51,7 +51,9 @@
         padding-top: 1rem;
         padding-bottom: calc(6vh + 3.5rem);
         line-height: 1.6;
-        font-size: 0.8rem;
+        // 0.8rem computed to 12.8px. Legal boilerplate can be quieter than
+        // body copy but this is still text people are expected to read.
+        font-size: 0.875rem;
     }
 
     .footerContent {
