@@ -47,29 +47,38 @@ async function main() {
     let originalTotal = 0
     let displayTotal = 0
     let failures = 0
+    let failedBytes = 0
 
     for (const name of images) {
-        const originalSize = (await stat(join(dir, name))).size
-        originalTotal += originalSize
+        try {
+            const originalSize = (await stat(join(dir, name))).size
 
-        await warmVariants(name)
+            await warmVariants(name)
 
-        // The 800px derivative is what a typical visitor actually downloads.
-        const displayPath = join(variantsDir(), `${name}@800.webp`)
-        if (!existsSync(displayPath)) {
+            // The 800px derivative is what a typical visitor actually downloads.
+            const displayPath = join(variantsDir(), `${name}@800.webp`)
+            if (!existsSync(displayPath)) {
+                failures += 1
+                failedBytes += originalSize
+                console.log(`  ${name}: FAILED (no derivative produced)`)
+                continue
+            }
+
+            const displaySize = (await stat(displayPath)).size
+            originalTotal += originalSize
+            displayTotal += displaySize
+
+            const saved = originalSize - displaySize
+            const pct = originalSize > 0 ? Math.round((saved / originalSize) * 100) : 0
+            console.log(
+                `  ${name}: ${formatBytes(originalSize)} -> ${formatBytes(displaySize)} (${pct}% smaller)`,
+            )
+        } catch (error) {
             failures += 1
-            console.log(`  ${name}: FAILED (no derivative produced)`)
-            continue
+            const originalSize = (await stat(join(dir, name))).size
+            failedBytes += originalSize
+            console.log(`  ${name}: FAILED (${error instanceof Error ? error.message : 'unknown error'})`)
         }
-
-        const displaySize = (await stat(displayPath)).size
-        displayTotal += displaySize
-
-        const saved = originalSize - displaySize
-        const pct = originalSize > 0 ? Math.round((saved / originalSize) * 100) : 0
-        console.log(
-            `  ${name}: ${formatBytes(originalSize)} -> ${formatBytes(displaySize)} (${pct}% smaller)`,
-        )
     }
 
     console.log(
@@ -78,7 +87,7 @@ async function main() {
     console.log(`Widths generated: ${VARIANT_WIDTHS.join(', ')}`)
     if (failures > 0) {
         console.log(
-            `\n${failures} image(s) produced no derivative - sharp may be unavailable. Those will serve originals.`,
+            `\nFAILURES: ${failures} image(s) produced no derivative (${formatBytes(failedBytes)} total) - sharp may be unavailable. Those will serve originals.`,
         )
     }
 }

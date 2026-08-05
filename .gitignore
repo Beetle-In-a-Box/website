@@ -49,6 +49,7 @@ next-env.d.ts
 !/uploads/.gitkeep
 !/uploads/images/
 !/uploads/images/.gitkeep
+/uploads/images/.variants/
 !/uploads/articles/
 !/uploads/articles/.gitkeep
 
