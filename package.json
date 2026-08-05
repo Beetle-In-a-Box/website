@@ -13,6 +13,7 @@
         "db:clear": "bun scripts/clear-database.ts",
         "db:seed": "bun scripts/seed-issue-1.ts",
         "db:reset": "bun run db:clear && bun run db:seed",
+        "images:backfill": "bun scripts/generate-image-variants.ts",
         "build:prod": "bunx next build",
         "serve": "bun run build:prod && node server.js",
         "deploy": "bash deploy.sh",
