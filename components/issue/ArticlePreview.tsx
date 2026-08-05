@@ -1,5 +1,6 @@
 import Link from '@/components/ui/Link'
 import AuthorLink from '@/components/ui/AuthorLink'
+import CoverImage from '@/components/ui/CoverImage'
 import { truncateText } from '@/utils/text-utils'
 import styles from './ArticlePreview.module.scss'
 
@@ -29,9 +30,13 @@ export default function ArticlePreview({
 
     return (
         <div className={styles.articlePreview} id={id}>
-            <div
+            <CoverImage
+                src={imageUrl}
+                alt={title}
                 className={styles.previewPicture}
-                style={{ backgroundImage: `url('${imageUrl}')` }}
+                fit="contain"
+                sizes="(max-width: 700px) 40vw, 300px"
+                linkToFullRes
             />
             {imageArtist && (
                 <div className={styles.imageArtist}>Art by {imageArtist}</div>
