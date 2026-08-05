@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 .articlePreview {
     display: grid;
     grid-template-columns: 0.5fr 1fr;
@@ -53,7 +55,7 @@
     align-self: center;
     justify-self: center;
     text-align: center;
-    font-size: clamp(0.75rem, 1.5vw, 2rem);
+    font-size: clamp(1.125rem, 1.5vw, 2rem);
     margin-bottom: 5px;
     margin-top: 5px;
     color: #1a1a1a;
@@ -66,7 +68,7 @@
     color: #1a1a1a;
     display: flex;
     justify-self: center;
-    font-size: clamp(0.50rem, 1.2vw, 1.2rem) !important;
+    font-size: clamp(0.9375rem, 1.2vw, 1.2rem) !important;
     margin-top: 0 !important;
     font-weight: 500 !important;
 }
@@ -87,15 +89,95 @@
 .articlePreview .previewContent p {
     color: #1a1a1a;
     margin: 0;
-    font-size: clamp(0.5rem, 1.2vw, 1.25rem);
+    font-size: clamp(1rem, 1.2vw, 1.25rem);
 }
 
 .articlePreview .imageArtist {
     grid-column: 1;
     grid-row: 3;
     margin: 5px 10px 10px 10px;
-    font-size: clamp(0.65rem, 1vw, 0.9rem);
+    font-size: clamp(0.8125rem, 1vw, 0.9rem);
     font-style: italic;
     color: #666;
     text-align: center;
+}
+
+// --- Responsive -------------------------------------------------------------
+//
+// Two problems below desktop, both of which made this look broken rather than
+// merely cramped:
+//
+// 1. `min-height: 40vh` reserves 40% of the viewport per preview no matter how
+//    little is in it. Once the columns narrow the content no longer fills that,
+//    so every entry grew a large empty band beneath it.
+// 2. A 0.5fr image column is ~80px on a phone. That is a favicon, not artwork,
+//    on a site whose whole point is the artwork.
+
+// The reserved height has to go well before the phone breakpoint. At ~800px
+// the columns have already narrowed enough that the content no longer fills
+// 40vh, so the entry keeps the full height and grows an empty band under the
+// text -- which reads as a broken page, not as spacing.
+@include bp.desktop-down {
+    .articlePreview {
+        // Let the content decide the height instead of reserving a fixed slice
+        // of the viewport.
+        min-height: 0;
+        grid-template-rows: auto auto auto;
+        padding-bottom: 1.25rem;
+    }
+}
+
+@include bp.tablet {
+    .articlePreview {
+        // Give the artwork a fairer share once there is less width to split.
+        grid-template-columns: 0.8fr 1fr;
+    }
+}
+
+@include bp.phone {
+    .articlePreview {
+        // Single column: artwork, its credit, title, then the excerpt --
+        // which is already the DOM order, so nothing needs reordering.
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        row-gap: 0.5rem;
+        padding-bottom: 1.5rem;
+    }
+
+    .articlePreview .previewPicture {
+        // Drop the desktop row/column pinning; in one column it would force
+        // the image into a track that no longer exists.
+        grid-row: auto;
+        grid-column: 1;
+        margin: 0;
+        // Without a definite height the image collapses, because its wrapper
+        // resolves height:100% against an auto-height grid row.
+        aspect-ratio: 4 / 3;
+    }
+
+    .articlePreview .imageArtist {
+        grid-row: auto;
+        grid-column: 1;
+        margin: 0;
+        text-align: left;
+    }
+
+    .articlePreview .previewTitle {
+        margin: 0;
+    }
+
+    .articlePreview .previewTitle .previewTitleA {
+        // Centred titles read as decoration at this width; left-aligned keeps
+        // the column's edge consistent with the excerpt below it.
+        text-align: left;
+        justify-self: start;
+    }
+
+    .articlePreview .previewTitle .previewAuthor {
+        justify-self: start;
+    }
+
+    .articlePreview .previewContent {
+        margin: 0;
+    }
 }

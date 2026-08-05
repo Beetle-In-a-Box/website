@@ -21,6 +21,25 @@
     gap: 8vh;
 }
 
+// 8vh between blocks reads as generous editorial spacing on a wide screen and
+// as a hole on a narrow one, where each block is shorter but the gap is not.
+// Same for 85vw: on a phone the side margins should be a thin gutter, not 15%
+// of the screen taken off a column that is already tight.
+@include bp.tablet {
+    .contentsContainer {
+        gap: 4vh;
+        width: 92vw;
+    }
+}
+
+@include bp.phone {
+    .contentsContainer {
+        gap: 2.5rem;
+        width: 100%;
+        padding: 0 1.25rem;
+    }
+}
+
 .contentsContainer .titleWrapper {
     display: flex;
     justify-content: center;
