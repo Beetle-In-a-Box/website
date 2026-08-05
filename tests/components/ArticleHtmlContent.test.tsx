@@ -1,28 +1,31 @@
-import { describe, it, expect, mock } from 'bun:test'
+import { describe, it, expect } from 'bun:test'
 import { render } from '@testing-library/react'
-import React from 'react'
-
-// Mock Next.js Image component
-mock.module('next/image', () => ({
-    default: function Image(props: React.ImgHTMLAttributes<HTMLImageElement>) {
-        // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
-        return <img {...props} />
-    },
-}))
 
 import ArticleHtmlContent from '@/components/article/ArticleHtmlContent'
 
 /**
  * Tests for ArticleHtmlContent component
  * Ensures HTML is safely converted to React with proper handling of:
- * - Images (converted to Next.js Image)
+ * - Images (plain <img>, never the platform image optimizer)
  * - Links (target="_blank" added)
  * - Footnotes (data attributes preserved)
+ *
+ * This file used to mock next/image into a plain <img> passthrough. The
+ * component no longer imports next/image at all, so the mock was removed - it
+ * would have hidden a regression back to the optimizer rather than catching it.
  */
+
+/**
+ * A 1x1 transparent GIF as a data: URI - the shape mammoth produces for images
+ * embedded in a .docx. It inlines them as base64 rather than writing files, so
+ * real article images arrive with no width/height attributes at all.
+ */
+const MAMMOTH_STYLE_DATA_URI =
+    'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
 
 describe('ArticleHtmlContent', () => {
     describe('Image Conversion', () => {
-        it('should convert <img> tags to Next.js Image components', () => {
+        it('should render <img> tags as plain images', () => {
             const html = `
                 <p>Here is an image:</p>
                 <img src="/images/test.jpg" alt="Test Image" width="800" height="600" />
@@ -30,11 +33,25 @@ describe('ArticleHtmlContent', () => {
 
             const { container } = render(<ArticleHtmlContent html={html} />)
 
-            // Should have an img element (Next.js Image renders as img)
             const img = container.querySelector('img')
             expect(img).toBeTruthy()
             expect(img?.getAttribute('src')).toContain('test.jpg')
             expect(img?.getAttribute('alt')).toBe('Test Image')
+        })
+
+        it('should never route images through the platform image optimizer', () => {
+            // The optimizer silently passes originals through on the deploy
+            // host, so a /_next/image URL here is a regression, not an
+            // optimization. Covers both a normal path and mammoth's data: URI.
+            for (const src of ['/images/test.jpg', MAMMOTH_STYLE_DATA_URI]) {
+                const { container } = render(
+                    <ArticleHtmlContent html={`<img src="${src}" alt="" />`} />
+                )
+
+                const img = container.querySelector('img')
+                expect(img?.getAttribute('src')).toBe(src)
+                expect(container.innerHTML).not.toContain('/_next/image')
+            }
         })
 
         it('should handle images without width/height attributes', () => {
@@ -44,6 +61,41 @@ describe('ArticleHtmlContent', () => {
 
             const img = container.querySelector('img')
             expect(img).toBeTruthy()
+        })
+
+        it('should not invent intrinsic dimensions when the source omits them', () => {
+            // The old code defaulted to 800x600, which reserves a
+            // wrongly-shaped box for every mammoth image (they never carry
+            // width/height) and makes the article jump when the image loads.
+            const { container } = render(
+                <ArticleHtmlContent
+                    html={`<img src="${MAMMOTH_STYLE_DATA_URI}" alt="" />`}
+                />
+            )
+
+            const img = container.querySelector('img')
+            expect(img?.hasAttribute('width')).toBe(false)
+            expect(img?.hasAttribute('height')).toBe(false)
+        })
+
+        it('should forward intrinsic dimensions when the source supplies them', () => {
+            const html = `<img src="/images/test.jpg" alt="" width="640" height="480" />`
+
+            const { container } = render(<ArticleHtmlContent html={html} />)
+
+            const img = container.querySelector('img')
+            expect(img?.getAttribute('width')).toBe('640')
+            expect(img?.getAttribute('height')).toBe('480')
+        })
+
+        it('should lazy-load article images', () => {
+            const html = `<img src="/images/test.jpg" alt="" />`
+
+            const { container } = render(<ArticleHtmlContent html={html} />)
+
+            const img = container.querySelector('img')
+            expect(img?.getAttribute('loading')).toBe('lazy')
+            expect(img?.getAttribute('decoding')).toBe('async')
         })
 
         it('should preserve image alt text', () => {

@@ -1,5 +1,4 @@
 import React from 'react'
-import Image from 'next/image'
 import parse, {
     domToReact,
     HTMLReactParserOptions,
@@ -55,14 +54,34 @@ export default function ArticleHtmlContent({ html }: ArticleHtmlContentProps) {
                 // Convert HTML attributes to React props
                 const reactProps = convertAttributesToReactProps(attribs)
 
-                // Handle images: convert to Next Image
+                // Handle images.
+                //
+                // Plain <img>, not next/image, for the same reason CoverImage
+                // avoids it: the platform optimizer silently passes originals
+                // through on the deploy host, so it buys nothing and costs a
+                // round trip. mammoth also emits article images as base64
+                // data: URIs, which next/image refuses to optimize anyway.
+                //
+                // Intrinsic dimensions are forwarded only when the source
+                // actually supplies them. The previous code defaulted to
+                // 800x600, which invents an aspect ratio for every image that
+                // has no width/height - and mammoth's output never does - so
+                // the browser reserved a wrongly-shaped box and then jumped
+                // when the real image loaded. Omitting them is not worse; a
+                // wrong ratio is.
                 if (name === 'img' && attribs.src) {
+                    const width = parseInt(attribs.width)
+                    const height = parseInt(attribs.height)
+                    const hasIntrinsicSize =
+                        Number.isFinite(width) && Number.isFinite(height)
+
                     return (
-                        <Image
+                        <img
                             src={attribs.src}
                             alt={attribs.alt || ''}
-                            width={parseInt(attribs.width) || 800}
-                            height={parseInt(attribs.height) || 600}
+                            {...(hasIntrinsicSize ? { width, height } : {})}
+                            loading="lazy"
+                            decoding="async"
                             style={{ width: '100%', height: 'auto' }}
                         />
                     )
