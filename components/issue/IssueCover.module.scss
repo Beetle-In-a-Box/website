@@ -12,6 +12,12 @@
     max-width: 100%;
 }
 
+.middle a,
+.middle [data-cover-wrapper] {
+    display: block;
+    width: 100%;
+}
+
 .middle div {
     justify-self: center;
 }
