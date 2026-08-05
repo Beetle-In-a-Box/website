@@ -1,7 +1,6 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import styles from './NavBar.module.scss';
 
 interface NavBarProps {
@@ -26,10 +25,19 @@ export default function NavBar({ clickable = true, date }: NavBarProps) {
       <div className={`${styles.item} ${styles.center}`} id="cNav">
         <div className={styles.centerContent}>
           <div className={styles.logoContainer}>
-            <Image
-              src="/logo.jpg"
+            {/*
+              Plain <img> on a pre-built WebP rather than next/image: the platform
+              image optimizer silently passes originals through on the deploy host,
+              so /_next/image would ship the 16KB JPEG on every page. logo.webp is
+              committed alongside logo.jpg and needs no optimizer at all.
+              Regenerate after changing logo.jpg:
+                node -e "require('sharp')('public/logo.jpg').webp({quality:80}).toFile('public/logo.webp')"
+            */}
+            <img
+              src="/logo.webp"
               alt="Beetle in a Box Logo"
-              fill
+              width={212}
+              height={212}
               className={styles.logo}
             />
           </div>

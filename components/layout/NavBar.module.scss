@@ -70,6 +70,12 @@
     transform: translateY(0.5vh);
 }
 
+// Reproduces what next/image's `fill` used to inject inline, now that the logo
+// is a plain <img>: stretch to the container and letterbox rather than crop.
 .logo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
 }
