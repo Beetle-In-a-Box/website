@@ -4,6 +4,7 @@ import Footer from '@/components/layout/Footer'
 import MainContainer from '@/components/layout/MainContainer'
 import ContentsContainer from '@/components/issue/ContentsContainer'
 import IssueCover from '@/components/issue/IssueCover'
+import CoverImage from '@/components/ui/CoverImage'
 import ArticlePreview from '@/components/issue/ArticlePreview'
 import Empty from '@/components/ui/Empty'
 import { prisma } from '@/utils/prisma'
@@ -61,7 +62,16 @@ export default async function Home() {
             <NavBar clickable={false} date={issueDate} />
             <ContentsContainer title={latestIssue.title}>
                 <IssueCover
-                    imageSrc={latestIssue.imageUrl || '/default-issue-cover.png'}
+                    cover={
+                        <CoverImage
+                            src={latestIssue.imageUrl || '/default-issue-cover.png'}
+                            alt={`Cover of ${latestIssue.title}`}
+                            sizes="(max-width: 700px) 90vw, 600px"
+                            fit="contain"
+                            priority
+                            linkToFullRes
+                        />
+                    }
                     imageArtist={latestIssue.imageArtist || undefined}
                     articles={latestIssue.articles.map(article => ({
                         id: article.id,

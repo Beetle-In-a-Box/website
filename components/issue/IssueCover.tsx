@@ -1,12 +1,16 @@
 'use client'
 
-import Image from 'next/image'
+import type { ReactNode } from 'react'
 import Subheader from '@/components/ui/Subheader'
 import { scrollToElementWithOffset } from '@/utils/scroll-utils'
 import styles from './IssueCover.module.scss'
 
 interface IssueCoverProps {
-    imageSrc: string
+    /**
+     * The rendered cover art. Passed in as an element because this is a client
+     * component and the blur placeholder has to be resolved on the server.
+     */
+    cover: ReactNode
     imageArtist?: string
     articles: {
         id: string
@@ -15,7 +19,7 @@ interface IssueCoverProps {
     }[]
 }
 
-export default function IssueCover({ imageSrc, imageArtist, articles }: IssueCoverProps) {
+export default function IssueCover({ cover, imageArtist, articles }: IssueCoverProps) {
     const goToElementWithBorder = (elementId: string) => {
         const element = document.getElementById(elementId)
         if (!element) return
@@ -31,7 +35,7 @@ export default function IssueCover({ imageSrc, imageArtist, articles }: IssueCov
     return (
         <div className={styles.middle}>
             <div>
-                <Image src={imageSrc} alt="Issue Cover" width={600} height={800} />
+                {cover}
                 {imageArtist && (
                     <div style={{ fontSize: '0.95rem', fontStyle: 'italic', color: '#666', marginTop: '0.5rem', textAlign: 'center' }}>
                         Art by {imageArtist}
