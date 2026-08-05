@@ -71,6 +71,11 @@
     font-size: clamp(0.9375rem, 1.2vw, 1.2rem) !important;
     margin-top: 0 !important;
     font-weight: 500 !important;
+    // 21px tall on a phone. Sits on its own line under the title with no text
+    // around it, so the inline-in-a-sentence exemption does not apply.
+    // Selector depth must match the rule above -- a media query adds no
+    // specificity, so a bare `.previewAuthor` would lose to `display: flex`.
+    @include bp.tap-target;
 }
 
 .articlePreview .previewTitle .previewAuthor:hover {

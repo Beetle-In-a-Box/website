@@ -24,6 +24,11 @@
 .floatingBar a {
     color: #1a1a1a;
     text-decoration: none;
+    // These render 16px tall from their line box alone -- the smallest targets
+    // on the site, and they are on every page. Standalone links in a row, so
+    // none of them qualify for WCAG 2.5.8's inline-in-a-sentence exemption.
+    // Only takes effect on a touch pointer; see the mixin.
+    @include bp.tap-target;
 }
 
 .floatingBar a:hover {

@@ -74,6 +74,31 @@ $min-supported: 320px;
     }
 }
 
+// --- Touch targets -----------------------------------------------------------
+//
+// WCAG 2.5.8 (AA) wants interactive targets to be at least 24x24 CSS px. Note
+// the commonly-quoted 44x44 is 2.5.5, which is AAA -- measuring against 44
+// flags most of a text-heavy site and buries the real failures.
+//
+// The standard exempts a target that "is in a sentence or its size is otherwise
+// constrained by the line-height of non-target text". That covers footnote
+// markers, links inside article prose, the `READ MORE` at the end of a preview
+// excerpt, and the `By <name> | Staff Writer` byline -- none of those can be
+// enlarged without breaking the line they sit in. Do NOT apply this mixin to
+// them. It is for standalone links that merely happen to be short.
+//
+// Scoped to `pointer: coarse` on purpose: the desktop composition is signed off,
+// and a mouse does not need a finger-sized hit area. A desktop browser cannot
+// match this query, so this can never change the approved desktop rendering --
+// including when a desktop window is merely resized narrow.
+@mixin tap-target($min: 24px) {
+    @media (pointer: coarse) {
+        display: inline-flex;
+        align-items: center;
+        min-height: $min;
+    }
+}
+
 // --- Deprecated aliases ------------------------------------------------------
 //
 // Kept ONLY so the migration can land file by file without breaking the build
