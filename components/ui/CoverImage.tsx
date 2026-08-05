@@ -1,5 +1,4 @@
 import { getBlurDataUrl, VARIANT_WIDTHS } from '@/utils/image-variants'
-import FadingImage from './FadingImage'
 import styles from './CoverImage.module.scss'
 
 interface CoverImageProps {
@@ -30,6 +29,13 @@ const UPLOAD_PREFIX = '/images/'
  *
  * Images served from public/ rather than uploads/ have no derivatives, so they
  * render as an ordinary <img> with no srcset and no placeholder.
+ *
+ * Rendered entirely on the server, with no client component in the picture:
+ * the <img> is visible by default (no opacity-gated "loaded" state to wait
+ * on), so cover art shows up even with JavaScript disabled or on a hydration
+ * failure. The blur placeholder is an inline background-image behind it and
+ * the real image simply paints over it as it decodes - the browser does that
+ * for free, no fade-in script required.
  */
 export default async function CoverImage({
     src,
@@ -65,13 +71,15 @@ export default async function CoverImage({
                     : undefined
             }
         >
-            <FadingImage
+            <img
                 src={displaySrc}
                 srcSet={srcSet}
                 sizes={isUpload ? sizes : undefined}
                 alt={alt}
                 loading={priority ? 'eager' : 'lazy'}
-                fit={fit}
+                decoding="async"
+                className={styles.image}
+                style={{ objectFit: fit }}
             />
         </span>
     )

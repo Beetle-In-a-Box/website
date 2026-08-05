@@ -1,6 +1,8 @@
 import { describe, it, expect, afterAll, beforeAll } from 'bun:test'
 import { render } from '@testing-library/react'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { mkdir, writeFile, rm } from 'fs/promises'
+import { readFileSync, existsSync } from 'fs'
 import { join } from 'path'
 import CoverImage from '@/components/ui/CoverImage'
 import {
@@ -156,6 +158,62 @@ describe('CoverImage', () => {
         )
 
         expect(container.querySelector('a')).toBeNull()
+    })
+
+    it('renders the real image in the pre-hydration markup, not gated behind any client component', async () => {
+        // renderToStaticMarkup mirrors exactly what the server sends before
+        // any hydration runs - the same representation `curl` sees against a
+        // production build, with no React event handlers or effects having
+        // ever fired. Confirms the real image (not just the blur
+        // placeholder) is part of that very first, non-hydrated paint - the
+        // half of the requirement that "the blur must not stand in for the
+        // image".
+        const html = renderToStaticMarkup(
+            await CoverImage({
+                src: `/images/${FIXTURE}`,
+                alt: 'Cover art',
+                sizes: '300px',
+            }),
+        )
+
+        const imgTag = html.match(/<img[^>]*>/)?.[0]
+        expect(imgTag).toBeDefined()
+
+        expect(imgTag).toContain(`src="/images/${FIXTURE}?w=800"`)
+    })
+
+    it('has no client component or opacity-0 default standing between render and visibility', () => {
+        // This is the test that actually pins the fix: it fails against the
+        // pre-fix source. (renderToStaticMarkup above can't do that job
+        // itself - Bun's test runner doesn't resolve .module.scss into real
+        // CSS Modules, so a rendered class name can't be checked against
+        // computed opacity in this environment; this checks the source
+        // directly instead, which no test-environment quirk can mask.)
+        //
+        // The original bug had two halves:
+        // (1) CoverImage.tsx rendered a 'use client' FadingImage component
+        //     that started `opacity: 0` and only became visible after a
+        //     load event or a post-mount effect fired - neither of which
+        //     runs without successful hydration.
+        // (2) CoverImage.module.scss expressed that gate as
+        //     `.image { opacity: 0 }` + `.loaded { opacity: 1 }`.
+        // Assert neither half is back, however the component gets
+        // refactored later.
+        const componentSource = readFileSync(
+            join(import.meta.dir, '../../components/ui/CoverImage.tsx'),
+            'utf-8',
+        )
+        const scssSource = readFileSync(
+            join(import.meta.dir, '../../components/ui/CoverImage.module.scss'),
+            'utf-8',
+        )
+
+        expect(componentSource).not.toContain('FadingImage')
+        expect(existsSync(join(import.meta.dir, '../../components/ui/FadingImage.tsx'))).toBe(
+            false,
+        )
+        expect(scssSource).not.toMatch(/opacity:\s*0\b/)
+        expect(scssSource).not.toContain('.loaded')
     })
 
     it('renders a public asset plainly, with no variants and no blur', async () => {

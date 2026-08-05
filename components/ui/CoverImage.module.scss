@@ -18,18 +18,4 @@
     display: block;
     width: 100%;
     height: 100%;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-}
-
-.loaded {
-    opacity: 1;
-}
-
-/* Someone who has asked for reduced motion gets the image immediately rather
-   than a cross-fade. */
-@media (prefers-reduced-motion: reduce) {
-    .image {
-        transition: none;
-    }
 }
