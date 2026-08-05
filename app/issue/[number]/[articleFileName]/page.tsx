@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation'
-import Image from 'next/image'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
 import NavBar from '@/components/layout/NavBar'
@@ -12,6 +11,7 @@ import ArticleAuthor from '@/components/article/ArticleAuthor'
 import ArticleContent from '@/components/article/ArticleContent'
 import ArticleHtmlContent from '@/components/article/ArticleHtmlContent'
 import FootnoteHandler from '@/components/article/FootnoteHandler'
+import CoverImage from '@/components/ui/CoverImage'
 import { prisma } from '@/utils/prisma'
 import { convertArticleDocx } from '@/utils/docx-utils'
 import { formatIssueDate } from '@/utils/date-utils'
@@ -118,12 +118,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 <ArticleAuthor author={article.author} role="Staff Writer" />
                 {article.imageUrl && (
                     <div className={styles.imageWrapper}>
-                        <Image
+                        <CoverImage
                             src={article.imageUrl}
                             alt={article.title}
-                            width={800}
-                            height={600}
-                            style={{ width: '100%', height: 'auto', maxWidth: '600px' }}
+                            sizes="(max-width: 700px) 90vw, 600px"
+                            fit="contain"
+                            priority
+                            linkToFullRes
                         />
                         {article.imageArtist && (
                             <div className={styles.imageArtist}>

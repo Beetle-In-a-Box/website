@@ -9,6 +9,18 @@
     align-items: center;
 }
 
+.imageWrapper a,
+.imageWrapper [data-cover-wrapper] {
+    display: block;
+    width: 100%;
+    max-width: 600px;
+}
+
+.imageWrapper img {
+    width: 100%;
+    height: auto;
+}
+
 .imageArtist {
     text-align: center;
     font-size: 0.95rem;

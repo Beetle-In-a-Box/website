@@ -30,7 +30,9 @@ export default function ArticleCard({ article, onDelete, onTogglePublished }: Ar
         >
             {article.imageUrl && (
                 <div className={styles.cardImage}>
-                    <img src={article.imageUrl} alt={article.title} />
+                    {/* Admin lists only need a thumbnail; ?w=400 keeps the
+                        dashboard from pulling multi-megabyte originals. */}
+                    <img src={`${article.imageUrl}?w=400`} alt={article.title} />
                 </div>
             )}
             <div className={styles.cardInfo}>

@@ -1,4 +1,5 @@
 import Link from '@/components/ui/Link'
+import CoverImage from '@/components/ui/CoverImage'
 import { formatIssueDate } from '@/utils/date-utils'
 import styles from './IssueListItem.module.scss'
 
@@ -22,9 +23,12 @@ export default function IssueListItem({
     return (
         <div className={styles.issueListItem}>
             <Link href={`/issue/${number}`} className={styles.thumbnailLink}>
-                <div
+                <CoverImage
+                    src={imageUrl}
+                    alt={`Cover of issue ${number}`}
                     className={styles.thumbnail}
-                    style={{ backgroundImage: `url('${imageUrl}')` }}
+                    fit="cover"
+                    sizes="15vw"
                 />
             </Link>
             <div className={styles.metadata}>
