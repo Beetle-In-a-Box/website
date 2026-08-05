@@ -1,7 +1,7 @@
 import { join } from 'path'
 import type { Sharp } from 'sharp'
 import { existsSync } from 'fs'
-import { mkdir, readFile, writeFile } from 'fs/promises'
+import { mkdir, readFile, writeFile, rm } from 'fs/promises'
 import { basename } from 'path'
 
 /**
@@ -180,5 +180,112 @@ async function generateVariant(
     } catch (error) {
         console.error(`Failed to generate ${width}px variant of ${name}:`, error)
         return null
+    }
+}
+
+/**
+ * Memoised blur URIs, keyed by filename.
+ *
+ * Uploaded filenames are immutable (they carry an upload timestamp), so a value
+ * cached here can never go stale. `null` is cached too, so a missing file does
+ * not re-hit the disk on every render of a page that references it.
+ */
+const blurCache = new Map<string, string | null>()
+
+/**
+ * Return a tiny blurred preview of an uploaded image as a data URI, suitable for
+ * inlining into server-rendered HTML as a placeholder.
+ *
+ * Roughly 300 bytes. Cached on disk and in memory. Returns null when the source
+ * is missing or sharp is unavailable, in which case the caller renders without a
+ * placeholder rather than failing.
+ */
+export async function getBlurDataUrl(filename: string): Promise<string | null> {
+    const name = safeName(filename)
+    if (!name) return null
+
+    const cached = blurCache.get(name)
+    const cachePath = join(variantsDir(), `${name}@blur.txt`)
+    if (cached !== undefined && existsSync(cachePath)) return cached
+
+    const value = await resolveBlurDataUrl(name)
+    blurCache.set(name, value)
+    return value
+}
+
+async function resolveBlurDataUrl(name: string): Promise<string | null> {
+    const cachePath = join(variantsDir(), `${name}@blur.txt`)
+
+    if (existsSync(cachePath)) {
+        try {
+            return (await readFile(cachePath, 'utf8')).trim() || null
+        } catch {
+            // Fall through and regenerate.
+        }
+    }
+
+    const sourcePath = join(imagesDir(), name)
+    if (!existsSync(sourcePath)) return null
+
+    const sharp = await loadSharp()
+    if (!sharp) return null
+
+    try {
+        const buffer = await sharp(sourcePath)
+            .rotate()
+            .resize({ width: BLUR_WIDTH, withoutEnlargement: true })
+            .webp({ quality: BLUR_QUALITY })
+            .toBuffer()
+
+        const uri = `data:image/webp;base64,${buffer.toString('base64')}`
+        await mkdir(variantsDir(), { recursive: true })
+        await writeFile(cachePath, uri, 'utf8')
+        return uri
+    } catch (error) {
+        console.error(`Failed to generate blur placeholder for ${name}:`, error)
+        return null
+    }
+}
+
+/**
+ * Generate every derivative for an image up front.
+ *
+ * Called after an upload so the first visitor is not the one paying to encode
+ * four files. Deliberately swallows every failure: a missing derivative is a
+ * slower page, not a broken one.
+ */
+export async function warmVariants(filename: string): Promise<void> {
+    const name = safeName(filename)
+    if (!name) return
+
+    try {
+        await Promise.all([
+            ...VARIANT_WIDTHS.map(width => getVariant(name, width)),
+            getBlurDataUrl(name),
+        ])
+    } catch (error) {
+        console.error(`Failed to warm variants for ${name}:`, error)
+    }
+}
+
+/**
+ * Remove every derivative of an image. Called when the original is deleted so
+ * the cache does not accumulate orphans.
+ */
+export async function deleteVariants(filename: string): Promise<void> {
+    const name = safeName(filename)
+    if (!name) return
+
+    blurCache.delete(name)
+
+    try {
+        await Promise.all([
+            ...VARIANT_WIDTHS.map(width =>
+                rm(join(variantsDir(), `${name}@${width}.webp`), { force: true }),
+            ),
+            rm(join(variantsDir(), `${name}@blur.txt`), { force: true }),
+        ])
+    } catch (error) {
+        console.error(`Failed to delete variants for ${name}:`, error)
     }
 }

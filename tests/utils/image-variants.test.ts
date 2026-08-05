@@ -6,6 +6,9 @@ import {
     getVariant,
     imagesDir,
     variantsDir,
+    getBlurDataUrl,
+    warmVariants,
+    deleteVariants,
     type VariantWidth,
 } from '@/utils/image-variants'
 import { mkdir, writeFile, rm } from 'fs/promises'
@@ -144,5 +147,80 @@ describe('getVariant', () => {
         expect(existsSync('/tmp/pwned.webp')).toBe(false)
 
         expect(await getVariant(FIXTURE, 401 as VariantWidth)).toBeNull()
+    })
+})
+
+describe('getBlurDataUrl', () => {
+    beforeEach(async () => {
+        await writeFixture()
+    })
+
+    afterEach(async () => {
+        await cleanupFixture()
+    })
+
+    it('returns a WebP data URI that is small enough to inline', async () => {
+        const uri = await getBlurDataUrl(FIXTURE)
+
+        expect(uri).not.toBeNull()
+        expect(uri!.startsWith('data:image/webp;base64,')).toBe(true)
+        // Inlined into server-rendered HTML once per image - keep it tiny.
+        expect(uri!.length).toBeLessThan(1024)
+    })
+
+    it('returns null for a missing source file', async () => {
+        expect(await getBlurDataUrl('does-not-exist-9999.png')).toBeNull()
+    })
+
+    it('refuses a filename containing a path separator', async () => {
+        expect(await getBlurDataUrl('../../.env')).toBeNull()
+    })
+
+    it('returns the same value on a second call', async () => {
+        const first = await getBlurDataUrl(FIXTURE)
+        const second = await getBlurDataUrl(FIXTURE)
+
+        expect(second).toBe(first)
+    })
+})
+
+describe('warmVariants and deleteVariants', () => {
+    beforeEach(async () => {
+        await writeFixture()
+    })
+
+    afterEach(async () => {
+        await cleanupFixture()
+    })
+
+    it('warmVariants creates every width plus the blur', async () => {
+        await warmVariants(FIXTURE)
+
+        for (const width of VARIANT_WIDTHS) {
+            expect(
+                existsSync(join(variantsDir(), `${FIXTURE}@${width}.webp`)),
+            ).toBe(true)
+        }
+        expect(existsSync(join(variantsDir(), `${FIXTURE}@blur.txt`))).toBe(true)
+    })
+
+    it('warmVariants does not throw on a missing source', async () => {
+        await warmVariants('does-not-exist-9999.png')
+    })
+
+    it('deleteVariants removes every derivative', async () => {
+        await warmVariants(FIXTURE)
+        await deleteVariants(FIXTURE)
+
+        for (const width of VARIANT_WIDTHS) {
+            expect(
+                existsSync(join(variantsDir(), `${FIXTURE}@${width}.webp`)),
+            ).toBe(false)
+        }
+        expect(existsSync(join(variantsDir(), `${FIXTURE}@blur.txt`))).toBe(false)
+    })
+
+    it('deleteVariants does not throw when nothing exists', async () => {
+        await deleteVariants('does-not-exist-9999.png')
     })
 })
