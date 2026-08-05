@@ -1,5 +1,13 @@
 .title {
-    font-size: 5vh;
+    // Sized against viewport WIDTH, not height -- same fix already applied to
+    // the NavBar wordmark. `5vh` ties size to how TALL the screen is, which
+    // has nothing to do with the width the title actually has to fit into, so
+    // it rendered oversized on short/narrow phones. The floor keeps titles
+    // (including long article titles) legible at 320px; 5vh stays as the
+    // ceiling, so desktop is unchanged -- at any realistic desktop aspect
+    // ratio 6vw exceeds 5vh, so the ceiling is what actually renders, exactly
+    // as before.
+    font-size: clamp(1.5rem, 6vw, 5vh);
     font-family: 'Playfair Display', serif;
     color: #000000;
     font-weight: 400;

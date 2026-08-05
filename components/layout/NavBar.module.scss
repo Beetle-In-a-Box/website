@@ -1,31 +1,44 @@
+@use 'breakpoints' as bp;
+
 .navBar {
     display: grid;
-    height: 20vh;
+    height: var(--nav-height);
     grid-auto-flow: column;
     color: black;
     background-color: white;
     position: fixed;
-    width: 100vw;
+    // 100% of the containing block, not 100vw. 100vw includes the scrollbar
+    // gutter, so on any platform with classic (non-overlay) scrollbars the bar
+    // was ~15px wider than the page and pushed a horizontal scroll that
+    // body{overflow-x:hidden} then had to hide.
+    width: 100%;
     cursor: pointer;
     z-index: 1;
 }
 
 .navBar h1 {
-    font-size: 5vh;
+    // Sized against viewport WIDTH, not height. `5vh` tied the masthead's size
+    // to how tall the screen was, so on a phone it rendered large text into a
+    // narrow column and overflowed. The clamp floor keeps it legible at 320px
+    // and the ceiling preserves the desktop size.
+    font-size: clamp(1.15rem, 4.4vw, 5vh);
     font-weight: 200;
-    letter-spacing: 5px;
+    // Letter-spacing has to come down with the type or the wordmark stays too
+    // wide to fit however small the glyphs get.
+    letter-spacing: clamp(1px, 0.45vw, 5px);
     margin: 0;
+    white-space: nowrap;
     transform: translateX(-0.15vh);
 }
 
 .navBar h3 {
-    font-size: clamp(0.9rem, 1.5vw, 2vh);
+    font-size: clamp(0.7rem, 1.5vw, 2vh);
     font-weight: 200;
 }
 
 .navBar p {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(0.8rem, 1.5vw, 1.7vh);
+    font-size: clamp(0.5rem, 1.5vw, 1.7vh);
     text-align: left;
 }
 
@@ -79,3 +92,53 @@
     height: 100%;
     object-fit: contain;
 }
+
+// --- Responsive -------------------------------------------------------------
+//
+// The bar is a 7-column grid: leftSide (1) + center (spans 5) + rightSide (1).
+// Below tablet there is not enough width for the flanking text AND a legible
+// masthead, so the flanks are dropped and the masthead gets the full width.
+// The masthead is the identity of the page; "BERKELEY, CA" and the issue date
+// are not, and the date is still shown on the issue and archive pages.
+
+@include bp.tablet {
+    .navBar h1 {
+        letter-spacing: clamp(1px, 0.3vw, 3px);
+    }
+
+    .centerContent {
+        gap: 1.5vh;
+    }
+}
+
+@include bp.phone {
+    .navBar {
+        // Collapse the three columns to one so the centre is not squeezed
+        // between two siblings that are about to be hidden anyway.
+        grid-auto-flow: row;
+        grid-template-columns: 1fr;
+        padding: 0 4vw;
+    }
+
+    .navBar .leftSide,
+    .navBar .rightSide {
+        display: none;
+    }
+
+    .navBar .center {
+        // The span-5 from the desktop grid is meaningless in a single column
+        // and makes the item overflow its track if left in place.
+        grid-column: 1 / -1;
+    }
+
+    .centerContent {
+        gap: 3vw;
+        // Never let the logo + wordmark exceed the bar itself.
+        max-width: 100%;
+    }
+
+    .textContainer {
+        min-width: 0;
+    }
+}
+

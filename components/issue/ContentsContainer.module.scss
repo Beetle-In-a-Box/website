@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 .contentsContainer {
     display: flex;
     flex-direction: column;
@@ -9,7 +11,12 @@
     // footer never reached the bottom. `0 auto` means grow but never shrink
     // below the content, so tall pages are unaffected.
     flex: 1 0 auto;
-    margin-top: 20vh;
+    // Was a hardcoded 20vh that happened to match the fixed nav's desktop
+    // height. The nav's real height now varies by breakpoint (see
+    // --nav-height in app/globals.css), so read it from the custom property
+    // instead of re-guessing it here - otherwise content sits under the nav
+    // on tablet/phone where the nav is shorter than 20vh.
+    margin-top: var(--nav-height);
     align-self: center;
     gap: 8vh;
 }
@@ -35,6 +42,17 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     column-gap: 5vw;
+}
+
+@include bp.phone {
+    // At phone widths this column is only ~150-160px wide (70vw of a 480px
+    // viewport, split in two) - too narrow for the image + numbered list to
+    // stay readable side by side, so stack them instead.
+    .contentsContainer .middle {
+        grid-template-columns: 1fr;
+        column-gap: 0;
+        row-gap: 20px;
+    }
 }
 
 .contentsContainer .middle img {

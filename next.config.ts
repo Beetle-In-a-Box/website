@@ -1,8 +1,14 @@
 import type { NextConfig } from 'next'
+import { join } from 'path'
 
 const nextConfig: NextConfig = {
     turbopack: {
         root: __dirname,
+    },
+    // Lets every CSS module reach the shared responsive breakpoints with a bare
+    // `@use 'breakpoints'` instead of counting ../ segments from its own depth.
+    sassOptions: {
+        includePaths: [join(__dirname, 'styles')],
     },
     // No `images` block: nothing in this app uses next/image. Cover art and the
     // logo go through our own variant pipeline (see utils/image-variants.ts),

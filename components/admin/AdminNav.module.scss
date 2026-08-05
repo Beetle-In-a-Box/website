@@ -1,5 +1,7 @@
 // Admin Navigation Styles
 
+@use 'breakpoints' as bp;
+
 .nav {
     width: 250px;
     height: 100vh;
@@ -88,7 +90,11 @@
 }
 
 // Responsive
-@media (max-width: 768px) {
+// Pre-existing breakpoint was already 768px, so this is a straight migration to the
+// shared mixin — no behavior change. Below this, the nav is a full-width, relatively
+// positioned block with no fixed-width children, so it never causes horizontal
+// overflow on its own down to 320px — no further phone-specific rules needed here.
+@include bp.tablet {
     .nav {
         width: 100%;
         height: auto;

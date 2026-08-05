@@ -1,8 +1,20 @@
+@use 'breakpoints' as bp;
+
 .middle {
     display: grid;
     grid-template-columns: 1fr 1fr;
     column-gap: 5vw;
     margin-top: -5vh;
+}
+
+@include bp.phone {
+    // Cover image + author/contents column become too narrow to read side by
+    // side under ~480px, so stack them instead.
+    .middle {
+        grid-template-columns: 1fr;
+        column-gap: 0;
+        row-gap: 20px;
+    }
 }
 
 .middle img {

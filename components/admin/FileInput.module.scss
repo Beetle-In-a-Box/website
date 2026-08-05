@@ -1,5 +1,7 @@
 // File Input Component Styles
 
+@use 'breakpoints' as bp;
+
 .formGroup {
     margin-bottom: 1.5rem;
 
@@ -48,5 +50,25 @@
 
     &:hover {
         background: #5a6268;
+    }
+}
+
+@include bp.phone {
+    // The native file control's own width isn't set anywhere, so a browser that
+    // renders the picked filename inline (rather than truncating it) can push past
+    // the screen edge.
+    .fileInput {
+        max-width: 100%;
+    }
+
+    .selectedFile {
+        // A long original filename (e.g. a scanned document name) is one
+        // unbreakable token with no spaces — let it wrap under the Clear button
+        // instead of forcing the row wider than the screen.
+        flex-wrap: wrap;
+
+        span {
+            overflow-wrap: anywhere;
+        }
     }
 }

@@ -1,5 +1,7 @@
 // Admin Panel Styles
 
+@use 'breakpoints' as bp;
+
 // Navigation
 .nav {
     width: 250px;
@@ -568,7 +570,9 @@
 }
 
 // Responsive
-@media (max-width: 768px) {
+// Pre-existing breakpoint was already 768px, so this is a straight migration to the
+// shared mixin — no behavior change.
+@include bp.tablet {
     .nav {
         width: 100%;
         height: auto;
@@ -597,5 +601,31 @@
     .loginBox {
         padding: 2rem;
         margin: 1rem;
+    }
+}
+
+@include bp.phone {
+    // Two buttons ("Create Issue" + "Cancel", etc.) no longer fit side by side once
+    // the 800px-max form is squeezed to a 320px screen — let them stack instead of
+    // overflowing.
+    .formActions {
+        flex-wrap: wrap;
+    }
+
+    // A native <select> sizes to its longest option (e.g. a full issue title) and
+    // ignores its flex container, so it can push wider than the screen unless
+    // constrained explicitly.
+    .filterControls {
+        flex-wrap: wrap;
+
+        select {
+            width: 100%;
+        }
+    }
+
+    // Two full-width primary buttons ("Create New Issue" + "Create New Article")
+    // don't fit side by side at phone width.
+    .actionList {
+        flex-wrap: wrap;
     }
 }

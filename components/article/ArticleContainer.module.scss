@@ -1,15 +1,25 @@
+@use 'breakpoints' as bp;
+
 .articleContainer {
     display: flex;
     flex-direction: column;
     width: 37.5vw;
     height: 100%;
-    margin-top: 20vh;
+    // Was a hardcoded 20vh duplicating the fixed nav bar's own height, so the
+    // two could drift apart. Reads the shared value instead, which also
+    // means narrower screens automatically get the shorter header offset.
+    margin-top: var(--nav-height);
     align-self: center;
     gap: 15px;
 }
 
 .articleContainer .title {
-    font-size: 6vh;
+    // 6vh sized this off viewport HEIGHT, so two phones with the same width
+    // but different heights rendered different title sizes for no reason
+    // tied to the text's actual line-wrapping. clamp() scales by width
+    // instead; 6vh is kept as the ceiling purely so desktop keeps rendering
+    // the old flat value (the vw term always exceeds it there).
+    font-size: clamp(1.75rem, 8vw, 6vh);
     font-family: "Vidaloka", serif;
 }
 
@@ -34,4 +44,22 @@
 
 .articleContainer .authorAttr .bold:hover {
     text-decoration: underline;
+}
+
+@include bp.tablet {
+    .articleContainer {
+        // 37.5vw of a tablet-width viewport is an uncomfortably narrow
+        // column for long-form text; widen it so lines aren't tiny slivers.
+        width: 85%;
+    }
+}
+
+@include bp.phone {
+    .articleContainer {
+        // A percentage keeps shrinking as the viewport does. Below tablet
+        // width switch to a fixed side gutter instead, so the column stays
+        // readable rather than narrowing further down to 320px.
+        width: 100%;
+        padding: 0 20px;
+    }
 }

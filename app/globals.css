@@ -4,8 +4,39 @@
 @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Vidaloka&display=swap');
 
+:root {
+    /*
+     * Height of the fixed nav bar. NavBar sets its height from this and every
+     * page container offsets its top margin by it, so the two can no longer
+     * drift apart -- previously both hardcoded 20vh in separate files and
+     * changing one silently overlapped the content under the header.
+     *
+     * Desktop deliberately keeps the original 20vh exactly, so the signed-off
+     * desktop layout is untouched. Only narrower screens reduce it, where a
+     * fifth of the viewport spent on a header is too expensive.
+     */
+    --nav-height: 20vh;
+}
+
+@media (max-width: 768px) {
+    :root {
+        --nav-height: max(80px, 16vh);
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        --nav-height: max(72px, 15vh);
+    }
+}
+
 body {
     margin: 0;
+    /*
+     * Kept as a safety net, not as the fix. Real overflow is corrected at
+     * source in the component stylesheets; this only stops a single stray
+     * element from producing a horizontally scrollable page on a phone.
+     */
     overflow-x: hidden;
     font-family: 'Source Serif 4', serif;
     color: #1a1a1a;

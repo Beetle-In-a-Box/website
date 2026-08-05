@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 .footer {
     background-color: white;
     color: gray;
@@ -23,4 +25,39 @@
 
 .ocfLink {
     display: inline-block;
+}
+
+// --- Responsive ---------------------------------------------------------
+//
+// Text and padding already scale fine at narrow widths (nothing here is a
+// fixed px width, and footerContent is already a column, not a row, so there
+// is no row-to-column collapse needed). What actually needs to come down on
+// small screens is the footer's own height: `line-height: 2.2` is generous
+// vertical spacing that costs little on desktop but eats scarce space on a
+// phone, where this footer sits directly below the fixed FloatingBar pill
+// (see FloatingBar.module.scss) and a taller footer means more chance of the
+// two colliding.
+@include bp.phone {
+    .footer {
+        padding-left: 4vw;
+        padding-right: 4vw;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        line-height: 1.6;
+        font-size: 0.8rem;
+    }
+
+    .footerContent {
+        gap: 1rem;
+    }
+}
+
+// Landscape phones: height is the scarce axis, so the footer's footprint
+// comes down further still.
+@include bp.short {
+    .footer {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        line-height: 1.4;
+    }
 }

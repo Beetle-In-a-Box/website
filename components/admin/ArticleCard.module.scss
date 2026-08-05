@@ -1,5 +1,7 @@
 // Article Card Component Styles
 
+@use 'breakpoints' as bp;
+
 .card {
     background: white;
     border-radius: 8px;
@@ -119,8 +121,34 @@
 }
 
 // Responsive
-@media (max-width: 768px) {
+// Pre-existing breakpoint was already 768px, so this is a straight migration to the
+// shared mixin — no behavior change.
+@include bp.tablet {
     .cardActions {
         flex-wrap: wrap;
+    }
+}
+
+@include bp.phone {
+    // The image+text row stays side-by-side even in the single-column grid; a fixed
+    // 80px thumbnail leaves very little room for text on a 320px screen, and a flex
+    // item won't shrink below its content's intrinsic width by default, so a long
+    // title (or an unbroken word within one) can push the card wider than the
+    // viewport. Shrink the thumbnail and let title text actually wrap.
+    .cardContent {
+        gap: 0.75rem;
+    }
+
+    .cardImage {
+        width: 56px;
+        height: 56px;
+    }
+
+    .cardInfo {
+        min-width: 0;
+
+        h3 {
+            overflow-wrap: break-word;
+        }
     }
 }

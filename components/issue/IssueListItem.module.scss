@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 .issueListItem {
     display: grid;
     grid-template-columns: clamp(120px, 15vw, 200px) 1fr;
@@ -111,8 +113,10 @@
     }
 }
 
-// Responsive adjustments for very small screens
-@media (max-width: 480px) {
+// Responsive adjustments for very small screens - via the shared breakpoints
+// partial rather than a hand-rolled 480px query, so this stays in sync with
+// bp.phone everywhere else on the site.
+@include bp.phone {
     .issueListItem {
         grid-template-columns: auto 1fr;
         gap: 1rem;

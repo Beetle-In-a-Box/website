@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 .floatingBar {
     position: fixed;
     bottom: 6vh;
@@ -28,4 +30,38 @@
     text-decoration: underline;
     font-size: medium;
     cursor: pointer;
+}
+
+// --- Responsive ---------------------------------------------------------
+//
+// Five items ("Back to Top | About Us | Latest | Archive | Apply") is a lot
+// of text for a pill anchored 10px from the right edge. Below ~480px there
+// isn't room on one line, so the pill shrinks and is allowed to wrap instead
+// of pushing its left edge past the screen -- a right-anchored fixed element
+// that overflows to the left doesn't produce a scrollbar, it just gets
+// silently clipped by the viewport, so the leftmost links become invisible
+// and untappable instead of merely overflowing.
+@include bp.phone {
+    .floatingBar {
+        // `right` stays fixed, so capping width this way keeps the pill's
+        // left edge from ever going past x=0, whatever the content does.
+        min-width: 0;
+        max-width: calc(100vw - 20px);
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 4px 8px;
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+}
+
+// Landscape phones: height is the scarce axis here, and this pill competes
+// with the footer for it (see Footer.module.scss), so its own footprint
+// comes down too even though it still fits on one line at this width.
+@include bp.short {
+    .floatingBar {
+        bottom: 1.5vh;
+        padding: 4px 8px;
+        gap: 6px;
+    }
 }

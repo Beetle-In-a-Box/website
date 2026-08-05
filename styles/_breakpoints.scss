@@ -1,0 +1,49 @@
+// Shared responsive breakpoints.
+//
+// Usage from any CSS module:
+//   @use 'breakpoints' as bp;
+//   .thing { ... }
+//   @include bp.phone { .thing { ... } }
+//
+// Resolved via `sassOptions.includePaths` in next.config.ts, so the import
+// specifier is bare ('breakpoints') from every file regardless of depth.
+//
+// The site is designed mobile-up in behaviour but written desktop-first in
+// source, because the existing desktop rules are the ones already reviewed and
+// signed off. These mixins therefore describe "at most" widths.
+
+// Narrowest device we support. Below this we simply let content scroll.
+$min-supported: 320px;
+
+$phone: 480px;
+$tablet: 768px;
+$desktop: 1024px;
+
+/// Phones, portrait. Down to 320px.
+@mixin phone {
+    @media (max-width: $phone) {
+        @content;
+    }
+}
+
+/// Phones and tablets — anything narrower than a small laptop.
+@mixin tablet {
+    @media (max-width: $tablet) {
+        @content;
+    }
+}
+
+/// Small laptops and below.
+@mixin desktop-down {
+    @media (max-width: $desktop) {
+        @content;
+    }
+}
+
+/// Short viewports — phones in landscape, where vertical space is the scarce
+/// axis and a tall fixed header would eat the screen.
+@mixin short {
+    @media (max-height: 500px) {
+        @content;
+    }
+}
