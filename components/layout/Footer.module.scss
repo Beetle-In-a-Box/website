@@ -6,7 +6,14 @@
     padding-left: 2vw;
     padding-right: 2vw;
     padding-top: 2vh;
-    padding-bottom: 2vh;
+    // Clears the fixed FloatingBar, anchored 6vh above the viewport bottom.
+    // Applies at EVERY width, not just phones: measured overlapping footer
+    // text at 1101/1280/1440 too. Pinning the footer to the viewport bottom
+    // (margin-top: auto, below) is what brings it under the pill on any page
+    // too short to scroll -- the empty archive state, for instance -- where
+    // the pill's scroll-away never fires. Reserving its footprint is the only
+    // thing that guarantees they never collide.
+    padding-bottom: calc(6vh + 3.5rem);
     // Soaks up whatever vertical space MainContainer's min-height leaves over,
     // pinning the footer to the bottom of the viewport on short pages. On pages
     // that already overflow the viewport there is no free space to absorb, so
@@ -42,7 +49,7 @@
         padding-left: 4vw;
         padding-right: 4vw;
         padding-top: 1rem;
-        padding-bottom: 1rem;
+        padding-bottom: calc(6vh + 3.5rem);
         line-height: 1.6;
         font-size: 0.8rem;
     }
@@ -57,7 +64,9 @@
 @include bp.short {
     .footer {
         padding-top: 0.5rem;
-        padding-bottom: 0.5rem;
+        // Pill drops to bottom: 1.5vh here and is shorter, so it needs less
+        // clearance than the default -- but not none.
+        padding-bottom: calc(1.5vh + 2.75rem);
         line-height: 1.4;
     }
 }
