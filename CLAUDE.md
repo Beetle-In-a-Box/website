@@ -275,16 +275,43 @@ node -e "const bcrypt = require('bcryptjs'); console.log(bcrypt.hashSync('your-p
 - `validateImageFile(file)` - Validates images (JPEG/PNG/WebP/GIF, max 200MB before compression)
 - `validateDocxFile(file)` - Validates .docx files (max 200MB, non-empty)
 - `validatePdfFile(file)` - Validates PDF files (application/pdf, max 200MB, non-empty)
-- `saveImage(file, issueNumber, prefix)` - Compresses then saves image to `/uploads/images/` with timestamped filename
-- `compressImage(buffer, mimeType)` - Re-encodes an upload for the web: caps the longest edge at
-  `MAX_IMAGE_DIMENSION` (2400px, never upscaling), re-encodes as WebP at `IMAGE_QUALITY` (82), and returns
-  the bytes plus the extension they should be stored under. Animated GIFs pass through untouched (re-encoding
-  would flatten them); undecodable input falls back to the original bytes rather than failing the upload.
-  Typical saving on a phone/scanner original is 80-90%. Because the extension comes from the encoder, a file
-  uploaded without an extension can no longer produce a bogus one.
+- `saveImage(file, issueNumber, prefix)` - Saves the upload as the canonical full-resolution
+  original in `/uploads/images/` with a timestamped filename, then warms its derivatives
+- `storeOriginal(buffer, mimeType)` - Prepares an upload for storage as the full-resolution
+  original: passes bytes through untouched unless the longest edge exceeds
+  `MAX_ORIGINAL_DIMENSION` (4000px), in which case it downscales once. GIFs pass through.
+  This is not where compression happens
 - `saveDocx(file, prefix)` - Saves .docx file to `/uploads/articles/` with timestamped filename
 - `savePdf(file, prefix)` - Saves PDF file to `/uploads/pdfs/` with timestamped filename
 - `deleteFile(publicPath)` - Deletes file from `/uploads/` directory (e.g., `/images/file.jpg` deletes from `/uploads/images/file.jpg`)
+
+### Image variants (`utils/image-variants.ts`)
+
+Compressed, display-sized copies of uploaded images, generated on demand and cached on
+disk under `uploads/images/.variants/`.
+
+- `getVariant(filename, width)` - WebP derivative at an allowlisted width, generated and
+  cached on first request. Returns `null` if sharp is unavailable, so callers fall back to
+  the original
+- `getBlurDataUrl(filename)` - ~300-byte WebP data URI used as a blur-up placeholder,
+  memoised in process and cached on disk
+- `warmVariants(filename)` / `deleteVariants(filename)` - generate all derivatives up
+  front / remove them when the original is deleted
+- `VARIANT_WIDTHS` is an allowlist (`400`, `800`, `1600`). `?w=` comes straight off a URL,
+  so an open parameter would let anyone fill the disk with arbitrary sizes
+- Served by `GET /images/<file>?w=<width>`. **The bare URL always returns the untouched
+  original** - that is what the "open full resolution" links point at
+- Uploaded filenames are immutable (timestamped), so derivatives are cached forever
+- Backfill existing images with `bun run images:backfill`
+
+**Cover art does not use `next/image`.** The platform image optimizer is a measured
+passthrough on the OCF host: a 943 KB PNG requested at `w=640&q=75` with
+`Accept: image/webp` returns 943,700 bytes of `image/png` on a fresh cache MISS, while
+sharp on that same host produces 33,552 bytes from the same file. It affects `public/`
+assets too. `components/ui/CoverImage.tsx` renders a plain `<img srcset>` against these
+derivatives instead. Images inside article body text
+(`components/article/ArticleHtmlContent.tsx`) still use `next/image` and are unaffected by
+this work.
 
 *auth.ts*:
 - `verifyAuth(token)` - Verifies JWT token from cookie, returns boolean
@@ -592,8 +619,9 @@ both resolve to 169.229.226.49). Account: `beetleinabox`. Remote path: `~/myapp/
 
 **Runtime note**: OCF's glibc is too old for Bun, so the deploy installs with `npm`, builds with
 `npx next build`, and runs `server.js` under plain Node via `systemctl --user restart myapp`.
-`sharp` is an optional dependency for the same reason — if its native binary will not install there,
-image compression is skipped and originals are stored uncompressed rather than the build failing.
+`sharp` is an optional dependency for the same reason — if its native binary will not
+install there, derivative generation is skipped and originals are served at full size
+rather than the build failing. As of 2026-08-04 sharp does load on OCF (libvips 8.18.3).
 
 **Deploying Changes**:
 ```bash
