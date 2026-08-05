@@ -39,7 +39,9 @@ export default function IssueCard({
         >
             {issue.imageUrl && (
                 <div className={styles.cardImage}>
-                    <img src={issue.imageUrl} alt={issue.title} />
+                    {/* Admin lists only need a thumbnail; ?w=400 keeps the
+                        dashboard from pulling multi-megabyte originals. */}
+                    <img src={`${issue.imageUrl}?w=400`} alt={issue.title} />
                 </div>
             )}
             <div className={styles.cardInfo}>
