@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, spyOn } from 'bun:test'
-import { validateImageFile, saveImage, MAX_UPLOAD_BYTES } from '@/utils/file-upload'
+import { validateImageFile, saveImage, storeOriginal, deleteFile, MAX_UPLOAD_BYTES } from '@/utils/file-upload'
+import { MAX_ORIGINAL_DIMENSION } from '@/utils/image-variants'
+import * as imageVariants from '@/utils/image-variants'
 import * as fs from 'fs/promises'
 import * as fsSync from 'fs'
 import { restoreMocks } from '../mock-utils'
@@ -7,7 +9,14 @@ import { restoreMocks } from '../mock-utils'
 describe('File Upload Utilities', () => {
     afterEach(() => {
         // Restore all mocks after each test to prevent leaks
-        restoreMocks(fs.mkdir, fs.writeFile, fsSync.existsSync)
+        restoreMocks(
+            fs.mkdir,
+            fs.writeFile,
+            fs.unlink,
+            fsSync.existsSync,
+            imageVariants.warmVariants,
+            imageVariants.deleteVariants,
+        )
     })
     describe('validateImageFile', () => {
         it('should validate a valid JPEG image file', () => {
@@ -201,6 +210,153 @@ describe('File Upload Utilities', () => {
             await expect(saveImage(file, 1, 'test')).rejects.toThrow(
                 'Write failed',
             )
+        })
+
+        it('calls warmVariants with the generated filename after saving', async () => {
+            const warmSpy = spyOn(imageVariants, 'warmVariants').mockResolvedValue(undefined)
+            const file = new File(['fake image content'], 'test.jpg', {
+                type: 'image/jpeg',
+            })
+
+            const result = await saveImage(file, 1, 'article')
+
+            const expectedFilename = result.replace('/images/', '')
+            expect(warmSpy).toHaveBeenCalledTimes(1)
+            expect(warmSpy).toHaveBeenCalledWith(expectedFilename)
+        })
+    })
+
+    describe('deleteFile', () => {
+        beforeEach(() => {
+            spyOn(fsSync, 'existsSync').mockReturnValue(true)
+            spyOn(fs, 'unlink').mockResolvedValue(undefined)
+        })
+
+        it('deletes the derivative cache when removing an image', async () => {
+            const deleteSpy = spyOn(imageVariants, 'deleteVariants').mockResolvedValue(undefined)
+
+            await deleteFile('/images/article-123.jpg')
+
+            expect(fs.unlink).toHaveBeenCalled()
+            expect(deleteSpy).toHaveBeenCalledTimes(1)
+            expect(deleteSpy).toHaveBeenCalledWith('article-123.jpg')
+        })
+
+        it('does not touch the derivative cache when deleting a .docx file', async () => {
+            const deleteSpy = spyOn(imageVariants, 'deleteVariants').mockResolvedValue(undefined)
+
+            await deleteFile('/articles/article-123.docx')
+
+            expect(fs.unlink).toHaveBeenCalled()
+            expect(deleteSpy).not.toHaveBeenCalled()
+        })
+
+        it('does not touch the derivative cache when deleting a PDF file', async () => {
+            const deleteSpy = spyOn(imageVariants, 'deleteVariants').mockResolvedValue(undefined)
+
+            await deleteFile('/pdfs/issue-123.pdf')
+
+            expect(fs.unlink).toHaveBeenCalled()
+            expect(deleteSpy).not.toHaveBeenCalled()
+        })
+    })
+
+    describe('storeOriginal', () => {
+        it('returns the exact input bytes when the image is already within the cap', async () => {
+            const sharp = (await import('sharp')).default
+            const input = await sharp({
+                create: {
+                    width: 800,
+                    height: 600,
+                    channels: 3,
+                    background: { r: 5, g: 5, b: 5 },
+                },
+            })
+                .png()
+                .toBuffer()
+
+            const result = await storeOriginal(input, 'image/png')
+
+            expect(result.extension).toBe('png')
+            expect(result.buffer.equals(input)).toBe(true)
+        })
+
+        it('downscales an image whose longest edge exceeds the cap', async () => {
+            const sharp = (await import('sharp')).default
+            const input = await sharp({
+                create: {
+                    width: 6000,
+                    height: 3000,
+                    channels: 3,
+                    background: { r: 5, g: 5, b: 5 },
+                },
+            })
+                .png()
+                .toBuffer()
+
+            const result = await storeOriginal(input, 'image/png')
+            const meta = await sharp(result.buffer).metadata()
+
+            expect(meta.width).toBe(MAX_ORIGINAL_DIMENSION)
+            expect(meta.height).toBe(MAX_ORIGINAL_DIMENSION / 2)
+        })
+
+        it('passes an animated GIF through untouched', async () => {
+            const input = Buffer.from('GIF89a fake animated bytes')
+
+            const result = await storeOriginal(input, 'image/gif')
+
+            expect(result.extension).toBe('gif')
+            expect(result.buffer.equals(input)).toBe(true)
+        })
+
+        it('stores the original when the bytes cannot be decoded', async () => {
+            const input = Buffer.from('not actually an image')
+
+            const result = await storeOriginal(input, 'image/png')
+
+            expect(result.buffer.equals(input)).toBe(true)
+            expect(result.extension).toBe('png')
+        })
+
+        it('derives the extension from the decoded format on the downscale path, even if the MIME type disagrees', async () => {
+            const sharp = (await import('sharp')).default
+            const input = await sharp({
+                create: {
+                    width: 6000,
+                    height: 3000,
+                    channels: 3,
+                    background: { r: 5, g: 5, b: 5 },
+                },
+            })
+                .png()
+                .toBuffer()
+
+            // The bytes are PNG, but the caller-supplied MIME type says JPEG -
+            // this happens whenever an uploaded file's extension does not match
+            // its real format (e.g. a PNG saved as "photo.jpg").
+            const result = await storeOriginal(input, 'image/jpeg')
+
+            expect(result.extension).toBe('png')
+        })
+
+        it('derives the extension from the decoded format on the passthrough path, even if the MIME type disagrees', async () => {
+            const sharp = (await import('sharp')).default
+            const input = await sharp({
+                create: {
+                    width: 800,
+                    height: 600,
+                    channels: 3,
+                    background: { r: 5, g: 5, b: 5 },
+                },
+            })
+                .png()
+                .toBuffer()
+
+            const result = await storeOriginal(input, 'image/jpeg')
+
+            expect(result.extension).toBe('png')
+            expect(result.buffer.equals(input)).toBe(true)
         })
     })
 })
