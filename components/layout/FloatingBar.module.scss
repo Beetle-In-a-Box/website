@@ -32,10 +32,23 @@
     @include bp.tap-target;
 }
 
-.floatingBar a:hover {
-    text-decoration: underline;
-    font-size: medium;
+.floatingBar a {
     cursor: pointer;
+}
+
+// Hover styling is gated on the pointer actually having hover. A touch screen
+// has none, but it SYNTHESISES one on tap and then leaves it stuck on the last
+// thing touched until something else is touched -- so an unguarded `:hover`
+// here fired on the way to navigating and stayed on afterwards.
+//
+// `font-size: medium` used to live in this rule and was the visible symptom:
+// the pill sets `font-size: 0.75rem` below 768px, so hovering forced a link
+// from 12px to 16px, growing it a third and reflowing its neighbours. Nothing
+// about hover should change layout -- keep this rule to paint-only properties.
+@media (hover: hover) {
+    .floatingBar a:hover {
+        text-decoration: underline;
+    }
 }
 
 // --- Responsive ---------------------------------------------------------
@@ -78,37 +91,16 @@
     }
 }
 
-// --- Get out of the way while reading ---------------------------------------
+// --- Always on ---------------------------------------------------------------
 //
-// The pill is opaque and fixed, so on a narrow screen it sits on top of body
-// text rather than beside it -- there is no margin to occupy the way there is
-// on desktop. Rather than shrink it into illegibility or make it translucent
-// (which just makes two layers of text overlap), it slides away while the
-// reader scrolls down and comes back the instant they scroll up.
+// This pill used to slide away on scroll-down below 768px and come back on
+// scroll-up, to keep it off body text on a narrow screen. Removed 2026-08-05
+// at the user's request: "the pill should always show on mobile, never hide".
 //
-// Deliberately scoped to <=768px: on desktop the bar sits in empty margin and
-// never covers anything, so the approved desktop behaviour is left exactly as
-// it is. `.hidden` is emitted by the component at every width but only means
-// anything inside this query.
-@include bp.tablet {
-    .floatingBar {
-        transition:
-            transform 0.25s ease,
-            opacity 0.25s ease;
-    }
-
-    .hidden {
-        // Translated rather than display:none so it can animate back, and so
-        // its links stay reachable to assistive tech instead of vanishing from
-        // the tree on every scroll gesture.
-        transform: translateY(calc(100% + 8vh));
-        opacity: 0;
-        pointer-events: none;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .floatingBar {
-        transition: none;
-    }
-}
+// So there is no `.hidden` state and no scroll listener any more -- see
+// FloatingBar.tsx, which lost both. Do not reintroduce either without asking;
+// the decision was explicit, not an oversight.
+//
+// What keeps it from burying anything permanently is spatial, not temporal:
+// Footer.module.scss reserves `calc(6vh + 3.5rem)` of bottom padding, so the
+// end of every page can still scroll clear of the pill.
