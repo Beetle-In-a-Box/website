@@ -22,6 +22,24 @@
         // the title. Zero here, so the 2.5rem gap is what actually renders.
         margin-top: 0;
     }
+
+    .middle ol {
+        // globals.css applies `* { padding: 0 }`, which strips the UA default
+        // that normally holds an <ol>'s markers inside the list box. With
+        // `list-style-position: outside` the numbers then paint to the LEFT of
+        // the list -- harmless on desktop, where the list is inset by half the
+        // grid, but stacked the list starts at the content edge, so they hung
+        // off it. Measured on production issue 2 (eleven articles): the widest
+        // marker began 0-4px from x=0 and the leading digit of "10." was cut
+        // off by the viewport.
+        //
+        // Reserve the marker's own width. It has to be measured in the
+        // MARKER's type scale, not the list's: `li::marker` below sets
+        // clamp(1rem, 2.5vw, 2rem) while the <ol> itself stays at the
+        // inherited 16px, so a plain `em` value here would under-reserve by
+        // half at the top of that range.
+        padding-left: calc(1.4 * clamp(1rem, 2.5vw, 2rem));
+    }
 }
 
 .middle img {
