@@ -1,35 +1,33 @@
 import { existsSync } from 'fs'
 import { writeFile, mkdir, unlink } from 'fs/promises'
 import { join } from 'path'
-import type { Sharp } from 'sharp'
+import {
+    deleteVariants,
+    loadSharp,
+    MAX_ORIGINAL_DIMENSION,
+    warmVariants,
+} from '@/utils/image-variants'
 
 /** Maximum allowed size for uploaded files (200MB) */
 export const MAX_UPLOAD_BYTES = 200 * 1024 * 1024
 
 /**
- * Longest edge, in pixels, that a stored image is allowed to have. Cover art and
- * article images are displayed at well under this, so anything larger is wasted
- * bytes on every page load. Images smaller than this are never upscaled.
+ * Prepare an uploaded image for storage as the canonical full-resolution copy.
+ *
+ * The stored file is what the "open full resolution" link serves, so it is kept
+ * as close to what was uploaded as possible: bytes are passed through untouched
+ * unless the longest edge exceeds MAX_ORIGINAL_DIMENSION, in which case the
+ * image is downscaled once. Compressed, display-sized copies are derivatives
+ * produced separately by utils/image-variants - this function is not where
+ * compression happens.
+ *
+ * Animated GIFs pass through untouched; re-encoding would flatten them to one
+ * frame. If sharp cannot decode the input at all, the original bytes are stored
+ * rather than failing the upload.
+ *
+ * @returns the bytes to write and the extension they should be stored under
  */
-export const MAX_IMAGE_DIMENSION = 2400
-
-/** WebP quality for re-encoded uploads. 82 is visually lossless for photos. */
-export const IMAGE_QUALITY = 82
-
-/**
- * Re-encode an uploaded image to a web-appropriate size and format.
- *
- * Originals straight off a phone or scanner are routinely 10-50MB, which is
- * enormous for a page that renders them a few hundred pixels wide. This shrinks
- * the longest edge to MAX_IMAGE_DIMENSION and re-encodes as WebP.
- *
- * Animated GIFs are passed through untouched — re-encoding would flatten them to
- * a single frame. If sharp cannot decode the input at all, the original bytes are
- * stored rather than failing the upload.
- *
- * @returns the bytes to write and the file extension they should be stored under
- */
-export async function compressImage(
+export async function storeOriginal(
     buffer: Buffer,
     mimeType: string,
 ): Promise<{ buffer: Buffer; extension: string }> {
@@ -43,59 +41,31 @@ export async function compressImage(
     }
 
     try {
-        const compressed = await sharp(buffer)
-            // Honour EXIF orientation, then strip metadata, so portrait photos
-            // don't come out sideways once the orientation tag is gone.
+        const image = sharp(buffer)
+        const metadata = await image.metadata()
+        const longestEdge = Math.max(metadata.width ?? 0, metadata.height ?? 0)
+
+        // Already within the cap: store the exact bytes that were uploaded. Any
+        // re-encode here would lose quality for no benefit.
+        if (longestEdge <= MAX_ORIGINAL_DIMENSION) {
+            return { buffer, extension: extensionForMime(mimeType) }
+        }
+
+        const resized = await image
             .rotate()
             .resize({
-                width: MAX_IMAGE_DIMENSION,
-                height: MAX_IMAGE_DIMENSION,
+                width: MAX_ORIGINAL_DIMENSION,
+                height: MAX_ORIGINAL_DIMENSION,
                 fit: 'inside',
                 withoutEnlargement: true,
             })
-            .webp({ quality: IMAGE_QUALITY })
             .toBuffer()
 
-        // Guard against the rare case where re-encoding grows the file (already
-        // well-optimised small images); keep whichever is smaller.
-        if (compressed.length < buffer.length) {
-            return { buffer: compressed, extension: 'webp' }
-        }
-        return { buffer, extension: extensionForMime(mimeType) }
+        return { buffer: resized, extension: extensionForMime(mimeType) }
     } catch (error) {
-        console.error('Image compression failed, storing original:', error)
+        console.error('Could not inspect upload, storing original:', error)
         return { buffer, extension: extensionForMime(mimeType) }
     }
-}
-
-type SharpFactory = (input: Buffer) => Sharp
-
-let sharpModule: SharpFactory | null | undefined
-
-/**
- * Load sharp lazily, tolerating its absence.
- *
- * sharp ships prebuilt native binaries that need glibc >= 2.28. The OCF host this
- * app deploys to runs an older glibc (the same reason the deploy uses Node rather
- * than Bun), so sharp may fail to install or load there. Rather than take the
- * whole upload path — or the build — down with it, treat sharp as optional and
- * fall back to storing originals uncompressed.
- *
- * Resolved once and cached; `null` means unavailable.
- */
-async function loadSharp(): Promise<SharpFactory | null> {
-    if (sharpModule !== undefined) return sharpModule
-    try {
-        const mod = await import('sharp')
-        sharpModule = (mod.default ?? mod) as unknown as SharpFactory
-    } catch (error) {
-        console.error(
-            'sharp unavailable; storing images uncompressed. Install sharp to enable compression:',
-            error,
-        )
-        sharpModule = null
-    }
-    return sharpModule
 }
 
 /** Map a validated image MIME type to a safe file extension. */
@@ -113,7 +83,7 @@ function extensionForMime(mimeType: string): string {
 }
 
 /**
- * Save uploaded image file to public directory
+ * Save an uploaded image as the canonical full-resolution original, then generate its display derivatives.
  * @param file - The uploaded file
  * @param issueNumber - Issue number (unused now, kept for API compatibility)
  * @param prefix - Prefix for filename (e.g., 'issue', 'article')
@@ -133,10 +103,10 @@ export async function saveImage(
         await mkdir(imagesDir, { recursive: true })
     }
 
-    // Shrink and re-encode before storing. The extension comes from the encoder,
+    // Store the full-resolution original. The extension comes from the encoder,
     // not from the uploaded filename, so a file named "photo" with no extension
     // can no longer produce a bogus one.
-    const { buffer, extension } = await compressImage(original, file.type)
+    const { buffer, extension } = await storeOriginal(original, file.type)
 
     const timestamp = Date.now()
     const filename = `${prefix}-${timestamp}.${extension}`
@@ -144,6 +114,10 @@ export async function saveImage(
     // Save file
     const filepath = join(imagesDir, filename)
     await writeFile(filepath, buffer)
+
+    // Generate the display-sized derivatives now so the first visitor is not the
+    // one paying to encode them. Never fatal - warmVariants swallows failures.
+    await warmVariants(filename)
 
     // Return public URL path
     return `/images/${filename}`
@@ -329,6 +303,10 @@ export async function deleteFile(publicPath: string | null): Promise<void> {
         const filepath = join(process.cwd(), 'uploads', relativePath)
         if (existsSync(filepath)) {
             await unlink(filepath)
+            // Drop the derivative cache too, or it accumulates orphans.
+            if (relativePath.startsWith('images/')) {
+                await deleteVariants(relativePath.slice('images/'.length))
+            }
         }
     } catch (error) {
         console.error(`Failed to delete file ${publicPath}:`, error)

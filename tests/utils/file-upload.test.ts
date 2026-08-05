@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, spyOn } from 'bun:test'
-import { validateImageFile, saveImage, MAX_UPLOAD_BYTES } from '@/utils/file-upload'
+import { validateImageFile, saveImage, storeOriginal, MAX_UPLOAD_BYTES } from '@/utils/file-upload'
+import { MAX_ORIGINAL_DIMENSION } from '@/utils/image-variants'
 import * as fs from 'fs/promises'
 import * as fsSync from 'fs'
 import { restoreMocks } from '../mock-utils'
@@ -201,6 +202,65 @@ describe('File Upload Utilities', () => {
             await expect(saveImage(file, 1, 'test')).rejects.toThrow(
                 'Write failed',
             )
+        })
+    })
+
+    describe('storeOriginal', () => {
+        it('returns the exact input bytes when the image is already within the cap', async () => {
+            const sharp = (await import('sharp')).default
+            const input = await sharp({
+                create: {
+                    width: 800,
+                    height: 600,
+                    channels: 3,
+                    background: { r: 5, g: 5, b: 5 },
+                },
+            })
+                .png()
+                .toBuffer()
+
+            const result = await storeOriginal(input, 'image/png')
+
+            expect(result.extension).toBe('png')
+            expect(result.buffer.equals(input)).toBe(true)
+        })
+
+        it('downscales an image whose longest edge exceeds the cap', async () => {
+            const sharp = (await import('sharp')).default
+            const input = await sharp({
+                create: {
+                    width: 6000,
+                    height: 3000,
+                    channels: 3,
+                    background: { r: 5, g: 5, b: 5 },
+                },
+            })
+                .png()
+                .toBuffer()
+
+            const result = await storeOriginal(input, 'image/png')
+            const meta = await sharp(result.buffer).metadata()
+
+            expect(meta.width).toBe(MAX_ORIGINAL_DIMENSION)
+            expect(meta.height).toBe(MAX_ORIGINAL_DIMENSION / 2)
+        })
+
+        it('passes an animated GIF through untouched', async () => {
+            const input = Buffer.from('GIF89a fake animated bytes')
+
+            const result = await storeOriginal(input, 'image/gif')
+
+            expect(result.extension).toBe('gif')
+            expect(result.buffer.equals(input)).toBe(true)
+        })
+
+        it('stores the original when the bytes cannot be decoded', async () => {
+            const input = Buffer.from('not actually an image')
+
+            const result = await storeOriginal(input, 'image/png')
+
+            expect(result.buffer.equals(input)).toBe(true)
+            expect(result.extension).toBe('png')
         })
     })
 })
