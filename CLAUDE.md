@@ -272,7 +272,7 @@ node -e "const bcrypt = require('bcryptjs'); console.log(bcrypt.hashSync('your-p
 **Utility Functions**:
 
 *file-upload.ts*:
-- `validateImageFile(file)` - Validates images (JPEG/PNG/WebP/GIF, max 200MB before compression)
+- `validateImageFile(file)` - Validates images (JPEG/PNG/WebP/GIF, max 200MB)
 - `validateDocxFile(file)` - Validates .docx files (max 200MB, non-empty)
 - `validatePdfFile(file)` - Validates PDF files (application/pdf, max 200MB, non-empty)
 - `saveImage(file, issueNumber, prefix)` - Saves the upload as the canonical full-resolution
@@ -285,10 +285,10 @@ node -e "const bcrypt = require('bcryptjs'); console.log(bcrypt.hashSync('your-p
 - `savePdf(file, prefix)` - Saves PDF file to `/uploads/pdfs/` with timestamped filename
 - `deleteFile(publicPath)` - Deletes file from `/uploads/` directory (e.g., `/images/file.jpg` deletes from `/uploads/images/file.jpg`)
 
-### Image variants (`utils/image-variants.ts`)
+*image-variants.ts*:
 
 Compressed, display-sized copies of uploaded images, generated on demand and cached on
-disk under `uploads/images/.variants/`.
+disk under `uploads/images/.variants/`. The `.variants/` directory is gitignored; originals are tracked.
 
 - `getVariant(filename, width)` - WebP derivative at an allowlisted width, generated and
   cached on first request. Returns `null` if sharp is unavailable, so callers fall back to
