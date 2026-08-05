@@ -23,15 +23,22 @@
  * ($stacked: 768px, $compact: 400px) or the header changes height at a
  * different width than the layout changes shape, which reads as a glitch.
  */
+/*
+ * Raised 2026-08-05 from 80px/72px. Below the stack point the bar now carries
+ * a second row -- the issue's month and year, previously desktop-only -- and
+ * the wordmark above it grew to stop under-filling its width (both in
+ * NavBar.module.scss). The bar has a fixed height and no overflow rule, so
+ * anything it cannot fit simply spills over the page beneath it.
+ */
 @media (max-width: 768px) {
     :root {
-        --nav-height: max(80px, 14vh);
+        --nav-height: max(104px, 16vh);
     }
 }
 
 @media (max-width: 400px) {
     :root {
-        --nav-height: max(72px, 13vh);
+        --nav-height: max(94px, 15vh);
     }
 }
 

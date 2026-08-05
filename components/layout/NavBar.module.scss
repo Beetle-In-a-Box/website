@@ -38,6 +38,13 @@
 
 .navBar p {
     font-family: 'Playfair Display', serif;
+    // Do NOT raise the 0.6875rem floor to make this less like fine print on a
+    // phone. Tried 0.75rem: this strapline is 25.5em wide and is already the
+    // widest thing in the bar, so 1px of type is ~16px of width, and at 360px
+    // it stopped fitting beside the logo and wrapped mid-phrase. Measured
+    // 2026-08-05 -- 289.7px rendered against a 305.5px natural width.
+    // The masthead above it is the element with room to grow; see the phone
+    // block at the bottom of this file.
     font-size: clamp(0.6875rem, 1.5vw, 1.7vh);
     text-align: left;
 }
@@ -96,10 +103,11 @@
 // --- Responsive -------------------------------------------------------------
 //
 // The bar is a 7-column grid: leftSide (1) + center (spans 5) + rightSide (1).
-// Below tablet there is not enough width for the flanking text AND a legible
-// masthead, so the flanks are dropped and the masthead gets the full width.
-// The masthead is the identity of the page; "BERKELEY, CA" and the issue date
-// are not, and the date is still shown on the issue and archive pages.
+// Below the stack point those three become three ROWS instead, so the flanks
+// no longer have to compete with the masthead for width -- they stack under
+// it. "BERKELEY, CA" stays dropped (it is the same on every page, and the
+// footer carries it); the issue date does not, because it is the only thing in
+// the header that says WHICH issue this is.
 
 @include bp.tablet {
     .navBar h1 {
@@ -118,10 +126,31 @@
         grid-auto-flow: row;
         grid-template-columns: 1fr;
         padding: 0 4vw;
+        // Auto-sized rows STRETCH by default under `align-content: normal`,
+        // which would push the masthead and the date apart to the two ends of
+        // the bar. Centre the pair as a group and space them deliberately.
+        align-content: center;
+        row-gap: 0.4rem;
     }
 
-    .navBar .leftSide,
+    // Same on every page and already repeated in the footer, so it is the one
+    // flank that can go without losing information.
+    .navBar .leftSide {
+        display: none;
+    }
+
     .navBar .rightSide {
+        // Was hidden here, which meant the issue's month and year appeared on
+        // desktop and nowhere else -- the header gave a phone reader no way to
+        // tell which issue they had open. As a row under the masthead it costs
+        // one line and competes with nothing.
+        display: flex;
+    }
+
+    // about/apply/archive pass no date, so this wrapper renders with no child
+    // (see NavBar.tsx, which keeps the wrapper for the desktop grid's sake).
+    // Collapse it rather than leaving a blank row of nav height behind.
+    .navBar .rightSide:empty {
         display: none;
     }
 
@@ -129,6 +158,24 @@
         // The span-5 from the desktop grid is meaningless in a single column
         // and makes the item overflow its track if left in place.
         grid-column: 1 / -1;
+    }
+
+    .navBar h1 {
+        // The desktop rule is clamp(1.15rem, 4.4vw, 5vh). Below ~420px the
+        // 1.15rem floor takes over and the wordmark stops responding to width
+        // entirely, so it rendered at 18px on a phone while the strapline
+        // beneath it -- also pinned at its own floor -- stayed the widest thing
+        // in the bar. Net effect: a masthead sitting in a third of the space
+        // available to it, which is what "small in spite of the whitespace"
+        // describes.
+        //
+        // 6.6vw makes it track width again. The ceiling is deliberately the
+        // DESKTOP value evaluated at 768px (4.4% of 768 = 33.8px, and the same
+        // 5vh cap), so the two rules meet within a fraction of a pixel at the
+        // breakpoint instead of stepping. Between ~510px and 768px this simply
+        // holds flat at the ceiling, which is continuous, not a cliff.
+        font-size: clamp(1.4rem, 6.6vw, min(2.11rem, 5vh));
+        letter-spacing: clamp(1px, 0.5vw, 3px);
     }
 
     .centerContent {

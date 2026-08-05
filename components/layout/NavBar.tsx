@@ -47,8 +47,16 @@ export default function NavBar({ clickable = true, date }: NavBarProps) {
           </div>
         </div>
       </div>
+      {/*
+        The wrapper renders even with no date, because it is one of the seven
+        columns the desktop grid is built from (leftSide 1 + center 5 + this 1)
+        and dropping it would un-centre the masthead. The <h3> is conditional
+        so that the wrapper matches :empty on the pages that pass no date
+        (about, apply, archive) -- stacked, that is what lets it collapse
+        instead of adding a blank row. See NavBar.module.scss.
+      */}
       <div className={`${styles.item} ${styles.rightSide}`} id="rNav">
-        <h3>{date}</h3>
+        {date && <h3>{date}</h3>}
       </div>
     </nav>
   );
