@@ -2,6 +2,10 @@
     display: flex;
     flex-direction: column;
     background-color: white;
-    min-height: 95vh;
+    // A full viewport, not 95vh. Together with `margin-top: auto` on the footer
+    // this is the standard sticky-footer arrangement: on a page with little
+    // content the footer sits flush against the bottom of the screen instead of
+    // floating up mid-page with bare white space beneath it.
+    min-height: 100vh;
     width: 100vw;
 }
