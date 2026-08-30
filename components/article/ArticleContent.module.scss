@@ -17,4 +17,31 @@
         max-width: 100%;
         height: auto;
     }
+
+    // Section headings inside the article body (mammoth emits docx heading
+    // styles as h1-h3). The global reset zeroes every margin, so without
+    // these they sit flush against the surrounding paragraphs at browser
+    // default sizes — a body h1 at 2em rivals the page title. Sized in em
+    // so they scale with the body text, stepped clearly below the title,
+    // with generous air above and a tight bind to the text they introduce.
+    h1,
+    h2,
+    h3 {
+        text-align: left;
+        text-indent: 0;
+        line-height: 1.25;
+        margin: 1.75em 0 0.6em;
+    }
+
+    h1 {
+        font-size: 1.45em;
+    }
+
+    h2 {
+        font-size: 1.25em;
+    }
+
+    h3 {
+        font-size: 1.1em;
+    }
 }
