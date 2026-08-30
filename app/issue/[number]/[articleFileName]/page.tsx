@@ -110,7 +110,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         <PageLayout date={issueDate} showAbout={true} showLatest={true}>
             <FootnoteHandler />
             <ArticleContainer>
-                <ArticleTitle title={article.title} />
+                <ArticleTitle title={article.title} subtitle={article.subtitle || undefined} />
                 <ArticleAuthor author={article.author} role="Staff Writer" />
                 {article.imageUrl && (
                     <div className={styles.imageWrapper}>

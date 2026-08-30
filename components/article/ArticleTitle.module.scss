@@ -8,3 +8,11 @@
     font-family: "Vidaloka", serif;
     color: #000000;
 }
+
+.subtitle {
+    font-family: 'Vidaloka', serif;
+    font-style: italic;
+    font-size: clamp(1.1rem, 3vw, 1.6rem);
+    color: #333;
+    margin-top: 0.35em;
+}

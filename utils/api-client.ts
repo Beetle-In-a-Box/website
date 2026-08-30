@@ -32,6 +32,7 @@ export interface Author {
 export interface Article {
     id: string;
     title: string;
+    subtitle: string | null;
     shortTitle: string | null;
     author: string | Author;
     imageArtist: string | null;

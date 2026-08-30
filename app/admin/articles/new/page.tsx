@@ -14,6 +14,7 @@ function NewArticleForm() {
     const [formData, setFormData] = useState({
         issueId: '',
         title: '',
+        subtitle: '',
         shortTitle: '',
         author: '',
         imageArtist: '',
@@ -61,6 +62,7 @@ function NewArticleForm() {
         const data = new FormData()
         data.append('issueId', formData.issueId)
         data.append('title', formData.title)
+        if (formData.subtitle) data.append('subtitle', formData.subtitle)
         if (formData.shortTitle) data.append('shortTitle', formData.shortTitle)
         data.append('author', formData.author)
         if (formData.imageArtist) data.append('imageArtist', formData.imageArtist)
@@ -153,6 +155,21 @@ function NewArticleForm() {
                             setFormData({ ...formData, title: e.target.value })
                         }
                         required
+                    />
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label htmlFor="subtitle">Subtitle</label>
+                    <input
+                        type="text"
+                        id="subtitle"
+                        value={formData.subtitle}
+                        onChange={e =>
+                            setFormData({
+                                ...formData,
+                                subtitle: e.target.value,
+                            })
+                        }
                     />
                 </div>
 

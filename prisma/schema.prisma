@@ -46,6 +46,7 @@ model Author {
 model Article {
   id              String   @id @default(cuid())
   title           String
+  subtitle        String?
   shortTitle      String?
   number          Int
   // Artist name for image attribution

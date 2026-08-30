@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
 
         const issueId = formData.get('issueId') as string
         const title = formData.get('title') as string
+        const subtitle = formData.get('subtitle') as string | null
         const shortTitle = formData.get('shortTitle') as string | null
         const author = formData.get('author') as string
         const imageArtist = formData.get('imageArtist') as string | null
@@ -154,6 +155,7 @@ export async function POST(request: NextRequest) {
         const article = await prisma.article.create({
             data: {
                 title,
+                subtitle: subtitle || null,
                 shortTitle: shortTitle || null,
                 authorId,
                 imageArtist: imageArtist || null,
