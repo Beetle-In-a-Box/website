@@ -3,8 +3,10 @@
 .articleContainer {
     display: flex;
     flex-direction: column;
-    width: 37.5vw;
+    width: 50vw;
     height: 100%;
+    // At 1440px viewport, 50vw = ~720px against ~21px font = ~65 chars/line,
+    // inside the readable 60–75ch band; the old 37.5vw ran ~48ch.
     // Was a hardcoded 20vh duplicating the fixed nav bar's own height, so the
     // two could drift apart. Reads the shared value instead, which also
     // means narrower screens automatically get the shorter header offset.
