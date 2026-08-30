@@ -31,6 +31,15 @@ const nextConfig: NextConfig = {
             },
         ]
     },
+    async redirects() {
+        return [
+            {
+                source: '/apply',
+                destination: '/connect',
+                permanent: true,
+            },
+        ]
+    },
 }
 
 export default nextConfig

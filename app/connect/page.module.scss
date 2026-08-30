@@ -1,0 +1,12 @@
+.connectList {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25em;
+    text-align: center;
+    width: 100%;
+}
+
+.connectList a {
+    text-decoration: underline;
+}
