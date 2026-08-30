@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json()
-        const { name } = body
+        const { name, bio } = body
 
         if (!name || typeof name !== 'string' || name.trim() === '') {
             return NextResponse.json(
@@ -41,7 +41,11 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        const author = await createAuthorWithSlug(prisma, name.trim())
+        const author = await createAuthorWithSlug(
+            prisma,
+            name.trim(),
+            typeof bio === 'string' ? bio.trim() || null : null
+        )
 
         return NextResponse.json(author, { status: 201 })
     } catch (error) {

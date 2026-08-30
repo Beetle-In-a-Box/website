@@ -30,13 +30,18 @@ export function generateAuthorSlug(name: string, id: string, chars = 6): string 
  * it to the final slug (generateAuthorSlug(name, <real id>)) in the same
  * transaction so a failure cannot leave a temporary slug behind.
  */
-export async function createAuthorWithSlug(prisma: PrismaClient, name: string) {
+export async function createAuthorWithSlug(
+    prisma: PrismaClient,
+    name: string,
+    bio?: string | null,
+) {
     return prisma.$transaction(async (tx) => {
         const tempSlug = `pending-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`
         const created = await tx.author.create({
             data: {
                 name,
                 slug: tempSlug,
+                bio: bio || null,
             },
         })
 
