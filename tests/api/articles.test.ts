@@ -90,6 +90,7 @@ describe('Articles API', () => {
             const mockArticle = {
                 id: 'article-1',
                 title: 'Test Article',
+                subtitle: 'A subtitle for testing',
                 shortTitle: 'Short',
                 authorId: 'author-1',
                 author: makeMockAuthor('John Doe'),
@@ -111,6 +112,7 @@ describe('Articles API', () => {
             const formData = new FormData()
             formData.append('issueId', 'issue-1')
             formData.append('title', 'Test Article')
+            formData.append('subtitle', 'A subtitle for testing')
             formData.append('shortTitle', 'Short')
             formData.append('author', 'John Doe')
             formData.append('number', '1')
@@ -145,6 +147,14 @@ describe('Articles API', () => {
             expect(data.previewText).toBe('Article preview text')
             expect(data.imageUrl).toBe('/images/test-article.jpg')
             expect(data.fileName).toBe('test-article')
+            expect(prismaMock.article.create).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({
+                        subtitle: 'A subtitle for testing',
+                        shortTitle: 'Short',
+                    }),
+                }),
+            )
         })
 
         it('should create article without optional fields (citations, image, shortTitle)', async () => {
@@ -525,6 +535,7 @@ describe('Articles API', () => {
 
             const formData = new FormData()
             formData.append('title', 'Updated Article')
+            formData.append('subtitle', 'A subtitle for testing')
             formData.append('author', 'John Doe')
             formData.append('number', '1')
             formData.append('published', 'true')
@@ -545,6 +556,13 @@ describe('Articles API', () => {
             expect(data.published).toBe(true)
             // Author name unchanged from existing article, so no new lookup needed
             expect(prismaMockWithAuthor.author.findFirst).not.toHaveBeenCalled()
+            expect(prismaMock.article.update).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({
+                        subtitle: 'A subtitle for testing',
+                    }),
+                }),
+            )
         })
 
         it('should update article with new content file', async () => {
