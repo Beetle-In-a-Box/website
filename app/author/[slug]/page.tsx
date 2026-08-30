@@ -59,7 +59,7 @@ export default async function AuthorPage({
 
     if (author.articles.length === 0) {
         return (
-            <PageLayout clickable={true} date={issueDate} showAbout={true} showLatest={true}>
+            <PageLayout clickable={true} date={issueDate} showAbout={true}>
                 <ContentsContainer title={`${author.name}`}>
                     <Empty>No published articles by this author yet.</Empty>
                 </ContentsContainer>
@@ -68,7 +68,7 @@ export default async function AuthorPage({
     }
 
     return (
-        <PageLayout clickable={true} date={issueDate} showAbout={true} showLatest={true}>
+        <PageLayout clickable={true} date={issueDate} showAbout={true}>
             <ContentsContainer title={`${author.name}`}>
                 <div className="text contents previewContainer">
                     {author.articles.map(article => (
