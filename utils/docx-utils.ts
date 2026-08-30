@@ -74,7 +74,7 @@ export async function convertArticleDocx(buffer: Buffer): Promise<{
         // 1. <p><sup>NUMBER</sup> (Word/Google Docs footnotes)
         // 2. <p>[NUMBER] (manually typed endnotes)
         // They appear at the end of the content
-        const footnotePattern = /(?:<p>(?:<em>)?(?:‌\s*)?<sup>(\d+)<\/sup>)|(?:<p>\[(\d+)\])/g
+        const footnotePattern = /(?:<p(?: class="centered")?>(?:<em>)?(?:‌\s*)?<sup>(\d+)<\/sup>)|(?:<p(?: class="centered")?>\[(\d+)\])/g
         const footnoteMatches = [...html.matchAll(footnotePattern)]
 
         let mainContent = html
@@ -82,7 +82,7 @@ export async function convertArticleDocx(buffer: Buffer): Promise<{
 
         if (footnoteMatches.length > 0) {
             // Find the position of the first footnote (either format)
-            const firstFootnoteMatch = html.match(/(?:<p>(?:<em>)?(?:‌\s*)?<sup>(\d+)<\/sup>)|(?:<p>\[(\d+)\])/)
+            const firstFootnoteMatch = html.match(/(?:<p(?: class="centered")?>(?:<em>)?(?:‌\s*)?<sup>(\d+)<\/sup>)|(?:<p(?: class="centered")?>\[(\d+)\])/)
             if (firstFootnoteMatch) {
                 const firstFootnoteIndex = html.indexOf(firstFootnoteMatch[0])
 
@@ -91,7 +91,7 @@ export async function convertArticleDocx(buffer: Buffer): Promise<{
                 const footnotesHtml = html.substring(firstFootnoteIndex)
 
                 // Extract all footnotes from the footnotes section (both formats)
-                const footnoteRegex = /(?:<p>(?:<em>)?(?:‌\s*)?<sup>(\d+)<\/sup>([\s\S]*?)<\/p>)|(?:<p>\[(\d+)\]([\s\S]*?)<\/p>)/g
+                const footnoteRegex = /(?:<p(?: class="centered")?>(?:<em>)?(?:‌\s*)?<sup>(\d+)<\/sup>([\s\S]*?)<\/p>)|(?:<p(?: class="centered")?>\[(\d+)\]([\s\S]*?)<\/p>)/g
                 let match
                 while ((match = footnoteRegex.exec(footnotesHtml)) !== null) {
                     // Check which format matched

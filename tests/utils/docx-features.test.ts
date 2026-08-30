@@ -40,4 +40,13 @@ describe('docx feature support', () => {
         expect(content).toContain('<img')
         expect(content).toContain('data:image/png;base64')
     })
+
+    it('splits out a footnote even when its paragraph is centered', async () => {
+        const buffer = await docxFrom(
+            '<p>a claim needing a source<sup>1</sup></p><p style="text-align: center"><sup>1</sup> a citation</p>'
+        )
+        const { citations } = await convertArticleDocx(buffer)
+        expect(citations).not.toBeNull()
+        expect(citations).toContain('a citation')
+    })
 })
