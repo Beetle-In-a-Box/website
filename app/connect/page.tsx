@@ -34,7 +34,7 @@ export default async function ConnectPage() {
                     </Text>
                     <Text as="p">
                         If you are interested in receiving print editions of
-                        the magazine, please fill out this form.
+                        the magazine, please fill out this form (TBD).
                     </Text>
                     <Text as="p">
                         If you would like to join us, please{' '}
