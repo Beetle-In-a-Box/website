@@ -158,8 +158,6 @@ function cleanText(text: string): string {
         '\u201d': '"', // Right double quote
         '\u2018': "'", // Left single quote
         '\u2019': "'", // Right single quote
-        '\u2013': '-', // En dash
-        '\u2014': '-', // Em dash
         '\u2026': '...', // Ellipsis
         '\u2022': '*', // Bullet
         '\u00a0': ' ', // Non-breaking space
