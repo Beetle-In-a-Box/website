@@ -82,7 +82,7 @@ export default function ArticleHtmlContent({ html }: ArticleHtmlContentProps) {
                             {...(hasIntrinsicSize ? { width, height } : {})}
                             loading="lazy"
                             decoding="async"
-                            style={{ width: '100%', height: 'auto' }}
+                            style={{ maxWidth: '100%', height: 'auto' }}
                         />
                     )
                 }
