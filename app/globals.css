@@ -95,3 +95,27 @@ a {
     color: black;
     text-decoration: none;
 }
+
+/*
+ * Paragraphs the source .docx centers (mammoth emits p.centered via the
+ * style map in utils/docx-utils.ts). Direct rules beat the justify/indent
+ * the article container sets on its wrapper, since those only reach
+ * paragraphs by inheritance.
+ */
+p.centered {
+    text-align: center;
+    text-indent: 0;
+}
+
+/*
+ * Browser-default sup enlarges the line box it sits in, so lines with a
+ * footnote marker render farther apart than lines without one. line-height 0
+ * plus a relative shift keeps every line box the same height.
+ */
+sup {
+    font-size: 0.7em;
+    line-height: 0;
+    vertical-align: baseline;
+    position: relative;
+    top: -0.5em;
+}

@@ -1,6 +1,22 @@
 import mammoth from 'mammoth'
 import { unescapeHtml } from './text-utils'
 
+// mammoth's published types don't declare `transforms`, though it exists at
+// runtime. Cast narrowly at this boundary instead of `any`-ing the module.
+type MammothParagraph = { alignment?: string; styleId?: string } & Record<
+    string,
+    unknown
+>
+const mammothTransforms = (
+    mammoth as unknown as {
+        transforms: {
+            paragraph: (
+                fn: (paragraph: MammothParagraph) => MammothParagraph
+            ) => (element: unknown) => unknown
+        }
+    }
+).transforms
+
 /**
  * Convert plain text URLs to clickable links
  */
@@ -24,7 +40,27 @@ export async function convertArticleDocx(buffer: Buffer): Promise<{
     citations: string | null
 }> {
     try {
-        const result = await mammoth.convertToHtml({ buffer })
+        // Word/Google Docs express centering as paragraph alignment, which
+        // mammoth ignores unless mapped. Tag centered paragraphs with a
+        // synthetic style so the style map can emit p.centered.
+        const centerParagraphs = mammothTransforms.paragraph(paragraph => {
+            if (paragraph.alignment === 'center' && !paragraph.styleId) {
+                return {
+                    ...paragraph,
+                    styleId: 'BeetleCentered',
+                    styleName: 'BeetleCentered',
+                }
+            }
+            return paragraph
+        })
+
+        const result = await mammoth.convertToHtml(
+            { buffer },
+            {
+                transformDocument: centerParagraphs,
+                styleMap: ["p[style-name='BeetleCentered'] => p.centered:fresh"],
+            }
+        )
         let html = result.value
 
         // Clean the text
@@ -158,8 +194,6 @@ function cleanText(text: string): string {
         '\u201d': '"', // Right double quote
         '\u2018': "'", // Left single quote
         '\u2019': "'", // Right single quote
-        '\u2013': '-', // En dash
-        '\u2014': '-', // Em dash
         '\u2026': '...', // Ellipsis
         '\u2022': '*', // Bullet
         '\u00a0': ' ', // Non-breaking space

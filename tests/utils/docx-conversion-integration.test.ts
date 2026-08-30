@@ -84,7 +84,7 @@ describe('docx-utils.ts - Integration Tests with Seed Data', () => {
             }
         })
 
-        it('should clean special characters from docx', async () => {
+        it('should clean quote characters from docx', async () => {
             const buffer = await readFile(
                 path.join(SEED_DOCX_DIR, 'convenience-illusion.docx')
             )
@@ -96,10 +96,6 @@ describe('docx-utils.ts - Integration Tests with Seed Data', () => {
             expect(html).not.toContain('\u201d') // Right double quote
             expect(html).not.toContain('\u2018') // Left single quote
             expect(html).not.toContain('\u2019') // Right single quote
-
-            // Should have converted dashes
-            expect(html).not.toContain('\u2013') // En dash
-            expect(html).not.toContain('\u2014') // Em dash
 
             // Should have converted non-breaking spaces
             expect(html).not.toContain('\u00a0')
