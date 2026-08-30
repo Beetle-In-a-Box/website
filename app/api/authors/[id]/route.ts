@@ -56,7 +56,7 @@ export async function PATCH(
 
         const { id } = await params
         const body = await request.json()
-        const { name } = body
+        const { name, bio } = body
 
         if (!name || typeof name !== 'string' || name.trim() === '') {
             return NextResponse.json(
@@ -82,6 +82,9 @@ export async function PATCH(
             data: {
                 name: name.trim(),
                 slug: generateAuthorSlug(name.trim(), id),
+                ...(bio !== undefined && {
+                    bio: typeof bio === 'string' ? bio.trim() || null : null,
+                }),
             },
         })
 

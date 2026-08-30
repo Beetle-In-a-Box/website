@@ -8,6 +8,7 @@ import styles from '../../Admin.module.scss'
 export default function NewAuthorPage() {
     const router = useRouter()
     const [name, setName] = useState('')
+    const [bio, setBio] = useState('')
     const [submitting, setSubmitting] = useState(false)
 
     const handleSubmit = async (e: FormEvent) => {
@@ -20,7 +21,7 @@ export default function NewAuthorPage() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ name }),
+                body: JSON.stringify({ name, bio }),
             })
 
             if (!response.ok) {
@@ -58,6 +59,16 @@ export default function NewAuthorPage() {
                         value={name}
                         onChange={e => setName(e.target.value)}
                         required
+                    />
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label htmlFor="bio">Bio</label>
+                    <textarea
+                        id="bio"
+                        value={bio}
+                        onChange={e => setBio(e.target.value)}
+                        rows={4}
                     />
                 </div>
 

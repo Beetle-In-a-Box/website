@@ -9,6 +9,7 @@ interface Author {
     id: string
     name: string
     slug: string
+    bio?: string | null
 }
 
 export default function EditAuthorPage() {
@@ -16,6 +17,7 @@ export default function EditAuthorPage() {
     const params = useParams()
     const authorId = params.id as string
     const [name, setName] = useState('')
+    const [bio, setBio] = useState('')
     const [loading, setLoading] = useState(true)
     const [submitting, setSubmitting] = useState(false)
 
@@ -30,6 +32,7 @@ export default function EditAuthorPage() {
                 }
                 const author: Author = await response.json()
                 setName(author.name)
+                setBio(author.bio || '')
             } catch (error) {
                 console.error('Error loading author:', error)
                 toast.error('Failed to load author')
@@ -52,7 +55,7 @@ export default function EditAuthorPage() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ name }),
+                body: JSON.stringify({ name, bio }),
             })
 
             if (!response.ok) {
@@ -94,6 +97,16 @@ export default function EditAuthorPage() {
                         value={name}
                         onChange={e => setName(e.target.value)}
                         required
+                    />
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label htmlFor="bio">Bio</label>
+                    <textarea
+                        id="bio"
+                        value={bio}
+                        onChange={e => setBio(e.target.value)}
+                        rows={4}
                     />
                 </div>
 

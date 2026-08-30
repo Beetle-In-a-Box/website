@@ -3,8 +3,10 @@ import PageLayout from '@/components/layout/PageLayout'
 import ContentsContainer from '@/components/issue/ContentsContainer'
 import ArticlePreview from '@/components/issue/ArticlePreview'
 import Empty from '@/components/ui/Empty'
+import Text from '@/components/ui/Text'
 import { prisma } from '@/utils/prisma'
 import { formatIssueDate } from '@/utils/date-utils'
+import styles from './page.module.scss'
 
 export const dynamic = 'force-dynamic'
 
@@ -61,6 +63,11 @@ export default async function AuthorPage({
         return (
             <PageLayout clickable={true} date={issueDate} showAbout={true} showLatest={true}>
                 <ContentsContainer title={`${author.name}`}>
+                    {author.bio && (
+                        <Text as="p" className={styles.bio}>
+                            {author.bio}
+                        </Text>
+                    )}
                     <Empty>No published articles by this author yet.</Empty>
                 </ContentsContainer>
             </PageLayout>
@@ -70,6 +77,11 @@ export default async function AuthorPage({
     return (
         <PageLayout clickable={true} date={issueDate} showAbout={true} showLatest={true}>
             <ContentsContainer title={`${author.name}`}>
+                {author.bio && (
+                    <Text as="p" className={styles.bio}>
+                        {author.bio}
+                    </Text>
+                )}
                 <div className="text contents previewContainer">
                     {author.articles.map(article => (
                         <ArticlePreview
