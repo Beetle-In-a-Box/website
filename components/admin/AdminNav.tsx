@@ -54,6 +54,14 @@ export default function AdminNav() {
                         Articles
                     </Link>
                 </li>
+                <li>
+                    <Link
+                        href="/admin/authors"
+                        className={isActive('/admin/authors') ? styles.active : ''}
+                    >
+                        Authors
+                    </Link>
+                </li>
             </ul>
             <div className={styles.navFooter}>
                 <Link href="/">View Site</Link>
