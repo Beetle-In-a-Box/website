@@ -165,12 +165,13 @@ All API routes accept and return JSON, with file uploads via FormData.
 - `DELETE /api/issues/:id` - Delete issue (also deletes image and PDF files). Returns `204 No Content`.
 
 *Articles API*:
-- `POST /api/articles` - Create article (FormData: issueId, title, author, number, content.docx, image?, shortTitle?, imageArtist?, published)
+- `POST /api/articles` - Create article (FormData: issueId, title, author, number, content.docx, image?, subtitle?, shortTitle?, imageArtist?, published)
   - Saves .docx file to `/uploads/articles/` and stores path in database
   - Extracts preview text from .docx for issue listing page
+  - Optional `subtitle` field displayed under article title
 - `GET /api/articles?issueId=<id>&published=true|false` - List articles
 - `GET /api/articles/:id` - Get single article
-- `PATCH /api/articles/:id` - Update article (all fields optional, can update .docx file, imageArtist)
+- `PATCH /api/articles/:id` - Update article (all fields optional, can update .docx file, imageArtist, subtitle)
 - `DELETE /api/articles/:id` - Delete article. Returns `204 No Content`.
 
 *Static Files API*:
@@ -182,9 +183,9 @@ All API routes accept and return JSON, with file uploads via FormData.
 
 *Authors API*:
 - `GET /api/authors` - List all authors with article counts
-- `POST /api/authors` - Create new author (JSON: name) - slug auto-generated
+- `POST /api/authors` - Create new author (JSON: name, bio?) - slug auto-generated
 - `GET /api/authors/:id` - Get single author with all published articles
-- `PATCH /api/authors/:id` - Update author name (JSON: name) - slug regenerated
+- `PATCH /api/authors/:id` - Update author (JSON: name?, bio?) - slug regenerated if name changes
 - `DELETE /api/authors/:id` - Delete author (fails if author has articles). Returns `204 No Content`.
 - `GET /api/authors/by-slug/:slug` - Get author by URL slug with all published articles
 
@@ -206,8 +207,9 @@ All API routes accept and return JSON, with file uploads via FormData.
   - Returns 404 if issue is not published or doesn't exist
 - `GET /issue/[number]/[fileName]` - Article detail page: Full article content with footnote navigation
 - `GET /author/[slug]` - Author detail page: Grid of all articles by author across all issues (slug format: "name-shortid")
-- `GET /about` - About page: Publication information
-- `GET /apply` - Apply page: Submissions/applications information (uses `ContentsContainer` layout with placeholder for Google Form embed)
+- `GET /about` - About page: Two-column layout with publication description and editorial board (left), "On the name" story (right), stacking below 768px
+- `GET /connect` - Connect page: Contact links (email, Instagram, print-form submission, apply link)
+- `GET /apply` - Permanently redirects to `/connect` (308 redirect via `next.config.ts`)
 
 **Admin Pages** (password-protected):
 - `GET /admin` - Admin dashboard
@@ -251,7 +253,11 @@ node -e "const bcrypt = require('bcryptjs'); console.log(bcrypt.hashSync('your-p
 ```
 
 **Database Schema**:
-- **Author**: id, name, slug (unique), articles[], createdAt, updatedAt
+
+**IMPORTANT**: Schema changes added `Article.subtitle` and `Author.bio` using `npx prisma db push` (not migrations). Production deployment requires `npx prisma db push` to apply these columns to the live database.
+
+- **Author**: id, name, bio, slug (unique), articles[], createdAt, updatedAt
+  - **bio**: Optional author biography text, displayed under author name on author pages
   - **slug**: URL-safe string in format "name-shortid" (e.g., "john-doe-abc123") generated from author name
   - **articles**: Bidirectional relationship to Article model
   - Used for author detail pages at `/author/[slug]` to display all articles by author
@@ -260,7 +266,8 @@ node -e "const bcrypt = require('bcryptjs'); console.log(bcrypt.hashSync('your-p
   - **imageUrl**: URL path to cover image (e.g., `/images/issue-cover-1234567890.jpeg`), served via `/api/static/images/`
   - **imageArtist**: Artist name for cover image attribution (optional, displayed as "Art by [name]" under cover image on issue pages)
   - **pdfUrl**: URL path to PDF file (optional, e.g., `/pdfs/issue-1-1234567890.pdf`), served via `/api/static/pdfs/`, available for download on archive page only
-- **Article**: id, title, shortTitle, number, imageArtist, imageUrl, contentDocxPath, previewText, fileName, published, issueId, authorId, author?, issue?, createdAt, updatedAt
+- **Article**: id, title, subtitle, shortTitle, number, imageArtist, imageUrl, contentDocxPath, previewText, fileName, published, issueId, authorId, author?, issue?, createdAt, updatedAt
+  - **subtitle**: Optional article subtitle, displayed under title on article pages
   - **author**: Now a bidirectional relationship to Author model (replaces old string author field)
   - **authorId**: Foreign key to Author model (nullable for backward compatibility during migration)
   - **imageArtist**: Artist name for image attribution (optional, displayed as "Art by [name]" under images)
@@ -321,6 +328,10 @@ this work.
   - `content`: the article body HTML, with footnote reference IDs and onclick handlers added
   - `citations`: HTML for the extracted footnotes/citations (wrapped as clickable footnotes with ID and onclick handler), or `null` if none were found
   - Automatically converts plain text URLs to clickable links
+  - Em/en dashes in the source docx are preserved (not downgraded to hyphens)
+  - Paragraphs formatted as centered in the source docx emit `<p class="centered">` via mammoth paragraph transform + style map (CSS in globals.css)
+  - Inline docx images flow through as base64 data URIs and render centered at natural size (max-width 100%)
+  - Floating/text-wrapped images are DROPPED by mammoth — source documents must insert images "in line with text" instead
 - `convertPreviewDocx(buffer)` - Extracts plain text preview from .docx
 - `generateFileName(title)` - Creates URL-friendly filename (removes common words, uses first 2 words)
 - `autolinkUrls(html)` - Converts plain text URLs (http://, https://) to clickable links
@@ -344,6 +355,9 @@ this work.
   - Kept for backwards compatibility; `formatIssueDate()` is preferred for new code
 
 **Article Rendering System**:
+- `ArticleTitle.tsx`: Renders article title with optional subtitle underneath
+  - Props: `title` (string), `subtitle?` (optional string)
+  - Subtitle displayed in smaller font below the main title when present
 - `ArticleHtmlContent` component safely converts .docx-generated HTML to React
   - Uses html-react-parser to parse HTML string
   - Converts <img> tags to Next.js Image components for optimization
@@ -370,12 +384,16 @@ this work.
 - Admin forms allow entering artist name when creating/editing issues and articles
 
 **Author Components and Pages**:
+- `ArticleAuthor.tsx`: Renders author name with optional biography underneath
+  - Props: `name` (string), `bio?` (optional string), `slug` (string)
+  - Author name is a clickable link to `/author/[slug]`
+  - Bio displayed in smaller font below the name when present
 - `AuthorLink.tsx`: Reusable component that renders a clickable link to author detail page
   - Props: `name` (string), `slug` (string), `className` (optional)
   - Links to `/author/[slug]` where slug format is "name-shortid"
   - Used in `ArticlePreview` and `ArticleAuthor` components
 - `app/author/[slug]/page.tsx`: Author detail page showing all articles by author across all issues
-  - Displays author name and grid of all published articles
+  - Displays author name, bio (if present), and grid of all published articles
   - Reuses `ContentsContainer` and `ArticlePreview` components
   - Returns 404 if author not found
   - Shows empty state if author has no articles
@@ -396,6 +414,13 @@ this work.
   - Props: `children` (list items), `title` (optional section title)
   - Layout: Vertical flex container with consistent spacing (85vw width, 20vh top margin)
   - Used by archive page to display past issues
+
+**FloatingBar Component** (footer navigation):
+- `FloatingBar.tsx`: Server component displaying four sticky navigation links at bottom of page
+  - Links: "About Us" → `/about`, "Latest" (conditional), "Archive" → `/archive`, "Connect" → `/connect`
+  - "Latest" link appears only on past-issue pages (when the current issue number is below the latest published issue, determined by `getLatestIssueNumber()` in utils/issue-utils.ts)
+  - "Back to Top" link removed
+  - Props: `showLatest` (boolean, passed true only by issue/article pages with older issues)
 
 **UI Component System**:
 - All typography is centralized in `components/ui/`
@@ -684,6 +709,7 @@ deploys and diagnostics can run unattended.
 
 ## Troubleshooting
 
+- **Article images not appearing or appearing blank**: Inline images in .docx files are supported and flow through as base64 data URIs. Floating/text-wrapped images (with text wrapping settings in Word) are dropped by mammoth — remove text wrapping and insert images "in line with text" instead
 - **Tests failing with mock errors**: Make sure you're using `bun test`, not `jest` directly
 - **Database connection issues**: Check DATABASE_URL in .env, ensure PostgreSQL is running
 - **Prisma Studio not loading env**: Use `npx prisma studio` instead of `bun prisma studio`
