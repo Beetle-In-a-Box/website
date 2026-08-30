@@ -23,6 +23,16 @@ describe('docx feature support', () => {
         expect(content).toContain('–')
     })
 
+    it('drops a leading title heading but keeps later headings', async () => {
+        const buffer = await docxFrom(
+            '<h1>Searching the Self: A Successfully Failed Attempt</h1><p>body text opens here</p><h1>A Real Section</h1><p>more body</p>'
+        )
+        const { content } = await convertArticleDocx(buffer)
+        expect(content).not.toContain('Searching the Self')
+        expect(content).toContain('body text opens here')
+        expect(content).toContain('A Real Section')
+    })
+
     it('marks centered paragraphs with a centered class', async () => {
         const buffer = await docxFrom(
             '<p>plain text</p><p style="text-align: center">centered line</p>'

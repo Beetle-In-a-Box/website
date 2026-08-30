@@ -63,6 +63,13 @@ export async function convertArticleDocx(buffer: Buffer): Promise<{
         )
         let html = result.value
 
+        // Some article docs open with the piece's own title/subtitle as a
+        // heading. The page already renders the title and subtitle from the
+        // database, so a heading at the very start of the document would
+        // appear as a duplicate — drop it. Headings deeper in the document
+        // are real section headings and are kept.
+        html = html.replace(/^\s*<h1>[\s\S]*?<\/h1>/, '')
+
         // Clean the text
         html = cleanText(html)
 
