@@ -20,6 +20,7 @@ rsync -az --progress \
     --exclude='.DS_Store' \
     --exclude='.git' \
     --exclude='.claude' \
+    --exclude='.superpowers' \
     --exclude='tests' \
     "$LOCAL_DIR/" \
     "$OCF_USER@$OCF_HOST:$REMOTE_DIR/"
@@ -40,6 +41,11 @@ npm install
 
 echo "--> Generating Prisma client..."
 npx prisma generate
+
+# schema reaches prod via db push, not migrations; without it a deploy after a
+# schema change goes green and serves 404s on article/author pages
+echo "--> Pushing schema changes..."
+npx prisma db push
 
 echo "--> Building Next.js app..."
 npx next build
