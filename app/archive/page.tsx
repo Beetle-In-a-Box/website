@@ -41,7 +41,7 @@ export default async function Archive() {
     // If no archived issues, show a message
     if (archivedIssues.length === 0) {
         return (
-            <PageLayout clickable={true} date={issueDate} showAbout={true} showLatest={true}>
+            <PageLayout clickable={true} date={issueDate} showAbout={true}>
                 <IssueListContainer>
                     <Empty>No archived issues available yet. Check back soon!</Empty>
                 </IssueListContainer>
@@ -50,7 +50,7 @@ export default async function Archive() {
     }
 
     return (
-        <PageLayout clickable={true} date={issueDate} showAbout={true} showLatest={true}>
+        <PageLayout clickable={true} date={issueDate} showAbout={true}>
             <IssueListContainer title="Past Issues">
                 {archivedIssues.map(issue => (
                     <IssueListItem

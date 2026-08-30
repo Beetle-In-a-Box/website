@@ -7,6 +7,7 @@ import ArticlePreview from '@/components/issue/ArticlePreview'
 import Empty from '@/components/ui/Empty'
 import { prisma } from '@/utils/prisma'
 import { formatIssueDate } from '@/utils/date-utils'
+import { getLatestIssueNumber } from '@/utils/issue-utils'
 
 // Always fetch fresh data - don't cache this page
 export const dynamic = 'force-dynamic'
@@ -55,11 +56,15 @@ export default async function IssuePage({
         notFound()
     }
 
+    const latestNumber = await getLatestIssueNumber()
+    const showLatest =
+        latestNumber !== undefined && issue.number < latestNumber
+
     // If no articles, show empty state
     if (issue.articles.length === 0) {
         const issueDate = formatIssueDate(issue.date)
         return (
-            <PageLayout clickable={true} date={issueDate} showAbout={true} showLatest={true}>
+            <PageLayout clickable={true} date={issueDate} showAbout={true} showLatest={showLatest}>
                 <ContentsContainer title={issue.title}>
                     <Empty>No published articles in this issue yet.</Empty>
                 </ContentsContainer>
@@ -70,7 +75,7 @@ export default async function IssuePage({
     const issueDate = formatIssueDate(issue.date)
 
     return (
-        <PageLayout clickable={true} date={issueDate} showAbout={true} showLatest={true}>
+        <PageLayout clickable={true} date={issueDate} showAbout={true} showLatest={showLatest}>
             <ContentsContainer title={issue.title}>
                 <IssueCover
                     cover={

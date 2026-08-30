@@ -12,6 +12,7 @@ import CoverImage from '@/components/ui/CoverImage'
 import { prisma } from '@/utils/prisma'
 import { convertArticleDocx } from '@/utils/docx-utils'
 import { formatIssueDate } from '@/utils/date-utils'
+import { getLatestIssueNumber } from '@/utils/issue-utils'
 import styles from './page.module.scss'
 
 interface ArticlePageProps {
@@ -106,8 +107,12 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
     const issueDate = formatIssueDate(article.issue.date)
 
+    const latestNumber = await getLatestIssueNumber()
+    const showLatest =
+        latestNumber !== undefined && article.issue.number < latestNumber
+
     return (
-        <PageLayout date={issueDate} showAbout={true} showLatest={true}>
+        <PageLayout date={issueDate} showAbout={true} showLatest={showLatest}>
             <FootnoteHandler />
             <ArticleContainer>
                 <ArticleTitle title={article.title} subtitle={article.subtitle || undefined} />
