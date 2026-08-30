@@ -11,8 +11,41 @@ interface ArticleHtmlContentProps {
 }
 
 /**
+ * Parse a CSS text style attribute (e.g. `"height:0.68em;margin-right:0.25em"`)
+ * into the object React's `style` prop requires. KaTeX emits inline `style`
+ * attributes on nearly every span it renders, and passing that string
+ * through verbatim makes React throw ("The `style` prop expects a mapping
+ * from style properties to values, not a string").
+ */
+function parseStyleAttribute(styleText: string): Record<string, string> {
+    const style: Record<string, string> = {}
+
+    for (const declaration of styleText.split(';')) {
+        const colonIndex = declaration.indexOf(':')
+        if (colonIndex === -1) continue
+
+        const property = declaration.slice(0, colonIndex).trim()
+        const value = declaration.slice(colonIndex + 1).trim()
+        if (!property || !value) continue
+
+        // Custom properties (--foo) are used as-is; everything else is
+        // camelCased the way React expects (margin-right -> marginRight).
+        const reactProperty = property.startsWith('--')
+            ? property
+            : property.replace(/-([a-z])/g, (_, letter: string) =>
+                  letter.toUpperCase()
+              )
+
+        style[reactProperty] = value
+    }
+
+    return style
+}
+
+/**
  * Convert HTML attributes to React props
  * - class -> className
+ * - style -> parsed into a style object (React rejects a raw CSS string)
  * - data-footnote-target -> preserved for client-side handling
  */
 function convertAttributesToReactProps(attribs: { [key: string]: string }) {
@@ -27,10 +60,18 @@ function convertAttributesToReactProps(attribs: { [key: string]: string }) {
             if (match && match[1]) {
                 // Store as data attribute for client-side script to handle
                 reactProps['data-footnote-target'] = match[1]
-                reactProps['style'] = { cursor: 'pointer' }
+                reactProps['style'] = {
+                    ...(reactProps['style'] as Record<string, string>),
+                    cursor: 'pointer',
+                }
             }
         } else if (key === 'class') {
             reactProps.className = value
+        } else if (key === 'style') {
+            reactProps['style'] = {
+                ...parseStyleAttribute(value),
+                ...(reactProps['style'] as Record<string, string>),
+            }
         } else {
             reactProps[key] = value
         }

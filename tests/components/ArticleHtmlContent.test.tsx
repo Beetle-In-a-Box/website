@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'bun:test'
 import { render } from '@testing-library/react'
+import katex from 'katex'
 
 import ArticleHtmlContent from '@/components/article/ArticleHtmlContent'
 
@@ -394,6 +395,49 @@ describe('ArticleHtmlContent', () => {
             expect(span).toBeTruthy()
             expect(span?.className).toContain('important')
             expect(span?.getAttribute('data-footnote-target')).toBe('target1')
+        })
+    })
+
+    describe('Inline Style Parsing (KaTeX)', () => {
+        it('renders an element with a CSS-text style attribute without throwing', () => {
+            const html = `<span style="height:0.68em;margin-right:0.25em">x</span>`
+
+            const { container } = render(<ArticleHtmlContent html={html} />)
+
+            const span = container.querySelector('span')
+            expect(span).toBeTruthy()
+            expect(span?.textContent).toBe('x')
+            expect(span?.style.height).toBe('0.68em')
+            expect(span?.style.marginRight).toBe('0.25em')
+        })
+
+        it('keeps the footnote cursor-pointer style working alongside style parsing', () => {
+            const html = `
+                <sup class='footnoteLink' id='fl1' onclick="goToElementWithHighlightModern('f1')">1</sup>
+            `
+
+            const { container } = render(<ArticleHtmlContent html={html} />)
+
+            const sup = container.querySelector('sup')
+            expect(sup?.style.cursor).toBe('pointer')
+        })
+
+        it('renders real katex.renderToString output without throwing', () => {
+            const katexHtml = katex.renderToString('\\frac{a}{b}', {
+                throwOnError: false,
+            })
+
+            const { container } = render(
+                <ArticleHtmlContent html={`<p>${katexHtml}</p>`} />
+            )
+
+            const katexSpan = container.querySelector('.katex')
+            expect(katexSpan).toBeTruthy()
+            // KaTeX emits many spans with inline style="height:...;..." -
+            // if any survived as a raw string prop, render() above would
+            // have thrown before this assertion is reached.
+            const styledSpans = container.querySelectorAll('[style]')
+            expect(styledSpans.length).toBeGreaterThan(0)
         })
     })
 
