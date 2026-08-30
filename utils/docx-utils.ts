@@ -142,6 +142,17 @@ export async function convertArticleDocx(buffer: Buffer): Promise<{
             })
         }
 
+        // Docs often have a lone "Notes" (or "Endnotes") label paragraph
+        // immediately before manually-typed endnotes. It gets left dangling
+        // at the end of mainContent once the footnotes are split out —
+        // strip it, but only when footnotes were actually found, so plain
+        // prose mentioning "notes" is never touched.
+        if (footnotes.length > 0) {
+            const notesLabelPattern =
+                /\s*<(p|h[1-6])(?: class="centered")?>\s*(?:<(?:strong|em|b|i)>\s*)*(?:notes|endnotes):?(?:\s*<\/(?:strong|em|b|i)>)*\s*<\/\1>\s*$/i
+            mainContent = mainContent.replace(notesLabelPattern, '')
+        }
+
         // Process footnotes - format with proper structure
         let citationsHtml: string | null = null
         if (footnotes.length > 0) {

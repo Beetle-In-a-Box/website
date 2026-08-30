@@ -59,4 +59,30 @@ describe('docx feature support', () => {
         expect(citations).not.toBeNull()
         expect(citations).toContain('a citation')
     })
+
+    it('strips a trailing Notes label left dangling above manually typed endnotes', async () => {
+        const buffer = await docxFrom(
+            '<p>body text</p><p>Notes</p><p>[1] a citation</p>'
+        )
+        const { content, citations } = await convertArticleDocx(buffer)
+        expect(content).not.toMatch(/<p[^>]*>\s*Notes\s*<\/p>/i)
+        expect(content).toContain('body text')
+        expect(citations).not.toBeNull()
+        expect(citations).toContain('a citation')
+    })
+
+    it('leaves prose mentioning "notes" alone', async () => {
+        const buffer = await docxFrom(
+            '<p>These are important notes on the matter<sup>1</sup></p><p><sup>1</sup> a citation</p>'
+        )
+        const { content } = await convertArticleDocx(buffer)
+        expect(content).toContain('important notes on the matter')
+    })
+
+    it('keeps a trailing Notes paragraph when there are no footnotes', async () => {
+        const buffer = await docxFrom('<p>body text</p><p>Notes</p>')
+        const { content, citations } = await convertArticleDocx(buffer)
+        expect(citations).toBeNull()
+        expect(content).toMatch(/<p[^>]*>\s*Notes\s*<\/p>/i)
+    })
 })
