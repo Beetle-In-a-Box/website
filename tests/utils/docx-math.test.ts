@@ -27,6 +27,18 @@ function documentXmlWithFraction(): string {
 </w:document>`
 }
 
+function documentXmlWithDisplayFraction(): string {
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math">
+<w:body>
+<w:p><w:r><w:t>before display equation</w:t></w:r></w:p>
+<w:p><m:oMathPara><m:oMath><m:f><m:num><m:r><m:t>a</m:t></m:r></m:num><m:den><m:r><m:t>b</m:t></m:r></m:den></m:f></m:oMath></m:oMathPara></w:p>
+<w:p><w:r><w:t>after display equation</w:t></w:r></w:p>
+<w:sectPr/>
+</w:body>
+</w:document>`
+}
+
 async function buildMinimalDocx(documentXml: string): Promise<Buffer> {
     const zip = new JSZip()
     zip.file('[Content_Types].xml', CONTENT_TYPES_XML)
@@ -105,5 +117,27 @@ describe('convertArticleDocx with embedded OMML equations', () => {
         expect(content).not.toContain('@@MATH:')
         expect(content).toContain('katex')
         expect(content).toContain('frac')
+    })
+
+    it('renders an m:oMathPara-wrapped equation in KaTeX display mode', async () => {
+        const buffer = await buildMinimalDocx(documentXmlWithDisplayFraction())
+
+        let content: string
+        try {
+            ;({ content } = await convertArticleDocx(buffer))
+        } catch (error) {
+            throw new Error(
+                `mammoth could not parse the hand-built oMathPara fixture docx: ${error instanceof Error ? error.message : String(error)}`
+            )
+        }
+
+        expect(content).toContain('before display equation')
+        expect(content).toContain('after display equation')
+        expect(content).not.toContain('@@MATH:')
+        // The presence of *any* katex span was already proven above for the
+        // bare oMath (inline) case. This asserts displayMode: true actually
+        // flowed through the oMathPara branch specifically, not just that
+        // some katex markup exists.
+        expect(content).toContain('katex-display')
     })
 })
