@@ -95,3 +95,15 @@ a {
     color: black;
     text-decoration: none;
 }
+
+/*
+ * Browser-default sup enlarges the line box it sits in, so lines with a
+ * footnote marker render farther apart than lines without one. line-height 0
+ * plus a relative shift keeps every line box the same height.
+ */
+sup {
+    font-size: 0.7em;
+    line-height: 0;
+    vertical-align: baseline;
+    position: relative;
+    top: -0.5em;
