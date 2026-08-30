@@ -39,7 +39,7 @@ export default async function ConnectPage() {
                     <Text as="p">
                         If you would like to join us, please{' '}
                         <Link
-                            href="https://docs.google.com/forms/d/1m9pXMf5iISXGZx_3-TdfRghI-S7f1ckXzumdjoGXZWw/viewform"
+                            href="https://tinyurl.com/beetle2026fall"
                             target="_blank"
                         >
                             apply here
