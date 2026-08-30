@@ -107,7 +107,7 @@ beetle-in-a-box/
 │   │   ├── ArticleTitle.tsx
 │   │   ├── ArticleAuthor.tsx
 │   │   ├── ArticleContent.tsx
-│   │   ├── ArticleHtmlContent.tsx   # Converts HTML to React with safe Image components
+│   │   ├── ArticleHtmlContent.tsx   # Converts HTML to React, images render as plain <img>
 │   │   └── FootnoteHandler.tsx      # Client-side footnote click handling
 │   ├── issue/               # Issue listing components
 │   │   ├── ContentsContainer.tsx
@@ -127,14 +127,11 @@ beetle-in-a-box/
 │   ├── file-upload.ts      # File validation & upload
 │   ├── docx-utils.ts       # .docx to HTML conversion
 │   └── text-utils.ts       # HTML entity utilities
-├── tests/                   # Test files (63 tests)
-│   ├── api/                # API tests (32 tests)
-│   │   ├── issues.test.ts      # 14 tests
-│   │   └── articles.test.ts    # 18 tests
-│   └── utils/              # Utility tests (31 tests)
-│       ├── file-upload.test.ts  # 13 tests
-│       ├── docx-utils.test.ts   # 11 tests
-│       └── text-utils.test.ts   # 7 tests
+├── tests/                   # Test files (215+ tests)
+│   ├── api/                # API route tests (52 tests across 5 files)
+│   ├── utils/              # Utility tests (116 tests across 8 files)
+│   ├── components/         # Component tests (34 tests across 2 files)
+│   └── scripts/            # Script tests (13 tests across 1 file)
 ├── prisma/                  # Database schema and migrations
 │   ├── schema.prisma        # Prisma schema (Issue & Article models)
 │   └── migrations/          # Database migrations
@@ -317,8 +314,8 @@ passthrough on the OCF host: a 943 KB PNG requested at `w=640&q=75` with
 sharp on that same host produces 33,552 bytes from the same file. It affects `public/`
 assets too. `components/ui/CoverImage.tsx` renders a plain `<img srcset>` against these
 derivatives instead. Images inside article body text
-(`components/article/ArticleHtmlContent.tsx`) still use `next/image` and are unaffected by
-this work.
+(`components/article/ArticleHtmlContent.tsx`) render as plain `<img>` too (maxWidth 100%) -
+mammoth embeds them as base64 data URIs, which would not survive `next/image`.
 
 *auth.ts*:
 - `verifyAuth(token)` - Verifies JWT token from cookie, returns boolean
@@ -360,7 +357,8 @@ this work.
   - Subtitle displayed in smaller font below the main title when present
 - `ArticleHtmlContent` component safely converts .docx-generated HTML to React
   - Uses html-react-parser to parse HTML string
-  - Converts <img> tags to Next.js Image components for optimization
+  - Renders <img> tags as plain `<img>` (maxWidth 100%), not next/image - mammoth embeds them
+    as base64 data URIs, which would not survive next/image
   - Makes all external links open in new tabs with proper security attributes
   - Preserves footnote functionality via data-footnote-target attributes
 - `FootnoteHandler` client component manages interactive footnote navigation
@@ -384,10 +382,12 @@ this work.
 - Admin forms allow entering artist name when creating/editing issues and articles
 
 **Author Components and Pages**:
-- `ArticleAuthor.tsx`: Renders author name with optional biography underneath
-  - Props: `name` (string), `bio?` (optional string), `slug` (string)
-  - Author name is a clickable link to `/author/[slug]`
-  - Bio displayed in smaller font below the name when present
+- `ArticleAuthor.tsx`: Renders "By {author} | {role}" above an article; no biography here
+  - Props: `author` (`{ name: string, slug: string } | string | null`), `role?` (defaults to "Staff Writer")
+  - When `author` is an object, the name links to `/author/[slug]` via `AuthorLink`
+  - When `author` is a plain string (legacy data with no Author record), it links to `/about` instead
+  - `author === null` renders nothing
+  - Bios are never rendered here - they only appear on `/author/[slug]`
 - `AuthorLink.tsx`: Reusable component that renders a clickable link to author detail page
   - Props: `name` (string), `slug` (string), `className` (optional)
   - Links to `/author/[slug]` where slug format is "name-shortid"
@@ -416,7 +416,9 @@ this work.
   - Used by archive page to display past issues
 
 **FloatingBar Component** (footer navigation):
-- `FloatingBar.tsx`: Server component displaying four sticky navigation links at bottom of page
+- `FloatingBar.tsx`: Server component displaying sticky navigation links at bottom of page - three
+  by default (About Us | Archive | Connect), with "Latest" appearing as a fourth link only on
+  past-issue pages
   - Links: "About Us" → `/about`, "Latest" (conditional), "Archive" → `/archive`, "Connect" → `/connect`
   - "Latest" link appears only on past-issue pages (when the current issue number is below the latest published issue, determined by `getLatestIssueNumber()` in utils/issue-utils.ts)
   - "Back to Top" link removed
@@ -439,7 +441,7 @@ this work.
 - All Prisma calls are mocked (no database access during tests)
 - File operations are mocked (no file system access during tests)
 - Test files in `tests/` directory (not `__tests__/`)
-- 63+ tests with comprehensive coverage
+- 215+ tests with comprehensive coverage, across `tests/api`, `tests/utils`, `tests/components`, and `tests/scripts`
 - Run with `bun test` (Bun's native test runner - fully compatible with Jest syntax)
 - Imports from `bun:test` (describe, it, expect, spyOn, etc.)
 - Uses `spyOn()` for mocking functions, `mockReset()` for cleanup
@@ -509,7 +511,8 @@ clean, refactor, or commit to them. They are separate git repos; changes there a
 ## Development Guidelines
 
 1. **Package Manager**: Always use `bun` commands, not `npm` or `yarn`
-2. **Database Changes**: Run `bun prisma migrate dev` after schema changes
+2. **Database Changes**: Schema changes are applied with `npx prisma db push` (locally and on
+   the OCF host) - the repo's migration history is not the deployment mechanism
 3. **New Components**: Place in appropriate folder (ui/, article/, issue/, layout/)
 4. **Styling**: Use SCSS modules, follow existing naming patterns
 5. **Typography**: Use UI components (Title, Text, Link, etc.) for consistency
@@ -578,11 +581,11 @@ bun test:coverage
 
 **Note**: Tests use Bun's test runner, not Jest directly. The command `bun test` runs `bun jest` under the hood.
 
-### Database Migration
+### Database Schema Changes
 
 ```bash
-# After changing prisma/schema.prisma:
-npx prisma migrate dev --name describe_your_change
+# After changing prisma/schema.prisma (locally and on the OCF host):
+npx prisma db push
 
 # To see database in browser:
 npx prisma studio
