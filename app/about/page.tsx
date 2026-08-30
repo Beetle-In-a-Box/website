@@ -9,7 +9,7 @@ import styles from './page.module.scss'
 export const dynamic = 'force-dynamic'
 
 const editors = [
-    { name: 'Max Abubucker' },
+    { name: 'Max Abubucker', role: 'President of the Editorial Board' },
     { name: 'Deniz Durusoy', role: 'President of the Editorial Board' },
     { name: 'Nicole Kadi', role: 'President of Administration' },
     { name: 'Sichen Li', role: 'President of Design' },

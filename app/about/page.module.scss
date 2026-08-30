@@ -6,6 +6,9 @@
     gap: 4vw;
     width: 100%;
     align-items: start;
+    // The footer sits directly below this grid; without this the last line of
+    // the name story touches it.
+    margin-bottom: 6vh;
 }
 
 .column {
