@@ -10,9 +10,13 @@
 }
 
 .subtitle {
-    font-family: 'Vidaloka', serif;
+    // A deck, not a second title: set in the body face (Lora) rather than
+    // the display face the title uses, clearly smaller, a step lighter in
+    // color, with enough air above that it reads as its own line.
+    font-family: 'Lora', serif;
     font-style: italic;
-    font-size: clamp(1.1rem, 3vw, 1.6rem);
-    color: #333;
-    margin-top: 0.35em;
+    font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+    line-height: 1.4;
+    color: #555;
+    margin-top: 0.55em;
 }

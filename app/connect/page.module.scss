@@ -7,6 +7,15 @@
     width: 100%;
 }
 
+.connectList p {
+    // The shared Text component justifies paragraphs, which only shows once
+    // a line wraps on narrow screens — wrapped lines went ragged-justified
+    // while the single-line entries stayed visually centered. Center wins
+    // here by specificity (.connectList p beats the component's own class).
+    text-align: center;
+    text-indent: 0;
+}
+
 .connectList a {
     text-decoration: underline;
 }
