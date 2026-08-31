@@ -244,6 +244,13 @@ ADMIN_PASSWORD_HASH=\$2b\$10\$... # bcrypt hash of admin password
 SESSION_SECRET=your-secret-key    # JWT signing secret
 ```
 
+**Environment Variables (optional)**:
+- `UPLOADS_FALLBACK_URL` - Base URL of the *other* host, set only while running dual-hosted (e.g.
+  OCF and Railway sharing one Postgres database but with separate local `uploads/` disks). When a
+  requested upload is missing locally, `utils/uploads-fallback.ts` fetches it from this URL, saves
+  a copy to local disk, and serves it - so both hosts converge toward a complete `uploads/` copy
+  over time. Unset in local dev and in any single-host deployment.
+
 **Generating Password Hash**:
 ```bash
 node -e "const bcrypt = require('bcryptjs'); console.log(bcrypt.hashSync('your-password', 10));"

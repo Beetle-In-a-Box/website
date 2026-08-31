@@ -3,6 +3,23 @@ import { readFile } from 'fs/promises'
 import { basename, resolve, sep } from 'path'
 import { existsSync } from 'fs'
 import { getVariant, parseVariantWidth } from '@/utils/image-variants'
+import {
+    fetchAndCacheUpload,
+    FALLBACK_GUARD_HEADER,
+} from '@/utils/uploads-fallback'
+
+/** Determine content type based on file extension. */
+function contentTypeForExt(ext: string | undefined): string {
+    if (ext === 'png') return 'image/png'
+    if (ext === 'jpg' || ext === 'jpeg') return 'image/jpeg'
+    if (ext === 'gif') return 'image/gif'
+    if (ext === 'webp') return 'image/webp'
+    if (ext === 'docx') {
+        return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    }
+    if (ext === 'pdf') return 'application/pdf'
+    return 'application/octet-stream'
+}
 
 /**
  * GET /api/static/images/[filename] or /api/static/articles/[filename] or /api/static/pdfs/[filename]
@@ -56,8 +73,33 @@ export async function GET(
             )
         }
 
-        // Check if file exists
+        // Check if file exists. If it's missing, try borrowing it from the
+        // other host (dual-hosted OCF/Railway setups share one database but
+        // have separate local uploads/ disks) - but never when this request
+        // itself arrived via that fallback path, so two hosts that both lack
+        // the file cannot ping-pong forever.
         if (!existsSync(filePath)) {
+            if (!request.headers.has(FALLBACK_GUARD_HEADER)) {
+                const fallbackBuffer = await fetchAndCacheUpload(
+                    `/${type}/${safeFilename}`,
+                )
+                if (fallbackBuffer) {
+                    const ext = safeFilename.split('.').pop()?.toLowerCase()
+                    const contentType = contentTypeForExt(ext)
+                    return new NextResponse(new Uint8Array(fallbackBuffer), {
+                        headers: {
+                            'Content-Type': contentType,
+                            'Cache-Control':
+                                'public, max-age=31536000, immutable',
+                            'Content-Disposition':
+                                type === 'articles' || type === 'pdfs'
+                                    ? `attachment; filename="${safeFilename}"`
+                                    : 'inline',
+                        },
+                    })
+                }
+            }
+
             return NextResponse.json(
                 { error: 'File not found' },
                 { status: 404 }
@@ -94,18 +136,7 @@ export async function GET(
 
         // Determine content type based on extension
         const ext = safeFilename.split('.').pop()?.toLowerCase()
-        let contentType = 'application/octet-stream'
-
-        if (ext === 'png') contentType = 'image/png'
-        else if (ext === 'jpg' || ext === 'jpeg') contentType = 'image/jpeg'
-        else if (ext === 'gif') contentType = 'image/gif'
-        else if (ext === 'webp') contentType = 'image/webp'
-        else if (ext === 'docx') {
-            contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        }
-        else if (ext === 'pdf') {
-            contentType = 'application/pdf'
-        }
+        const contentType = contentTypeForExt(ext)
 
         // Return file with aggressive caching headers
         // Files are immutable (timestamped filenames), so cache forever

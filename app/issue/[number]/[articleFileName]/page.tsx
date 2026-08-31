@@ -11,6 +11,7 @@ import FootnoteHandler from '@/components/article/FootnoteHandler'
 import CoverImage from '@/components/ui/CoverImage'
 import { prisma } from '@/utils/prisma'
 import { convertArticleDocx } from '@/utils/docx-utils'
+import { fetchAndCacheUpload } from '@/utils/uploads-fallback'
 import { formatIssueDate } from '@/utils/date-utils'
 import { getLatestIssueNumber } from '@/utils/issue-utils'
 import styles from './page.module.scss'
@@ -50,7 +51,20 @@ async function convertDocxToHtml(docxPath: string) {
             ? docxPath.slice(1)
             : docxPath
         const filePath = join(process.cwd(), 'uploads', relativePath)
-        const buffer = await readFile(filePath)
+
+        let buffer: Buffer
+        try {
+            buffer = await readFile(filePath)
+        } catch (readError) {
+            // Missing locally - try borrowing it from the other host before
+            // giving up (dual-hosted OCF/Railway setups share one database
+            // but have separate local uploads/ disks).
+            const fallbackBuffer = await fetchAndCacheUpload(
+                `/${relativePath}`,
+            )
+            if (!fallbackBuffer) throw readError
+            buffer = fallbackBuffer
+        }
 
         // Convert to HTML with footnote handling (returns { content, citations })
         return await convertArticleDocx(buffer)
