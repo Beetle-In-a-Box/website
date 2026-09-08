@@ -19,8 +19,8 @@ export default async function ConnectPage() {
                 <div className={styles.connectList}>
                     <Text as="p">
                         Email:{' '}
-                        <Link href="mailto:beetleinabox@gmail.com">
-                            beetleinabox@gmail.com
+                        <Link href="mailto:beetleinaboxcal@gmail.com">
+                            beetleinaboxcal@gmail.com
                         </Link>
                     </Text>
                     <Text as="p">
